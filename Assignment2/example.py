@@ -1,4 +1,6 @@
 from Utils import *
+# from pdp_utils.Utils import load_problem
+# from UtilsOld import load_problem, feasibility_check, cost_function
 
 prob = load_problem("../Data/Call_7_Vehicle_3.txt")
 
@@ -9,7 +11,6 @@ print(prob.keys())
 	print(f"{k} {v}")"""
 
 print(prob["vehicle_calls"])
-exit(0)
 
 feasiblity, c = feasibility_check(sol, prob)
 
