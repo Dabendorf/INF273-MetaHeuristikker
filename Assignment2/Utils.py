@@ -1,6 +1,8 @@
 import numpy as np
 from collections import namedtuple
+import logging
 
+logger = logging.getLogger(__name__)
 
 def load_problem(filename: str):
 	"""
@@ -9,6 +11,7 @@ def load_problem(filename: str):
 	:param filename: Address of the problem input file
 	:return: Named tuple object of problem attributes
 	"""
+	logger.debug(f"Reading input file {filename}: Start")
 	temp_vehicle_info = []
 	temp_vehicle_call_list = []
 	temp_call_info = []
@@ -73,6 +76,9 @@ def load_problem(filename: str):
 		while not line.startswith("%"):
 			temp_node_costs.append(line.strip().split(","))
 			line = f.readline()
+	
+	logger.debug(f"Reading input file {filename}: Finish")
+	logger.debug(f"Converting input data: Start")
 		
 	# Travel times and costs (vehicle, origin_node, dest_node) = (travel_time, travel_cost)
 	travel_times_costs = dict()
@@ -104,6 +110,7 @@ def load_problem(filename: str):
 	# call_info			2D-List with [idx, origin_node, dest_node, size, cost_of_not_transporting, earliest_pickup_time, latest_pickup_time, earliest_delivery_time, latest_delivery_time]	Call information
 	# vehicle_calls		dict[idx] = list(call_numbers)	Dictionary of lists of calls per vehicle
 
+	logger.debug(f"Converting input data: Finish")
 	# return output as a dictionary
 	output = {
 		"num_nodes": num_nodes,
