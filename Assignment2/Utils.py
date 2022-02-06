@@ -129,7 +129,7 @@ def load_problem(filename: str):
 	return output
 
 
-def feasibility_check(solution, problem):
+def feasibility_check(solution: list(), problem: dict()):
 	"""
 
 	:rtype: tuple
@@ -209,7 +209,7 @@ def feasibility_check(solution, problem):
 	return feasibility, c
 
 
-def cost_function(solution, problem):
+def cost_function(solution: list(), problem: dict()):
 	"""
 	Function calculates the cost (not to confuse with time) of a solution
 	This consists of transportation cost, origin and destination costs and cost of not transporting

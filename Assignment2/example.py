@@ -1,6 +1,4 @@
 from Utils import *
-# from pdp_utils.Utils import load_problem
-# from UtilsOld import load_problem, feasibility_check, cost_function
 
 import logging
 
@@ -15,8 +13,6 @@ def main():
 	sol = [0, 2, 2, 0, 1, 5, 5, 3, 1, 3, 0, 7, 4, 6, 7, 4, 6]
 
 	print(prob.keys())
-	"""for k, v in prob.items():
-		print(f"{k} {v}")"""
 
 	# feasiblity, c = feasibility_check(sol, prob)
 	# logger.info("Feasibility Check finished")
