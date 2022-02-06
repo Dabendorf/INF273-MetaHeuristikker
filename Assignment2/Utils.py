@@ -1,6 +1,9 @@
+from cProfile import label
+import enum
 import numpy as np
 from collections import namedtuple
 import logging
+from itertools import groupby
 
 logger = logging.getLogger(__name__)
 
@@ -208,52 +211,86 @@ def feasibility_check(solution, problem):
 
 def cost_function(solution, problem):
 	"""
+	Function calculates the cost (not to confuse with time) of a solution
+	This consists of transportation cost, origin and destination costs and cost of not transporting
 
 	:param solution: the proposed solution for the order of calls in each vehicle
-	:param problem:
-	:return:
+	:param problem: dictionary of problem data
+	:return: Integer with costs
 	"""
 
-	num_vehicles = problem['n_vehicles']
-	cargo = problem['cargo']
-	travel_cost = problem['travel_cost']
-	first_travel_cost = problem['first_travel_cost']
-	port_cost = problem['port_cost']
+	logging.debug(f"Solution: {solution}")
+	logging.debug(f"Problem keys: {problem.keys()}")
+
+	num_vehicles = problem["num_vehicles"]
+	call_info = problem["call_info"]
+	travel_cost_dict = problem["travel_time_cost"]
+	node_cost_dict = problem["node_time_cost"]
+	vehicle_info = problem["vehicle_info"]
 
 	not_transport_cost = 0
-	route_travel_cost = np.zeros(num_vehicles)
-	cost_in_ports = np.zeros(num_vehicles)
+	sum_travel_cost = 0
+	sum_node_cost = 0
 
-	solution = np.append(solution, [0])
-	zero_index = np.array(np.where(solution == 0)[0], dtype=int)
-	tempidx = 0
+	# Start calculate not transported costs
+	rev_sol = solution[::-1]
+	ind_last_null = rev_sol.index(0)
+	not_visited = set(rev_sol[:ind_last_null])
+	logging.debug(f"Ports not visited: {not_visited}")
 
-	for i in range(num_vehicles + 1):
-		currentVPlan = solution[tempidx:zero_index[i]]
-		currentVPlan = currentVPlan - 1
-		no_double_call_on_vehicle = len(currentVPlan)
-		tempidx = zero_index[i] + 1
+	for not_vis in not_visited:
+		not_transport_cost += call_info[not_vis-1][4]
+	# Finish calculate not transported costs
+	logging.debug(f"Cost not transporting: {not_transport_cost}")
 
-		if i == num_vehicles:
-			not_transport_cost = np.sum(cargo[currentVPlan, 3]) / 2
-		else:
-			if no_double_call_on_vehicle > 0:
-				sortRout = np.sort(currentVPlan)
-				I = np.argsort(currentVPlan)
-				indx = np.argsort(I)
+	sol_split_by_vehicle = split_a_list_at_zeros(solution)[0:num_vehicles]
+	logging.debug(f"Solution split by vehicle: {sol_split_by_vehicle}")
 
-				port_index = cargo[sortRout, 1].astype(int)
-				port_index[::2] = cargo[sortRout[::2], 0]
-				port_index = port_index[indx] - 1
+	# Loop for costs of nodes and transport
+	for veh_ind, l in enumerate(sol_split_by_vehicle):
+		set_visited = list(set(l))
+		for call_ind in set_visited:
+			# Nodes
+			call_cost_list = node_cost_dict[(veh_ind+1, call_ind)]
+			sum_node_cost += (call_cost_list[1] + call_cost_list[3])
 
-				diag = travel_cost[i, port_index[:-1], port_index[1:]]
+		# Transport (edges)
+		length_list = len(l)
+		if length_list > 0:
+			calls_visited = set()
+			home_node = vehicle_info[veh_ind][1]
+			call_numb = l[0]-1
+			calls_visited.add(call_numb)
+			ci = call_info[call_numb]
+			start_node = ci[1]
 
-				first_visit_cost = first_travel_cost[i, int(
-					cargo[currentVPlan[0], 0] - 1)]
-				route_travel_cost[i] = np.sum(
-					np.hstack((first_visit_cost, diag.flatten())))
-				cost_in_ports[i] = np.sum(port_cost[i, currentVPlan]) / 2
+			sum_travel_cost += travel_cost_dict[(veh_ind+1, home_node, start_node)][1]
+			
+			for i in range(1, length_list):
+				call_numb = l[i]-1
+				if call_numb in calls_visited:
+					calls_visited.remove(call_numb)
+					ci = call_info[call_numb]
+					goal_node = ci[2]
+				else:
+					calls_visited.add(call_numb)
+					ci = call_info[call_numb]
+					goal_node = ci[1]
+				sum_travel_cost += travel_cost_dict[(veh_ind+1, start_node, goal_node)][1]
+				start_node = goal_node
 
-	total_cost = not_transport_cost + \
-		sum(route_travel_cost) + sum(cost_in_ports)
+	logging.debug(f"Cost of nodes: {sum_node_cost}")
+	logging.debug(f"Cost of travel: {sum_travel_cost}")
+
+	total_cost = not_transport_cost + sum_travel_cost + sum_node_cost
+	logging.debug(f"Total costs: {total_cost}")
 	return total_cost
+
+def split_a_list_at_zeros(k: list()):
+	""" Splits a list into sublists by positions of zeros
+		Function sponsored by Stackoverflow:
+		https://stackoverflow.com/questions/71007348/split-list-into-several-lists-at-specific-values
+		"""
+	gr = groupby(k,  lambda a: a==0)
+	l = [[] if a else [*b] for a,b in gr]
+	return [ a for idx,a in enumerate(l) if idx in (0,len(l)) or a]

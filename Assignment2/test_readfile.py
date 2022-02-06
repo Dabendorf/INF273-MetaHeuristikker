@@ -1,12 +1,12 @@
 from unittest import TestCase
 
-from simplejson import load
 from Utils import load_problem
 import pytest
 import random
 	
 class ReadProblem(TestCase):
-	pytest.problem_file = load_problem("Data/Call_7_Vehicle_3.txt")
+	pytest.path_testfile = "Data/Call_7_Vehicle_3.txt"
+	pytest.problem_file = load_problem(pytest.path_testfile)
 
 	def test_length_problem_dict(self):
 		assert len(pytest.problem_file) == 8
@@ -19,7 +19,7 @@ class ReadProblem(TestCase):
 			else:
 				counter += len(v)
 
-		assert (counter+9) == sum(1 for line in open("Data/Call_7_Vehicle_3.txt"))
+		assert (counter+9) == sum(1 for line in open(pytest.path_testfile))
 
 	def test_datatype_num_nodes(self):
 		assert type(pytest.problem_file["num_nodes"]) == int

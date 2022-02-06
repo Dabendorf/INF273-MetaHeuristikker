@@ -5,7 +5,7 @@ from Utils import *
 import logging
 
 def main():
-	logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.DEBUG)
+	logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
 	logger = logging.getLogger(__name__)
 	logger.disabled = False
 
@@ -18,17 +18,16 @@ def main():
 	"""for k, v in prob.items():
 		print(f"{k} {v}")"""
 
-	print(prob["vehicle_calls"])
+	# feasiblity, c = feasibility_check(sol, prob)
+	# logger.info("Feasibility Check finished")
+	logger.info("Feasibility Check skipped")
 
-	feasiblity, c = feasibility_check(sol, prob)
-	logger.info("Feasibility Check finished")
-
-	Cost = cost_function(sol, prob)
+	cost = cost_function(sol, prob)
 	logger.info("Cost function finished")
 
-	print(feasiblity)
-	print(c)
-	print(Cost)
+	#print(feasiblity)
+	# print(c)
+	print(cost)
 
 if __name__ == "__main__":
 	main()
