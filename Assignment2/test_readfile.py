@@ -43,4 +43,4 @@ class ReadProblem(TestCase):
 		assert len(pytest.problem_file["call_info"][0]) == 9
 
 	def test_columns_vehicle_calls(self):
-		assert type(random.choice(list(pytest.problem_file["vehicle_calls"].values()))) == list
+		assert type(random.choice(list(pytest.problem_file["vehicle_calls"].values()))) == set

@@ -5,6 +5,8 @@ from collections import namedtuple
 import logging
 from itertools import groupby
 
+from sqlalchemy import false
+
 logger = logging.getLogger(__name__)
 
 def load_problem(filename: str):
@@ -102,7 +104,7 @@ def load_problem(filename: str):
 	# Dictionary of lists of calls per vehicle dict[idx] = list(call_numbers)
 	vehicle_calls = dict()
 	for el in temp_vehicle_call_list:
-		vehicle_calls[int(el[0])] = list(map(int, el[1:]))
+		vehicle_calls[int(el[0])] = set(map(int, el[1:]))
 
 	# num_nodes			int 	number of nodes
 	# num_vehicles 		int 	number of vehicles
@@ -111,7 +113,7 @@ def load_problem(filename: str):
 	# node_time_costs	dict[(vehicle, call)] = (orig_time, orig_cost, dest_time, dest_cost) Node times and costs 
 	# vehicle_info		2D-List with [idx, home_node, starting_time, capacity]	Vehicle information 
 	# call_info			2D-List with [idx, origin_node, dest_node, size, cost_of_not_transporting, earliest_pickup_time, latest_pickup_time, earliest_delivery_time, latest_delivery_time]	Call information
-	# vehicle_calls		dict[idx] = list(call_numbers)	Dictionary of lists of calls per vehicle
+	# vehicle_calls		dict[idx] = set(call_numbers)	Dictionary of set of calls per vehicle
 
 	logger.debug(f"Converting input data: Finish")
 	# return output as a dictionary
@@ -130,21 +132,64 @@ def load_problem(filename: str):
 
 
 def feasibility_check(solution: list(), problem: dict()):
-	"""
+	"""Checks if a solution is feasibile and if not what the reason for that is
 
-	:rtype: tuple
 	:param solution: The input solution of order of calls for each vehicle to the problem
-	:param problem: The pickup and delivery problem object
+	:param problem: The pickup and delivery problem dictionary
 	:return: whether the problem is feasible and the reason for probable infeasibility
 	"""
-	num_vehicles = problem['n_vehicles']
-	cargo = problem['cargo']
-	travel_time = problem['travel_time']
-	first_travel_time = problem['first_travel_time']
-	vessel_capacity = problem['vessel_capacity']
-	loading_time = problem['loading_time']
-	unloading_time = problem['unloading_time']
-	vessel_cargo = problem['vessel_cargo']
+	logging.debug(f"Start feasibility check")
+	logging.debug(f"Solution: {solution}")
+	logging.debug(f"Problem keys: {problem.keys()}")
+
+	num_vehicles = problem["num_vehicles"]
+	vehicle_info = problem["vehicle_info"]
+	vehicle_calls = problem["vehicle_calls"]
+	call_info = problem["call_info"]
+	travel_cost_dict = problem["travel_time_cost"]
+	node_cost_dict = problem["node_time_cost"]
+
+	reason_not_feasible = ""
+
+	# Checks three conditions
+	# (1) Check if calls and vehicles are compatible
+	sol_split_by_vehicle = split_a_list_at_zeros(solution)[0:num_vehicles]
+	logging.debug(f"Solution split by vehicle: {sol_split_by_vehicle}")
+
+	for veh_ind, l in enumerate(sol_split_by_vehicle):
+		set_visited = set(l)
+		set_allowed_to_visit = set(vehicle_calls[veh_ind+1])
+		
+		# if building set difference everything should disappear if set_visited only contains valid points
+		# if not, the length > 1 and an illegal call was served
+		if len(set_visited-set_allowed_to_visit) > 0:
+			logging.debug(f"Solution not feasible - Vehicle served call without permission")
+			reason_not_feasible = "Incompatible call and vehicle"
+			break
+
+	# (2) Capacity of the vehicle
+	for veh_ind, l in enumerate(sol_split_by_vehicle):
+		size_available = vehicle_info[veh_ind][3]
+		
+		calls_visited = set()
+		for call in l:
+			if call in calls_visited:
+				calls_visited.remove(call)
+				size_available += call_info[call-1][3]
+			else:
+				calls_visited.add(call)
+				size_available -= call_info[call-1][3]
+				if size_available < 0:
+					logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} got overloaded")
+					reason_not_feasible = "Vehicle got overloaded"
+					break
+
+	# (3) Time windows at both nodes
+	
+	logging.debug(f"Feasible: {(True if reason_not_feasible == '' else False)}, Reason: {reason_not_feasible}")
+	return (True if reason_not_feasible == "" else False), reason_not_feasible
+
+	"""
 
 	solution = np.append(solution, [0])
 	zero_index = np.array(np.where(solution == 0)[0], dtype=int)
@@ -206,7 +251,7 @@ def feasibility_check(solution: list(), problem: dict()):
 						break
 					current_time = arrive_time[j] + lu_time[j]
 
-	return feasibility, c
+	return feasibility, c"""
 
 
 def cost_function(solution: list(), problem: dict()):
@@ -218,7 +263,7 @@ def cost_function(solution: list(), problem: dict()):
 	:param problem: dictionary of problem data
 	:return: Integer with costs
 	"""
-
+	logging.debug(f"Start cost function")
 	logging.debug(f"Solution: {solution}")
 	logging.debug(f"Problem keys: {problem.keys()}")
 
