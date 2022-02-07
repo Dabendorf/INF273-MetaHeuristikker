@@ -171,6 +171,7 @@ def feasibility_check(solution: list(), problem: dict()):
 	for veh_ind, l in enumerate(sol_split_by_vehicle):
 		size_available = vehicle_info[veh_ind][3]
 		
+
 		calls_visited = set()
 		for call in l:
 			if call in calls_visited:
@@ -185,74 +186,65 @@ def feasibility_check(solution: list(), problem: dict()):
 					break
 
 	# (3) Time windows at both nodes
+	for veh_ind, l in enumerate(sol_split_by_vehicle):
+		curr_time = vehicle_info[veh_ind][2]
+		
+		length_list = len(l)
+		if length_list > 0:
+			calls_visited = set()
+			home_node = vehicle_info[veh_ind][1]
+			call_numb = l[0]-1
+			calls_visited.add(call_numb)
+			ci = call_info[call_numb]
+			start_node = ci[1]
+
+			next_travel_time = travel_cost_dict[(veh_ind+1, home_node, start_node)][0]
+			print(f"Travel time from {home_node} to {start_node}: {next_travel_time}")
+			print((veh_ind+1, home_node, start_node))
+			curr_time += next_travel_time
+			for i in range(1, length_list):
+				print("======")
+				call_numb = l[i]-1
+				if call_numb in calls_visited:
+					calls_visited.remove(call_numb)
+					ci = call_info[call_numb]
+					goal_node = ci[2]
+					lower_del, upper_del = call_info[call_numb][7:9]
+
+					if curr_time > upper_del:
+						logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} came too late")
+						reason_not_feasible = "Vehicle came too late"
+					if curr_time > lower_del:
+						curr_time = lower_del
+
+					next_loading_time = node_cost_dict[(veh_ind+1, call_numb+1)][2]
+					print(f"Waiting time at {goal_node}: {next_loading_time}")
+					curr_time += next_loading_time
+				else:
+					calls_visited.add(call_numb)
+					ci = call_info[call_numb]
+					goal_node = ci[1]
+					lower_pickup, upper_pickup = call_info[call_numb][5:7]
+
+					if curr_time > upper_pickup:
+						logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} came too late")
+						reason_not_feasible = "Vehicle came too late"
+					if curr_time > lower_pickup:
+						curr_time = lower_pickup
+
+					next_loading_time = node_cost_dict[(veh_ind+1, call_numb+1)][0]
+					print(f"Waiting time at {goal_node}: {next_loading_time}")
+					curr_time += next_loading_time
+
+				print((veh_ind+1, start_node, goal_node))
+				next_travel_time =  travel_cost_dict[(veh_ind+1, start_node, goal_node)][0]
+				print(f"Travel time from {start_node} to {goal_node}: {next_travel_time}")
+				curr_time += next_travel_time
+
+				start_node = goal_node
 	
 	logging.debug(f"Feasible: {(True if reason_not_feasible == '' else False)}, Reason: {reason_not_feasible}")
 	return (True if reason_not_feasible == "" else False), reason_not_feasible
-
-	"""
-
-	solution = np.append(solution, [0])
-	zero_index = np.array(np.where(solution == 0)[0], dtype=int)
-	feasibility = True
-	tempidx = 0
-	c = 'Feasible'
-	for i in range(num_vehicles):
-		currentVPlan = solution[tempidx:zero_index[i]]
-		currentVPlan = currentVPlan - 1
-		no_double_call_on_vehicle = len(currentVPlan)
-		tempidx = zero_index[i] + 1
-		if no_double_call_on_vehicle > 0:
-
-			if not np.all(vessel_cargo[i, currentVPlan]):
-				feasibility = False
-				c = 'incompatible vessel and cargo'
-				break
-			else:
-				load_size = 0
-				current_time = 0
-				sortRout = np.sort(currentVPlan)
-				I = np.argsort(currentVPlan)
-				indx = np.argsort(I)
-				load_size -= cargo[sortRout, 2]
-				load_size[::2] = cargo[sortRout[::2], 2]
-				load_size = load_size[indx]
-				if np.any(vessel_capacity[i] - np.cumsum(load_size) < 0):
-					feasibility = False
-					c = 'Capacity exceeded'
-					break
-				time_windows = np.zeros((2, no_double_call_on_vehicle))
-				time_windows[0] = cargo[sortRout, 6]
-				time_windows[0, ::2] = cargo[sortRout[::2], 4]
-				time_windows[1] = cargo[sortRout, 7]
-				time_windows[1, ::2] = cargo[sortRout[::2], 5]
-
-				time_windows = time_windows[:, indx]
-
-				port_index = cargo[sortRout, 1].astype(int)
-				port_index[::2] = cargo[sortRout[::2], 0]
-				port_index = port_index[indx] - 1
-
-				lu_time = unloading_time[i, sortRout]
-				lu_time[::2] = loading_time[i, sortRout[::2]]
-				lu_time = lu_time[indx]
-				diag = travel_time[i, port_index[:-1], port_index[1:]]
-				first_visit_time = first_travel_time[i, int(
-					cargo[currentVPlan[0], 0] - 1)]
-
-				route_travel_time = np.hstack((first_visit_time, diag.flatten()))
-
-				arrive_time = np.zeros(no_double_call_on_vehicle)
-				for j in range(no_double_call_on_vehicle):
-					arrive_time[j] = np.max(
-						(current_time + route_travel_time[j], time_windows[0, j]))
-					if arrive_time[j] > time_windows[1, j]:
-						feasibility = False
-						c = 'Time window exceeded at call {}'.format(j)
-						break
-					current_time = arrive_time[j] + lu_time[j]
-
-	return feasibility, c"""
-
 
 def cost_function(solution: list(), problem: dict()):
 	"""
