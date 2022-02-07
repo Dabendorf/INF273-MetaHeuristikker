@@ -1,11 +1,10 @@
-from cProfile import label
 import enum
 import numpy as np
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 import logging
 from itertools import groupby
-
-from sqlalchemy import false
+import random
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -199,11 +198,11 @@ def feasibility_check(solution: list(), problem: dict()):
 			start_node = ci[1]
 
 			next_travel_time = travel_cost_dict[(veh_ind+1, home_node, start_node)][0]
-			print(f"Travel time from {home_node} to {start_node}: {next_travel_time}")
-			print((veh_ind+1, home_node, start_node))
+			#print(f"Travel time from {home_node} to {start_node}: {next_travel_time}")
+			#print((veh_ind+1, home_node, start_node))
 			curr_time += next_travel_time
 			for i in range(1, length_list):
-				print("======")
+				#print("======")
 				call_numb = l[i]-1
 				if call_numb in calls_visited:
 					calls_visited.remove(call_numb)
@@ -218,7 +217,7 @@ def feasibility_check(solution: list(), problem: dict()):
 						curr_time = lower_del
 
 					next_loading_time = node_cost_dict[(veh_ind+1, call_numb+1)][2]
-					print(f"Waiting time at {goal_node}: {next_loading_time}")
+					#print(f"Waiting time at {goal_node}: {next_loading_time}")
 					curr_time += next_loading_time
 				else:
 					calls_visited.add(call_numb)
@@ -233,12 +232,12 @@ def feasibility_check(solution: list(), problem: dict()):
 						curr_time = lower_pickup
 
 					next_loading_time = node_cost_dict[(veh_ind+1, call_numb+1)][0]
-					print(f"Waiting time at {goal_node}: {next_loading_time}")
+					#print(f"Waiting time at {goal_node}: {next_loading_time}")
 					curr_time += next_loading_time
 
-				print((veh_ind+1, start_node, goal_node))
+				#print((veh_ind+1, start_node, goal_node))
 				next_travel_time =  travel_cost_dict[(veh_ind+1, start_node, goal_node)][0]
-				print(f"Travel time from {start_node} to {goal_node}: {next_travel_time}")
+				#print(f"Travel time from {start_node} to {goal_node}: {next_travel_time}")
 				curr_time += next_travel_time
 
 				start_node = goal_node
@@ -331,3 +330,20 @@ def split_a_list_at_zeros(k: list()):
 	gr = groupby(k,  lambda a: a==0)
 	l = [[] if a else [*b] for a,b in gr]
 	return [ a for idx,a in enumerate(l) if idx in (0,len(l)) or a]
+
+def random_solution(problem: dict()):
+	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
+
+	orig_list = list(range(1,num_calls+1))
+	random.shuffle(orig_list)
+	splitted_lists = np.array_split(orig_list, num_vehicles)
+	
+	overall_list = list()
+	for veh_ind, veh in enumerate(splitted_lists):
+		double_list = np.append(veh, veh)
+		random.shuffle(double_list)
+
+		overall_list += (double_list.tolist() + [0])
+
+	return overall_list

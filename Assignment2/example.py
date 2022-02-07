@@ -20,6 +20,8 @@ def main():
 
 	print(feasiblity)
 	print(c)
+
+	print(random_solution(prob))
 	#print(cost)
 
 if __name__ == "__main__":
