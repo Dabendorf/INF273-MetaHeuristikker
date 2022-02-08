@@ -1,4 +1,3 @@
-import enum
 import numpy as np
 from collections import namedtuple, defaultdict
 import logging
@@ -170,7 +169,6 @@ def feasibility_check(solution: list(), problem: dict()):
 	for veh_ind, l in enumerate(sol_split_by_vehicle):
 		size_available = vehicle_info[veh_ind][3]
 		
-
 		calls_visited = set()
 		for call in l:
 			if call in calls_visited:
@@ -213,6 +211,7 @@ def feasibility_check(solution: list(), problem: dict()):
 					if curr_time > upper_del:
 						logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} came too late")
 						reason_not_feasible = "Vehicle came too late"
+						break
 					if curr_time > lower_del:
 						curr_time = lower_del
 
@@ -228,6 +227,7 @@ def feasibility_check(solution: list(), problem: dict()):
 					if curr_time > upper_pickup:
 						logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} came too late")
 						reason_not_feasible = "Vehicle came too late"
+						break
 					if curr_time > lower_pickup:
 						curr_time = lower_pickup
 
@@ -334,16 +334,20 @@ def split_a_list_at_zeros(k: list()):
 def random_solution(problem: dict()):
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
+	call_info = problem["call_info"]
 
 	orig_list = list(range(1,num_calls+1))
 	random.shuffle(orig_list)
 	splitted_lists = np.array_split(orig_list, num_vehicles)
-	
 	overall_list = list()
 	for veh_ind, veh in enumerate(splitted_lists):
-		double_list = np.append(veh, veh)
-		random.shuffle(double_list)
-
-		overall_list += (double_list.tolist() + [0])
+		#random.shuffle(veh)
+		#veh = [val for val in veh for _ in range(2)]
+		lower_pickup_dict = dict()
+		for call_num in veh:
+			lower_pickup_dict[call_num] = call_info[call_num-1][6]
+		new_list = [k for k, v in sorted(lower_pickup_dict.items(), key=lambda item: item[1])]
+		new_list = [val for val in new_list for _ in range(2)]
+		overall_list += (new_list+ [0])
 
 	return overall_list
