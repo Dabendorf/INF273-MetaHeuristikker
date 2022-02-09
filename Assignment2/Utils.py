@@ -361,7 +361,7 @@ def blind_random_search(problem: dict(), num_of_iterations: int = 10000):
 	
 	sol = random_solution(problem)
 	feasiblity, _ = feasibility_check(sol, problem)
-	if not feasiblity:
+	if feasiblity:
 		counter += 1
 		cost = cost_function(sol, problem) 
 	else:
@@ -371,7 +371,7 @@ def blind_random_search(problem: dict(), num_of_iterations: int = 10000):
 		new_sol = random_solution(problem)
 		new_feasiblity, _ = feasibility_check(new_sol, problem)
 
-		if not new_feasiblity:
+		if new_feasiblity:
 			counter += 1
 			new_cost = cost_function(new_sol, problem)
 			feasiblity = new_feasiblity
