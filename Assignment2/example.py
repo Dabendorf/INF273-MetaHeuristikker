@@ -3,25 +3,37 @@ from Utils import *
 import logging
 
 def main():
-	logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.DEBUG)
+	logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
 	logger = logging.getLogger(__name__)
 	logger.disabled = False
 
-	prob = load_problem("../Data/Call_7_Vehicle_3.txt")
+	prob = load_problem("../Data/Call_80_Vehicle_20.txt")
 	logger.info("Problem reading finished")
 	
-	sol = [0, 2, 2, 0, 1, 5, 5, 3, 1, 3, 0, 7, 4, 6, 7, 4, 6]
+	counter = 0
+	for i in range(10000):
+		sol = random_solution(prob)
+		feasiblity, c = feasibility_check(sol, prob)
+		if feasiblity:
+			counter += 1
+		"""print(i)
+		feasiblity, c = feasibility_check(i, prob)
+		print(c)
+		if feasiblity:
+			print(i)
+			cost = cost_function(i, prob)
+			print(f"Cost: {cost}")
+			counter += 1"""
+	print(counter)
 
-	feasiblity, c = feasibility_check(sol, prob)
-	logger.info("Feasibility Check finished")
+	# feasiblity, c = feasibility_check(sol, prob)
+	# logger.info("Feasibility Check finished")
 
 	# cost = cost_function(sol, prob)
 	# logger.info("Cost function finished")
 
-	print(feasiblity)
-	print(c)
-
-	print(random_solution(prob))
+	# print(feasiblity)
+	# print(c)
 	#print(cost)
 
 if __name__ == "__main__":
