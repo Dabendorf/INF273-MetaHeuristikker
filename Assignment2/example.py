@@ -7,10 +7,12 @@ def main():
 	logger = logging.getLogger(__name__)
 	logger.disabled = False
 
-	prob = load_problem("../Data/Call_7_Vehicle_3.txt")
+	filename = "../Data/Call_300_Vehicle_90.txt"
+	prob = load_problem(filename)
 	logger.info("Problem reading finished")
 	
 	feasiblity, rand_sol, cost, counter = blind_random_search(prob)
+	print(filename)
 	print(feasiblity)
 	print(rand_sol)
 	print(cost)
