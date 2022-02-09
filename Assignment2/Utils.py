@@ -347,3 +347,28 @@ def random_solution(problem: dict()):
 	logging.debug(f"Creating a random solution {overall_list}")
 
 	return overall_list
+
+def blind_random_search(problem: dict(), num_of_iterations: int = 10000):
+	counter = 0
+	
+	sol = random_solution(problem)
+	feasiblity, _ = feasibility_check(sol, problem)
+	if feasiblity:
+		counter += 1
+		cost = cost_function(sol, problem) 
+	else:
+		cost = float('inf')
+
+	for i in range(num_of_iterations):
+		new_sol = random_solution(problem)
+		new_feasiblity, _ = feasibility_check(new_sol, problem)
+
+		if new_feasiblity:
+			counter += 1
+			new_cost = cost_function(new_sol, problem)
+			feasiblity = new_feasiblity
+			if new_cost < cost:
+				sol = new_sol
+				cost = new_cost
+
+	return feasiblity, sol, cost, counter
