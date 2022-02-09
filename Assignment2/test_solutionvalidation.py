@@ -47,6 +47,89 @@ class SolutionValidation(TestCase):
 		sol = []
 		cost = cost_function(sol, pytest.problem_file)
 
-		assert cost == value
-"""
+		assert cost == value"""
+
+	"""def test_feasible_file0(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[0])
+		sol = []
+		feasiblity, _ = feasibility_check(sol, pytest.problem_file)
+
+		assert feasiblity == True
+
+	def test_feasible_file1(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[1])
+		sol = []
+		feasiblity, _ = feasibility_check(sol, pytest.problem_file)
+
+		assert feasiblity == True
+
+	def test_feasible_file2(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[2])
+		sol = []
+		feasiblity, _ = feasibility_check(sol, pytest.problem_file)
+
+		assert feasiblity == True
+
+	def test_feasible_file3(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[3])
+		sol = []
+		feasiblity, _ = feasibility_check(sol, pytest.problem_file)
+
+		assert feasiblity == True
+
+	def test_feasible_file4(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[4])
+		sol = []
+		feasiblity, _ = feasibility_check(sol, pytest.problem_file)
+
+		assert feasiblity == True
+
+	def test_feasible_file5(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[5])
+		sol = []
+		feasiblity, _ = feasibility_check(sol, pytest.problem_file)
+
+		assert feasiblity == True"""
+
+	"""def test_not_feasible_file0(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[0])
+		sol = []
+		feasiblity, _ = feasibility_check(sol, pytest.problem_file)
+
+		assert feasiblity == False
+
+	def test_not_feasible_file1(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[1])
+		sol = []
+		feasiblity, _ = feasibility_check(sol, pytest.problem_file)
+
+		assert feasiblity == False
+
+	def test_not_feasible_file2(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[2])
+		sol = []
+		feasiblity, _ = feasibility_check(sol, pytest.problem_file)
+
+		assert feasiblity == False
+
+	def test_not_feasible_file3(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[3])
+		sol = []
+		feasiblity, _ = feasibility_check(sol, pytest.problem_file)
+
+		assert feasiblity == False
+
+	def test_not_feasible_file4(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[4])
+		sol = []
+		feasiblity, _ = feasibility_check(sol, pytest.problem_file)
+
+		assert feasiblity == False
+
+	def test_not_feasible_file5(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[5])
+		sol = []
+		feasiblity, _ = feasibility_check(sol, pytest.problem_file)
+
+		assert feasiblity == False"""
 		

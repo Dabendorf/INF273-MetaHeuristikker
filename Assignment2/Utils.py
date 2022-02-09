@@ -349,6 +349,14 @@ def random_solution(problem: dict()):
 	return overall_list
 
 def blind_random_search(problem: dict(), num_of_iterations: int = 10000):
+	""" This method does a blind search which generates
+		a bunch of random solutions and returns the best of it
+		
+		It returns four values:
+		feasibility: if one of the solutions was feasible
+		sol: the best solution (the original non-feasible if there was no feasible)
+		cost: the cost of the best feasible solution
+		counter: the number of generated feasible solutions"""
 	counter = 0
 	
 	sol = random_solution(problem)
