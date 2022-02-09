@@ -1,3 +1,4 @@
+import enum
 import numpy as np
 from collections import namedtuple, defaultdict
 import logging
@@ -128,7 +129,6 @@ def load_problem(filename: str):
 
 	return output
 
-
 def feasibility_check(solution: list(), problem: dict()):
 	"""Checks if a solution is feasibile and if not what the reason for that is
 
@@ -196,11 +196,8 @@ def feasibility_check(solution: list(), problem: dict()):
 			start_node = ci[1]
 
 			next_travel_time = travel_cost_dict[(veh_ind+1, home_node, start_node)][0]
-			#print(f"Travel time from {home_node} to {start_node}: {next_travel_time}")
-			#print((veh_ind+1, home_node, start_node))
 			curr_time += next_travel_time
 			for i in range(1, length_list):
-				#print("======")
 				call_numb = l[i]-1
 				if call_numb in calls_visited:
 					calls_visited.remove(call_numb)
@@ -216,7 +213,6 @@ def feasibility_check(solution: list(), problem: dict()):
 						curr_time = lower_del
 
 					next_loading_time = node_cost_dict[(veh_ind+1, call_numb+1)][2]
-					#print(f"Waiting time at {goal_node}: {next_loading_time}")
 					curr_time += next_loading_time
 				else:
 					calls_visited.add(call_numb)
@@ -232,12 +228,9 @@ def feasibility_check(solution: list(), problem: dict()):
 						curr_time = lower_pickup
 
 					next_loading_time = node_cost_dict[(veh_ind+1, call_numb+1)][0]
-					#print(f"Waiting time at {goal_node}: {next_loading_time}")
 					curr_time += next_loading_time
 
-				#print((veh_ind+1, start_node, goal_node))
 				next_travel_time =  travel_cost_dict[(veh_ind+1, start_node, goal_node)][0]
-				#print(f"Travel time from {start_node} to {goal_node}: {next_travel_time}")
 				curr_time += next_travel_time
 
 				start_node = goal_node
@@ -323,31 +316,34 @@ def cost_function(solution: list(), problem: dict()):
 	return total_cost
 
 def split_a_list_at_zeros(k: list()):
-	""" Splits a list into sublists by positions of zeros
-		Function sponsored by Stackoverflow:
-		https://stackoverflow.com/questions/71007348/split-list-into-several-lists-at-specific-values
-		"""
-	gr = groupby(k,  lambda a: a==0)
-	l = [[] if a else [*b] for a,b in gr]
-	return [ a for idx,a in enumerate(l) if idx in (0,len(l)) or a]
+	""" Function which takes as argument a valid solution and
+		breaks it down into vehicle sublists by splitting at the zeros"""
+	output_list = list()
+	while k:
+		try:
+			ind = k.index(0)
+			output_list.append(k[:ind])
+			k = k[ind+1:]
+		except ValueError:
+			output_list.append(k)
+			k = []
+
+	return output_list
 
 def random_solution(problem: dict()):
+	""" Random solution generator generates valid but not necessarily feasible solution
+		The current version is medium good
+		It gives one call to each vehicle and outsources the rest of it"""
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
-	call_info = problem["call_info"]
 
-	orig_list = list(range(1,num_calls+1))
-	random.shuffle(orig_list)
-	splitted_lists = np.array_split(orig_list, num_vehicles)
+	call_list = list(range(1,num_calls+1))
+	random.shuffle(call_list)
+
 	overall_list = list()
-	for veh_ind, veh in enumerate(splitted_lists):
-		#random.shuffle(veh)
-		#veh = [val for val in veh for _ in range(2)]
-		lower_pickup_dict = dict()
-		for call_num in veh:
-			lower_pickup_dict[call_num] = call_info[call_num-1][6]
-		new_list = [k for k, v in sorted(lower_pickup_dict.items(), key=lambda item: item[1])]
-		new_list = [val for val in new_list for _ in range(2)]
-		overall_list += (new_list+ [0])
+	for v in range(num_vehicles):
+		overall_list += ([call_list[v]]+[call_list[v]]+[0])
+	overall_list += [val for val in call_list[num_vehicles:] for _ in range(2)]
+	logging.debug(f"Creating a random solution {overall_list}")
 
 	return overall_list
