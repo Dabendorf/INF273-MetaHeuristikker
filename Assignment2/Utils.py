@@ -1,3 +1,4 @@
+from audioop import avg
 import enum
 import numpy as np
 from collections import namedtuple, defaultdict
@@ -5,6 +6,7 @@ import logging
 from itertools import groupby
 import random
 import numpy as np
+from timeit import default_timer as timer
 
 logger = logging.getLogger(__name__)
 
@@ -392,3 +394,93 @@ def blind_random_search(problem: dict(), num_of_iterations: int = 10000):
 		logging.error(f"Generate non feasible solution: {sol}")
 
 	return feasiblity, sol, cost, counter
+
+def blind_random_search_latex(problem: dict(), num_of_iterations: int = 10000):
+	""" This method does a blind search which generates
+		a bunch of random solutions and returns the best of it
+		This one is suited for the output in terms of INF273 conditions
+		
+		It returns four values:
+		feasibility: if one of the solutions was feasible (must be true)
+		sol: the best solution
+		cost: the cost of the best feasible solution
+		counter: the number of generated feasible solutions
+		average_objective: the average cost of all feasible solutions
+		cost: the cost of the best solution
+		improvement: how much best solution improved from original one"""
+
+	logging.debug("Start blind search \LaTeX")
+	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
+
+	counter = 0
+	
+	# Initial solution
+	sol = [0] * num_vehicles
+	sol += [val for val in list(range(1,num_calls+1)) for _ in (0, 1)]
+	logging.debug(f"Generate inital dummy solution: {sol}")
+
+	feasiblity, _ = feasibility_check(sol, problem)
+	all_costs = []
+	if feasiblity:
+		counter += 1
+		cost = cost_function(sol, problem) 
+		all_costs.append(cost)
+		original_cost = cost
+	else:
+		cost = float('inf')
+		original_cost = cost
+
+	for i in range(num_of_iterations):
+		new_sol = random_solution(problem)
+		new_feasiblity, _ = feasibility_check(new_sol, problem)
+
+		if new_feasiblity:
+			counter += 1
+			new_cost = cost_function(new_sol, problem)
+			all_costs.append(new_cost)
+			feasiblity = new_feasiblity
+			if new_cost < cost:
+				sol = new_sol
+				cost = new_cost
+	logging.debug(f"Generate final solution: {sol}")
+
+	average_objective = round(sum(all_costs) / len(all_costs), 2)
+	improvement = round(100*(original_cost-cost)/original_cost, 2)
+	if not feasiblity:
+		logging.error(f"Generate non feasible solution: {sol}")
+
+	return feasiblity, sol, cost, counter, average_objective, improvement
+
+def blind_search_latex_generator(problem: dict(), num_of_iterations: int = 10000, num_of_blind_searchs: int = 10):
+	""" This method runs the blind search several times
+		at generates beautiful LaTeX code"""
+
+	logging.debug("Start to write a LaTeX table of random solutions")
+	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
+
+	print("\\begin{table}[]")
+	print("\\centering")
+	print(f"\\caption{{Call\_{num_calls}\_Vehicle\_{num_vehicles}}}")
+	print(f"\\label{{tab:call{num_calls}vehicle{num_vehicles}}}")
+	print("\\begin{tabular}{|r|r|r|r|r|}")
+	print("Random seed & Average objective & Best objective & Improvement (\%) & Running time \\\\")
+	print("\hline")
+	
+	for i in range(num_of_blind_searchs):
+		start_time = timer()
+		seed = random.randint(0, 10**9)
+		random.seed(seed)
+		feasiblity, sol, cost, counter, average_objective, improvement = blind_random_search_latex(problem=problem, num_of_iterations=num_of_iterations)
+		if not feasiblity:
+			logging.error(f"Generate non feasible solution: {sol}")
+		
+		finish_time = timer()
+		print(f"{seed} & {average_objective:.2f} & {cost} & {improvement:.2f}\% & {round(finish_time-start_time, 2):.2f}s\\\\")
+	print("\end{tabular}")
+	print("\end{table}")
+	print(f"\\begin{{lstlisting}}[label={{tab:call{num_calls}vehicle{num_vehicles}}},caption=Optimal solution call\_{num_calls}\_vehicle\_{num_vehicles}]")
+	print(f"sol = {sol}")
+	print("\end{lstlisting}")
+	print("\n\n")
