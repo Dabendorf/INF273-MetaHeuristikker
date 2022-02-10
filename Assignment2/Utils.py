@@ -460,27 +460,54 @@ def blind_search_latex_generator(problem: dict(), num_of_iterations: int = 10000
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
 
-	print("\\begin{table}[]")
-	print("\\centering")
-	print(f"\\caption{{Call\_{num_calls}\_Vehicle\_{num_vehicles}}}")
-	print(f"\\label{{tab:call{num_calls}vehicle{num_vehicles}}}")
-	print("\\begin{tabular}{|r|r|r|r|r|}")
-	print("Random seed & Average objective & Best objective & Improvement (\%) & Running time \\\\")
-	print("\hline")
-	
-	for i in range(num_of_blind_searchs):
-		start_time = timer()
-		seed = random.randint(0, 10**9)
-		random.seed(seed)
-		feasiblity, sol, cost, counter, average_objective, improvement = blind_random_search_latex(problem=problem, num_of_iterations=num_of_iterations)
-		if not feasiblity:
-			logging.error(f"Generate non feasible solution: {sol}")
+	with open("solution_table.tex", "a") as f:
+		f.write("\\begin{table}[ht]\n")
+		f.write("\\centering\n")
+		f.write(f"\\caption{{Call\_{num_calls}\_Vehicle\_{num_vehicles}}}\n")
+		f.write(f"\\label{{tab:call{num_calls}vehicle{num_vehicles}}}\n")
+		f.write("\\begin{tabular}{|r|r|r|r|r|}\n")
+		f.write("Random seed & Average objective & Best objective & Improvement (\%) & Running time \\\\\n")
+		f.write("\hline\n")
 		
-		finish_time = timer()
-		print(f"{seed} & {average_objective:.2f} & {cost} & {improvement:.2f}\% & {round(finish_time-start_time, 2):.2f}s\\\\")
-	print("\end{tabular}")
-	print("\end{table}")
-	print(f"\\begin{{lstlisting}}[label={{tab:call{num_calls}vehicle{num_vehicles}}},caption=Optimal solution call\_{num_calls}\_vehicle\_{num_vehicles}]")
-	print(f"sol = {sol}")
-	print("\end{lstlisting}")
-	print("\n\n")
+		average_times = []
+		best_cost = float('inf')
+		best_solution = []
+		seeds = []
+		improvements = []
+		average_objectives = []
+
+		for i in range(num_of_blind_searchs):
+			start_time = timer()
+			seed = random.randint(0, 10**9)
+			random.seed(seed)
+			seeds.append(seed)
+
+			feasiblity, sol, cost, counter, average_objective, improvement = blind_random_search_latex(problem=problem, num_of_iterations=num_of_iterations)
+			if not feasiblity:
+				logging.error(f"Generate non feasible solution: {sol}")
+			
+			finish_time = timer()
+			average_times.append(finish_time-start_time)
+			improvements.append(improvement)
+			average_objectives.append(average_objective)
+
+			if cost < best_cost:
+				best_cost = cost
+				best_solution = sol
+
+		f.write(f"Method & {round(sum(average_objectives) / len(average_objectives), 2):.2f} & {best_cost} & {round(sum(improvements) / len(improvements), 2):.2f}\% & {round(sum(average_times) / len(average_times), 2):.2f}s\\\\\n")
+		
+		f.write("\end{tabular}\n")
+		f.write("\end{table}\n")
+		f.write(f"\\begin{{lstlisting}}[label={{lst:call{num_calls}vehicle{num_vehicles}}},caption=Optimal solution call\_{num_calls}\_vehicle\_{num_vehicles}]\n")
+		if len(best_solution) < 150:
+			f.write(f"sol = {best_solution}\n")
+		else:
+			f.write(f"sol = {str(best_solution[0:150])[:-1]},\n")
+			f.write(f"sol = {str(best_solution[150:])[1:]}\n")
+		f.write(f"seeds = {seeds}\n")
+		f.write("\end{lstlisting}\n")
+		f.write("\clearpage")
+		f.write("\n\n\n")
+
+		logging.info(f"Finished to write a LaTeX table of random solutions for file call\_{num_calls}\_vehicle\_{num_vehicles}")

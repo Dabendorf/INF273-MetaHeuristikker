@@ -3,7 +3,7 @@ from Utils import *
 import logging
 
 def main():
-	logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.WARN)
+	logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
 	logger = logging.getLogger(__name__)
 	logger.disabled = False
 
