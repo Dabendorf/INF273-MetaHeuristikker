@@ -353,13 +353,22 @@ def blind_random_search(problem: dict(), num_of_iterations: int = 10000):
 		a bunch of random solutions and returns the best of it
 		
 		It returns four values:
-		feasibility: if one of the solutions was feasible
-		sol: the best solution (the original non-feasible if there was no feasible)
+		feasibility: if one of the solutions was feasible (must be true)
+		sol: the best solution
 		cost: the cost of the best feasible solution
 		counter: the number of generated feasible solutions"""
+
+	logging.debug("Start blind search")
+	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
+
 	counter = 0
 	
-	sol = random_solution(problem)
+	# Initial solution
+	sol = [0] * num_vehicles
+	sol += [val for val in list(range(1,num_calls+1)) for _ in (0, 1)]
+	logging.debug(f"Generate inital dummy solution: {sol}")
+
 	feasiblity, _ = feasibility_check(sol, problem)
 	if feasiblity:
 		counter += 1
@@ -378,5 +387,8 @@ def blind_random_search(problem: dict(), num_of_iterations: int = 10000):
 			if new_cost < cost:
 				sol = new_sol
 				cost = new_cost
+	logging.debug(f"Generate final solution: {sol}")
+	if not feasiblity:
+		logging.error(f"Generate non feasible solution: {sol}")
 
 	return feasiblity, sol, cost, counter
