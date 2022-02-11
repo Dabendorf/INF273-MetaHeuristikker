@@ -466,7 +466,7 @@ def blind_search_latex_generator(problem: dict(), num_of_iterations: int = 10000
 		f.write(f"\\caption{{Call\_{num_calls}\_Vehicle\_{num_vehicles}}}\n")
 		f.write(f"\\label{{tab:call{num_calls}vehicle{num_vehicles}}}\n")
 		f.write("\\begin{tabular}{|r|r|r|r|r|}\n")
-		f.write("Random seed & Average objective & Best objective & Improvement (\%) & Running time \\\\\n")
+		f.write("Method & Average objective & Best objective & Improvement (\%) & Running time \\\\\n")
 		f.write("\hline\n")
 		
 		average_times = []
@@ -495,7 +495,7 @@ def blind_search_latex_generator(problem: dict(), num_of_iterations: int = 10000
 				best_cost = cost
 				best_solution = sol
 
-		f.write(f"Method & {round(sum(average_objectives) / len(average_objectives), 2):.2f} & {best_cost} & {round(sum(improvements) / len(improvements), 2):.2f}\% & {round(sum(average_times) / len(average_times), 2):.2f}s\\\\\n")
+		f.write(f"Random search & {round(sum(average_objectives) / len(average_objectives), 2):.2f} & {best_cost} & {round(sum(improvements) / len(improvements), 2):.2f}\% & {round(sum(average_times) / len(average_times), 2):.2f}s\\\\\n")
 		
 		f.write("\end{tabular}\n")
 		f.write("\end{table}\n")
@@ -504,7 +504,7 @@ def blind_search_latex_generator(problem: dict(), num_of_iterations: int = 10000
 			f.write(f"sol = {best_solution}\n")
 		else:
 			f.write(f"sol = {str(best_solution[0:150])[:-1]},\n")
-			f.write(f"sol = {str(best_solution[150:])[1:]}\n")
+			f.write(f"      {str(best_solution[150:])[1:]}\n")
 		f.write(f"seeds = {seeds}\n")
 		f.write("\end{lstlisting}\n")
 		f.write("\clearpage")
