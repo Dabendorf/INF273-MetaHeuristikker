@@ -1,0 +1,143 @@
+%%% LaTeX Template originaly created by Karol Kozioł (mail@karol-koziol.net) and modified for ShareLaTeX use
+
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage[british]{babel}
+\usepackage[german=quotes]{csquotes}
+
+%\renewcommand\familydefault{\sfdefault}
+%\usepackage{tgheros}
+%\usepackage[defaultmono]{droidmono}
+
+\usepackage{amsmath,amssymb,amsthm,textcomp}
+\usepackage{enumerate}
+\usepackage{multicol}
+\usepackage{tikz}
+
+\usepackage{xcolor}
+
+\usepackage{geometry}
+\geometry{left=25mm,right=25mm,%
+bindingoffset=0mm, top=20mm,bottom=20mm}
+\usepackage{graphicx}
+%\usepackage{subcaption}
+%\usepackage{mwe}
+
+
+\linespread{1.3}
+
+\newcommand{\linia}{\rule{\linewidth}{0.5pt}}
+
+% custom theorems if needed
+\newtheoremstyle{mytheor}
+    {1ex}{1ex}{\normalfont}{0pt}{\scshape}{.}{1ex}
+    {{\thmname{#1 }}{\thmnumber{#2}}{\thmnote{ (#3)}}}
+
+\theoremstyle{mytheor}
+\newtheorem{defi}{Definition}
+
+% my own titles
+\makeatletter
+\renewcommand{\maketitle}{
+\begin{center}
+\vspace{2ex}
+{\huge \textsc{\@title}}
+\vspace{1ex}
+\\
+\linia\\
+\@author \hfill \@date
+\vspace{4ex}
+\end{center}
+}
+\makeatother
+%%%
+
+% custom footers and headers
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\lhead{}
+\chead{}
+\rhead{}
+%\lfoot{Assignment \textnumero{} 5}
+\cfoot{}
+\rfoot{Page \thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+%
+
+% code listing settings
+\usepackage{listings}
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    aboveskip={1.0\baselineskip},
+    belowskip={1.0\baselineskip},
+    columns=fixed,
+    extendedchars=true,
+    breaklines=true,
+    tabsize=4,
+    prebreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+    frame=lines,
+    showtabs=false,
+    showspaces=false,
+    showstringspaces=false,
+    keywordstyle=\color[rgb]{0.627,0.126,0.941},
+    commentstyle=\color[rgb]{0.133,0.545,0.133},
+    stringstyle=\color[rgb]{01,0,0},
+    numbers=left,
+    numberstyle=\small,
+    stepnumber=1,
+    numbersep=10pt,
+    captionpos=t,
+    escapeinside={\%*}{*)}
+}
+
+% ref packages
+\usepackage{nameref}
+% folowing  must be in this order
+\usepackage{varioref}
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+\setlength\parindent{0pt}
+
+%%%----------%%%----------%%%----------%%%----------%%%
+
+\begin{document}
+
+\title{INF273 – Assignment 1}
+
+\author{Lukas Schramm}
+
+\date{\today}
+
+\maketitle
+
+\section{Comments on my code}
+I am programming with \texttt{Python} and rewrote the framework we were given but basically followed it's concept. I have written several automatic tests checking if my feasibility-, cost- and reading functions are working and outputing the same results. They all do, but that does not necessarily mean that my code is 100\% code (which makes me nervous). I aim to continue to write automatic tests since I have planned to learn myself testing for ages.
+
+\subsection{Functions}
+Currently, I am maintaining the following functions.
+\begin{itemize}
+\item load\_problem: Given a path to a file, it reads the content of the file into a dictionary of information.
+\item feasibility\_check: It takes a solution (list) and a problem dictionary and checks if the solution is feasible. If it is not feasible, it outputs the reason why. It does not check validity (since the aim
+\item cost\_function: It takes a solution (list) and a problem dictionary and calculates the cost of the function. As feasibility\_check it does not check if the original solution was valid.
+\item splitting\_a\_list\_at\_zeros: Helper function which splits a solution into vehicles and if needed a dummy vehicle.
+\item random\_solution: Generates a random solution. The generator itself is quite bad in my view because I overtuned it a bit. It automatically gives one vehicle exactly one call and the rest goes to the dummy vehicle. That way I got solutions for file 3 and 4 but the solutions for all files are quite bad.\footnote{But since we do not need that random solution generator any longer I keep it like that.}
+\item blind\_random\_search: Takes a problem and a number of iterations to find the best out of n random feasible solutions if any is found.
+\item blind\_search\_latex\_generator: This function runs the blind\_random\_search and writes the data into \LaTeX tables since I am obviously too lazy to do it myself.
+
+If there are any questions or nice recommendations to get a better structure, just send me a message.
+\end{itemize}
+
+\clearpage
+
+\section{Result tables}
+\input{../Code/solution_table}
+
+
+\end{document}
