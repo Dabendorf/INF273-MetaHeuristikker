@@ -5,9 +5,9 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
-\usepackage{xcolor}
 \usepackage[british]{babel}
 \usepackage[german=quotes]{csquotes}
+\usepackage[dvipsnames]{xcolor}
 
 %\renewcommand\familydefault{\sfdefault}
 %\usepackage{tgheros}
@@ -17,8 +17,6 @@
 \usepackage{enumerate}
 \usepackage{multicol}
 \usepackage{tikz}
-
-\usepackage{xcolor}
 
 \usepackage{geometry}
 \geometry{left=25mm,right=25mm,%
@@ -117,11 +115,8 @@ bindingoffset=0mm, top=20mm,bottom=20mm}
 
 \maketitle
 
-\section{Comments on my code}
-I am programming with \texttt{Python} and rewrote the framework we were given but basically followed it's concept. I have written several automatic tests checking if my feasibility-, cost- and reading functions are working and outputing the same results. They all do, but that does not necessarily mean that my code is 100\% code (which makes me nervous). I aim to continue to write automatic tests since I have planned to learn myself testing for ages.
-
 \subsection{Functions}
-Currently, I am maintaining the following functions.
+Currently, I am maintaining the following functions.\footnote{The green ones are changes or additions from the last assignment}
 \begin{itemize}
 \item load\_problem: Given a path to a file, it reads the content of the file into a dictionary of information.
 \item feasibility\_check: It takes a solution (list) and a problem dictionary and checks if the solution is feasible. If it is not feasible, it outputs the reason why. It does not check validity (since the aim
@@ -130,6 +125,8 @@ Currently, I am maintaining the following functions.
 \item random\_solution: Generates a random solution. The generator itself is quite bad in my view because I overtuned it a bit. It automatically gives one vehicle exactly one call and the rest goes to the dummy vehicle. That way I got solutions for file 3 and 4 but the solutions for all files are quite bad.\footnote{But since we do not need that random solution generator any longer I keep it like that.}
 \item blind\_random\_search: Takes a problem and a number of iterations to find the best out of n random feasible solutions if any is found.
 \item blind\_search\_latex\_generator: This function runs the blind\_random\_search and writes the data into \LaTeX tables since I am obviously too lazy to do it myself.
+\item \textcolor{ForestGreen}{latex\_add\_line: Adds a new result line into an results table of this file.}
+\item \textcolor{ForestGreen}{latex\_replace\_line: Change the optimal solution and its seed in that file.}
 
 If there are any questions or nice recommendations to get a better structure, just send me a message.
 \end{itemize}
