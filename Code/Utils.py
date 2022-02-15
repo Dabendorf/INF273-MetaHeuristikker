@@ -497,7 +497,7 @@ def blind_search_latex_generator(problem: dict(), num_of_iterations: int = 10000
 
 		f.write(f"Random search & {round(sum(average_objectives) / len(average_objectives), 2):.2f} & {best_cost} & {round(sum(improvements) / len(improvements), 2):.2f}\% & {round(sum(average_times) / len(average_times), 2):.2f}s\\\\\n")
 		
-		f.write("\end{tabular}\n")
+		f.write(f"\end{{tabular}}%Call\_{num_calls}\_Vehicle\_{num_vehicles}\n")
 		f.write("\end{table}\n")
 		f.write(f"\\begin{{lstlisting}}[label={{lst:call{num_calls}vehicle{num_vehicles}}},caption=Optimal solution call\_{num_calls}\_vehicle\_{num_vehicles}]\n")
 		if len(best_solution) < 150:
