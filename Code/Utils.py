@@ -506,8 +506,30 @@ def blind_search_latex_generator(problem: dict(), num_of_iterations: int = 10000
 			f.write(f"sol = {str(best_solution[0:150])[:-1]},\n")
 			f.write(f"      {str(best_solution[150:])[1:]}\n")
 		f.write(f"seeds = {seeds}\n")
-		f.write("\end{lstlisting}\n")
+		f.write("\end{lstlisting}%Call\_{num_calls}\_Vehicle\_{num_vehicles}\n")
 		f.write("\clearpage")
 		f.write("\n\n\n")
 
 		logging.info(f"Finished to write a LaTeX table of random solutions for file call\_{num_calls}\_vehicle\_{num_vehicles}")
+
+def latex_add_line(num_vehicles: int, num_calls: int, method:str, average_obj: float, best_obj: int, improvement: float, running_time: float):
+	""" This method adds another element into the LaTeX results table"""
+
+	logging.debug("Start to write a new line into LaTeX table")
+	path_file = "solution_table.tex"
+
+	with open(path_file, "r") as f:
+		contents = f.readlines()
+
+	try:
+		idx = contents.index(f"\end{{tabular}}%Call\_{num_calls}\_Vehicle\_{num_vehicles}\n")
+	except:
+		logging.error(f"ValueError: their is no table for the file Call_{num_calls}_Vehicle_{num_vehicles}")
+	
+
+	new_line = f"{method} & {average_obj:.2f} & {best_obj} & {improvement:.2f}\% & {running_time:.2f}s\\\\\n"
+	contents.insert(idx, new_line)
+
+	with open(path_file, "w") as f:
+		contents = "".join(contents)
+		f.write(contents)
