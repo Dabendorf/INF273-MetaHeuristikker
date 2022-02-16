@@ -1,12 +1,14 @@
 from unittest import TestCase
 
 from Utils import load_problem, feasibility_check, cost_function
+from Heuristics import local_search
 import pytest
 import random
 	
-class SolutionValidation(TestCase):
+class HeursticsValidation(TestCase):
 	pytest.paths_testfiles = ["Data/Call_7_Vehicle_3.txt", "Data/Call_18_Vehicle_5.txt", "Data/Call_35_Vehicle_7.txt", "Data/Call_80_Vehicle_20.txt", "Data/Call_130_Vehicle_40.txt", "Data/Call_300_Vehicle_90.txt"]
 
+	
 	"""def test_costs_file0(self):
 		pytest.problem_file = load_problem(pytest.paths_testfiles[0])
 		sol = [0, 2, 2, 0, 1, 5, 5, 3, 1, 3, 0, 7, 4, 6, 7, 4, 6]

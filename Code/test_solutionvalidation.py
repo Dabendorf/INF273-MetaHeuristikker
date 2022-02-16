@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from Utils import load_problem, feasibility_check, cost_function
+from Utils import initial_solution, load_problem, feasibility_check, cost_function
 import pytest
 import random
 	
@@ -135,3 +135,50 @@ class SolutionValidation(TestCase):
 
 		assert feasiblity == False
 		
+	def test_initial_solution_file0(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[0])
+		sol = initial_solution(pytest.problem_file)
+
+		feasibility, _ = feasibility_check(sol, pytest.problem_file)
+
+		assert feasibility == True
+
+	def test_initial_solution_file1(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[1])
+		sol = initial_solution(pytest.problem_file)
+
+		feasibility, _ = feasibility_check(sol, pytest.problem_file)
+
+		assert feasibility == True
+
+	def test_initial_solution_file2(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[2])
+		sol = initial_solution(pytest.problem_file)
+
+		feasibility, _ = feasibility_check(sol, pytest.problem_file)
+
+		assert feasibility == True
+
+	def test_initial_solution_file3(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[3])
+		sol = initial_solution(pytest.problem_file)
+
+		feasibility, _ = feasibility_check(sol, pytest.problem_file)
+
+		assert feasibility == True
+
+	def test_initial_solution_file4(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[4])
+		sol = initial_solution(pytest.problem_file)
+
+		feasibility, _ = feasibility_check(sol, pytest.problem_file)
+
+		assert feasibility == True
+
+	def test_initial_solution_file5(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[5])
+		sol = initial_solution(pytest.problem_file)
+
+		feasibility, _ = feasibility_check(sol, pytest.problem_file)
+
+		assert feasibility == True

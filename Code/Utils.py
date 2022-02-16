@@ -348,6 +348,18 @@ def random_solution(problem: dict()):
 
 	return overall_list
 
+def initial_solution(problem: dict()) -> List[int]:
+	""" This function generates an initial solution
+		where only calls are in the dummy vehicle"""
+	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
+
+	sol = [0] * num_vehicles
+	sol += [val for val in list(range(1,num_calls+1)) for _ in (0, 1)]
+	logging.debug(f"Generate inital dummy solution: {sol}")
+
+	return sol
+
 def blind_random_search(problem: dict(), num_of_iterations: int = 10000):
 	""" This method does a blind search which generates
 		a bunch of random solutions and returns the best of it
@@ -359,15 +371,11 @@ def blind_random_search(problem: dict(), num_of_iterations: int = 10000):
 		counter: the number of generated feasible solutions"""
 
 	logging.debug("Start blind search")
-	num_vehicles = problem["num_vehicles"]
-	num_calls = problem["num_calls"]
 
 	counter = 0
 	
 	# Initial solution
-	sol = [0] * num_vehicles
-	sol += [val for val in list(range(1,num_calls+1)) for _ in (0, 1)]
-	logging.debug(f"Generate inital dummy solution: {sol}")
+	sol = initial_solution(problem=problem)
 
 	feasiblity, _ = feasibility_check(sol, problem)
 	if feasiblity:
