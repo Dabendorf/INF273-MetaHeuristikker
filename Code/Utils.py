@@ -1,9 +1,7 @@
-from audioop import avg
-import enum
+from typing import List
 import numpy as np
-from collections import namedtuple, defaultdict
+from collections import defaultdict
 import logging
-from itertools import groupby
 import random
 import numpy as np
 from timeit import default_timer as timer
