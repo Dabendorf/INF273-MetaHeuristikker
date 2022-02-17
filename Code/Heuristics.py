@@ -13,6 +13,7 @@ def alter_solution_1insert(problem: dict(), current_solution: List[int], bound_p
 	""" 1insert takes a call from one vehicle (including dummy) and puts it into another one"""
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
+	vehicle_calls = problem["vehicle_calls"]
 
 	logging.debug(f"Alter solution: 1-insert")
 	# Two situations: From dummy to vehicle or from vehicle to vehicle
@@ -46,8 +47,17 @@ def alter_solution_1insert(problem: dict(), current_solution: List[int], bound_p
 	logging.debug(log_message)
 	print(sol)
 
-	#call_idx_in_list = randrange(len(sol[vehicle2]))
-	call_to_move = choice(sol[vehicle2])
+	# Only move calls which are allowed into a vehicle
+	# After 10 illegal operations, do it anyway
+	call_not_allowed = True
+	count_call_iterations = 0
+	while call_not_allowed and count_call_iterations < 10:
+		call_to_move = choice(sol[vehicle2])
+		if call_to_move in vehicle_calls[vehicle1+1]:
+			call_not_allowed = False
+		else:
+			count_call_iterations += 1
+
 	sol[vehicle2].remove(call_to_move)
 	sol[vehicle2].remove(call_to_move)
 
