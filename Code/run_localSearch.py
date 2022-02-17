@@ -1,4 +1,4 @@
-from Heuristics import alter_solution_1insert
+from Heuristics import alter_solution_1insert, alter_solution_2exchange
 from Utils import *
 
 import logging
@@ -16,6 +16,10 @@ def main():
 
 	for i in range(10):
 		init_sol = alter_solution_1insert(prob, init_sol, 0.8)
+		print(init_sol)
+	
+	for i in range(10):
+		init_sol = alter_solution_2exchange(prob, init_sol)
 		print(init_sol)
 
 	"""for test_f in test_files:

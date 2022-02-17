@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from Utils import load_problem, feasibility_check, cost_function, initial_solution
-from Heuristics import local_search, alter_solution_1insert
+from Heuristics import alter_solution_2exchange, local_search, alter_solution_1insert
 import pytest
 import random
 	
@@ -31,6 +31,38 @@ class HeursticsValidation(TestCase):
 		for i in range(10):
 			init_sol = alter_solution_1insert(pytest.problem_file, init_sol, 0.8)
 		assert len(init_sol) == len(alter_solution_1insert(pytest.problem_file, init_sol, 0.8))
+
+	def test_alter_solution_2exchange1a(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[1])
+		init_sol = initial_solution(problem=pytest.problem_file)
+		for i in range(10):
+			init_sol = alter_solution_1insert(pytest.problem_file, init_sol, 0.8)
+		assert len(init_sol) == len(alter_solution_2exchange(pytest.problem_file, init_sol))
+
+	def test_alter_solution_2exchange1b(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[1])
+		init_sol = initial_solution(problem=pytest.problem_file)
+		for i in range(10):
+			init_sol = alter_solution_1insert(pytest.problem_file, init_sol, 0.8)
+		for i in range(10):
+			init_sol = alter_solution_2exchange(pytest.problem_file, init_sol)
+		assert len(init_sol) == len(alter_solution_2exchange(pytest.problem_file, init_sol))
+
+	def test_alter_solution_2exchange5a(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[5])
+		init_sol = initial_solution(problem=pytest.problem_file)
+		for i in range(10):
+			init_sol = alter_solution_1insert(pytest.problem_file, init_sol, 0.8)
+		assert len(init_sol) == len(alter_solution_2exchange(pytest.problem_file, init_sol))
+
+	def test_alter_solution_2exchange5b(self):
+		pytest.problem_file = load_problem(pytest.paths_testfiles[5])
+		init_sol = initial_solution(problem=pytest.problem_file)
+		for i in range(10):
+			init_sol = alter_solution_1insert(pytest.problem_file, init_sol, 0.8)
+		for i in range(10):
+			init_sol = alter_solution_2exchange(pytest.problem_file, init_sol)
+		assert len(init_sol) == len(alter_solution_2exchange(pytest.problem_file, init_sol))
 
 	"""def test_costs_file0(self):
 		pytest.problem_file = load_problem(pytest.paths_testfiles[0])
