@@ -1,20 +1,25 @@
-from Heuristics import alter_solution_1insert, alter_solution_2exchange, alter_solution_3exchange
+from Heuristics import alter_solution_1insert, alter_solution_2exchange, alter_solution_3exchange, local_search
 from Utils import *
 
 import logging
 
 def main():
-	logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.DEBUG)
+	logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
 	logger = logging.getLogger(__name__)
 	logger.disabled = False
 
 	test_files = ["../Data/Call_7_Vehicle_3.txt", "../Data/Call_18_Vehicle_5.txt", "../Data/Call_35_Vehicle_7.txt", "../Data/Call_80_Vehicle_20.txt", "../Data/Call_130_Vehicle_40.txt", "../Data/Call_300_Vehicle_90.txt"]
 	
-	prob = load_problem(test_files[1])
-	init_sol = initial_solution(problem=prob)
-	#alter_solution_1insert(prob, init_sol, 0.8)
+	usable_neighbours = []
+	for n in range(0,3):
+		usable_neighbours.append(n)
+		for tf in test_files:
+			prob = load_problem(tf)
+			init_sol = initial_solution(problem=prob)
 
-	for i in range(10):
+			local_search(prob, init_sol, 10000, allowed_neighbours=usable_neighbours)
+
+	"""for i in range(10):
 		init_sol = alter_solution_1insert(prob, init_sol, 0.8)
 		print(init_sol)
 	
@@ -24,7 +29,7 @@ def main():
 
 	for i in range(10):
 		init_sol = alter_solution_3exchange(prob, init_sol)
-		print(init_sol)
+		print(init_sol)"""
 
 	"""for test_f in test_files:
 		file = test_f

@@ -5,7 +5,9 @@ import logging
 from random import randint, randrange, random, choice
 import numpy as np
 from timeit import default_timer as timer
-from Utils import split_a_list_at_zeros
+
+from numpy import choose
+from Utils import split_a_list_at_zeros, cost_function, feasibility_check
 
 logger = logging.getLogger(__name__)
 
@@ -243,9 +245,37 @@ def alter_solution_3exchange(problem: dict(), current_solution: List[int]) -> Li
 	
 	return new_sol
 
-def local_search(problem: dict(), num_of_iterations: int = 10000):
+def local_search(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [1,2,3]):
 	""" """
-	pass
+	logging.info(f"Start local search with neighbour(s) {allowed_neighbours}")
+
+	cost = cost_function(init_sol, problem)
+	sol = init_sol
+	orig_cost = cost
+	print(f"Original cost: {orig_cost}")
+
+	for i in range(num_of_iterations):
+		neighbourfunc_id = choice(allowed_neighbours)
+		if neighbourfunc_id == 0:
+			new_sol = alter_solution_1insert(problem, sol, 0.8)
+		elif neighbourfunc_id == 1:
+			new_sol = alter_solution_2exchange(problem, sol)
+		else:
+			new_sol = alter_solution_3exchange(problem, sol)
+
+		feasiblity, _ = feasibility_check(new_sol, problem)
+		if feasiblity:
+			#print("fe")
+			new_cost = cost_function(new_sol, problem)
+
+			if new_cost < cost:
+				cost = new_cost
+				sol = new_sol
+	
+	print(cost)
+	improvement = round(100*(orig_cost-cost)/orig_cost, 2)
+	print(f"Improvement: {improvement}%")
+
 
 def simulated_annealing(problem: dict(), num_of_iterations: int = 10000):
 	""" """
