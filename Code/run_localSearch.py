@@ -1,4 +1,4 @@
-from Heuristics import alter_solution_1insert, alter_solution_2exchange
+from Heuristics import alter_solution_1insert, alter_solution_2exchange, alter_solution_3exchange
 from Utils import *
 
 import logging
@@ -10,7 +10,7 @@ def main():
 
 	test_files = ["../Data/Call_7_Vehicle_3.txt", "../Data/Call_18_Vehicle_5.txt", "../Data/Call_35_Vehicle_7.txt", "../Data/Call_80_Vehicle_20.txt", "../Data/Call_130_Vehicle_40.txt", "../Data/Call_300_Vehicle_90.txt"]
 	
-	prob = load_problem(test_files[0])
+	prob = load_problem(test_files[1])
 	init_sol = initial_solution(problem=prob)
 	#alter_solution_1insert(prob, init_sol, 0.8)
 
@@ -18,8 +18,12 @@ def main():
 		init_sol = alter_solution_1insert(prob, init_sol, 0.8)
 		print(init_sol)
 	
-	for i in range(10):
+	for i in range(50):
 		init_sol = alter_solution_2exchange(prob, init_sol)
+		print(init_sol)
+
+	for i in range(10):
+		init_sol = alter_solution_3exchange(prob, init_sol)
 		print(init_sol)
 
 	"""for test_f in test_files:
