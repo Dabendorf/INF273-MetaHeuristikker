@@ -1,16 +1,23 @@
+from Heuristics import alter_solution_1insert
 from Utils import *
 
 import logging
 
 def main():
-	logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
+	logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.DEBUG)
 	logger = logging.getLogger(__name__)
 	logger.disabled = False
 
 	test_files = ["../Data/Call_7_Vehicle_3.txt", "../Data/Call_18_Vehicle_5.txt", "../Data/Call_35_Vehicle_7.txt", "../Data/Call_80_Vehicle_20.txt", "../Data/Call_130_Vehicle_40.txt", "../Data/Call_300_Vehicle_90.txt"]
 	
 	prob = load_problem(test_files[0])
-	print(initial_solution(problem=prob))
+	init_sol = initial_solution(problem=prob)
+	#alter_solution_1insert(prob, init_sol, 0.8)
+
+	for i in range(10):
+		init_sol = alter_solution_1insert(prob, init_sol, 0.8)
+		print(init_sol)
+
 	"""for test_f in test_files:
 		file = test_f
 		prob = load_problem(file)
