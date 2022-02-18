@@ -255,7 +255,6 @@ def local_search(problem: dict(), init_sol, num_of_iterations: int = 10000, allo
 	cost = cost_function(init_sol, problem)
 	sol = init_sol
 	orig_cost = cost
-	print(f"Original cost: {orig_cost}")
 
 	for i in range(num_of_iterations):
 		neighbourfunc_id = choice(allowed_neighbours)
@@ -274,14 +273,15 @@ def local_search(problem: dict(), init_sol, num_of_iterations: int = 10000, allo
 				cost = new_cost
 				sol = new_sol
 	
-	print(cost)
 	improvement = round(100*(orig_cost-cost)/orig_cost, 2)
-	print(f"Improvement: {improvement}%")
+	logging.debug(f"Original cost: {orig_cost}")
+	logging.debug(f"New cost: {cost}")
+	logging.debug(f"Improvement: {improvement}%")
 
 def simulated_annealing(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [1,2,3]):
-	""" """
-
+	""" Simulated annealing algorithm as stated in the slides of Ahmed"""
 	logging.info(f"Start simulated annealing with neighbour(s) {allowed_neighbours}")
+
 	t_f = 0.1 # final temperature
 	cost = cost_function(init_sol, problem)
 	best_sol = init_sol
@@ -289,7 +289,6 @@ def simulated_annealing(problem: dict(), init_sol, num_of_iterations: int = 1000
 	best_cost = cost
 	inc_cost = cost
 	orig_cost = cost
-	print(f"Original cost: {orig_cost}")
 
 	delta_w = list()
 
@@ -357,7 +356,8 @@ def simulated_annealing(problem: dict(), init_sol, num_of_iterations: int = 1000
 		
 		t = alpha * t
 
-	print(best_cost)
 	improvement = round(100*(orig_cost-best_cost)/orig_cost, 2)
-	print(f"Improvement: {improvement}%")
+	logging.debug(f"Original cost: {orig_cost}")
+	logging.debug(f"New cost: {cost}")
+	logging.debug(f"Improvement: {improvement}%")
 	
