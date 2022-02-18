@@ -1,4 +1,4 @@
-from Heuristics import alter_solution_1insert, alter_solution_2exchange, alter_solution_3exchange, local_search
+from Heuristics import alter_solution_1insert, alter_solution_2exchange, alter_solution_3exchange, local_search, simulated_annealing
 from Utils import *
 
 import logging
@@ -17,7 +17,8 @@ def main():
 			prob = load_problem(tf)
 			init_sol = initial_solution(problem=prob)
 
-			local_search(prob, init_sol, 10000, allowed_neighbours=usable_neighbours)
+			#local_search(prob, init_sol, 10000, allowed_neighbours=usable_neighbours)
+			simulated_annealing(prob, init_sol, 10000, allowed_neighbours=usable_neighbours)
 
 	"""for i in range(10):
 		init_sol = alter_solution_1insert(prob, init_sol, 0.8)
