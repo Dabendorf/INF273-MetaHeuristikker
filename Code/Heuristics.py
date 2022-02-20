@@ -2,13 +2,13 @@ from typing import List
 import numpy as np
 from collections import defaultdict
 import logging
-from random import randint, randrange, random, choice
+from random import randint, randrange, random, choice, seed
 import numpy as np
 from timeit import default_timer as timer
 import math
 
 from numpy import choose
-from Utils import split_a_list_at_zeros, cost_function, feasibility_check
+from Utils import split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
 
 logger = logging.getLogger(__name__)
 
@@ -278,6 +278,8 @@ def local_search(problem: dict(), init_sol, num_of_iterations: int = 10000, allo
 	logging.debug(f"New cost: {cost}")
 	logging.debug(f"Improvement: {improvement}%")
 
+	return sol, cost, improvement
+
 def simulated_annealing(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [1,2,3]):
 	""" Simulated annealing algorithm as stated in the slides of Ahmed"""
 	logging.info(f"Start simulated annealing with neighbour(s) {allowed_neighbours}")
@@ -358,6 +360,59 @@ def simulated_annealing(problem: dict(), init_sol, num_of_iterations: int = 1000
 
 	improvement = round(100*(orig_cost-best_cost)/orig_cost, 2)
 	logging.debug(f"Original cost: {orig_cost}")
-	logging.debug(f"New cost: {cost}")
+	logging.debug(f"New cost: {best_cost}")
 	logging.debug(f"Improvement: {improvement}%")
+
+	return best_sol, best_cost, improvement
 	
+def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_iterations: int = 10000, num_of_rounds: int = 10, allowed_neighbours: list = [1,2,3], method:str = "ls"):
+	""" """
+
+	if method == "ls":
+		logging.debug("Start local search\LaTeX")
+	else:
+		logging.debug("Start simulated annealing \LaTeX")
+	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
+
+	average_times = []
+	best_cost = float('inf')
+	best_solution = []
+	seeds = []
+	improvements = []
+	average_objectives = []
+
+	for round_nr in range(num_of_rounds):
+		start_time = timer()
+		new_seed = randint(0, 10**9)
+		seed(new_seed)
+		seeds.append(new_seed)
+
+		if method == "ls":
+			method_str = "Local Search"
+			sol, cost, improvement = local_search(problem, init_sol, num_of_iterations, allowed_neighbours)
+		else:
+			method_str = "Simulated Annealing"
+			sol, cost, improvement = simulated_annealing(problem,init_sol, num_of_iterations, allowed_neighbours)
+		if allowed_neighbours == [0]:
+			method_str+= "-1-insert"
+		elif allowed_neighbours == [0,1]:
+			method_str+= "-2-exchange"
+		elif allowed_neighbours == [0,1,2]:
+			method_str+= "-3-exchange"
+
+		finish_time = timer()
+		average_times.append(finish_time-start_time)
+		improvements.append(improvement)
+		average_objectives.append(cost)
+
+		if cost < best_cost:
+			best_cost = cost
+			best_solution = sol
+
+	average_objective = round(sum(average_objectives) / len(average_objectives), 2)
+	improvement = max(improvements)
+	average_time = round(sum(average_times) / len(average_times), 2)
+
+	latex_add_line(num_vehicles = num_vehicles, num_calls = num_calls, method = method_str, average_obj = average_objective, best_obj = best_cost, improvement = improvement, running_time = average_time)
+	latex_replace_line(num_vehicles = num_vehicles, num_calls = num_calls, best_solution = best_solution, seeds = seeds)
