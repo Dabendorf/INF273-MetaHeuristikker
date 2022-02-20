@@ -7,7 +7,6 @@ import numpy as np
 from timeit import default_timer as timer
 import math
 
-from numpy import choose
 from Utils import split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
 
 logger = logging.getLogger(__name__)
@@ -321,16 +320,10 @@ def simulated_annealing(problem: dict(), init_sol, num_of_iterations: int = 1000
 		w += 1
 	
 	delta_avg = sum(delta_w)/len(delta_w)
-	#print(f"len delta_w: {len(delta_w)}")
-	#print(f"Delta avg: {delta_avg}")
 
 	t_0 = (-delta_avg)/math.log(0.8)
-	#print(f"t_0: {t_0}")
-	#print(f"Iterations for second loop: {num_of_iterations-w}")
 	alpha = (t_f/t_0) ** (1/(num_of_iterations-w))
-	#print(f"Alpha: {alpha}")
 	t = t_0
-	#print(f"Start temp: {t}")
 
 	for i in range(num_of_iterations-w):
 		neighbourfunc_id = choice(allowed_neighbours)
@@ -366,10 +359,13 @@ def simulated_annealing(problem: dict(), init_sol, num_of_iterations: int = 1000
 	return best_sol, best_cost, improvement
 	
 def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_iterations: int = 10000, num_of_rounds: int = 10, allowed_neighbours: list = [1,2,3], method:str = "ls"):
-	""" """
+	""" Performs any sort of heuristic on a number of neighbours
+		It runs n times and takes the average of all of it, also returning the time consumption
+		It finally runs the \LaTeX methods to add a new solution to the table 
+		to the report PDF and change the optimal solution"""
 
 	if method == "ls":
-		logging.debug("Start local search\LaTeX")
+		logging.debug("Start local search \LaTeX")
 	else:
 		logging.debug("Start simulated annealing \LaTeX")
 	num_vehicles = problem["num_vehicles"]

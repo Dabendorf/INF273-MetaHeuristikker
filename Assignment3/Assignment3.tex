@@ -117,7 +117,7 @@ bindingoffset=0mm, top=20mm,bottom=20mm}
 \maketitle
 
 \section{Functions}
-Currently, I am maintaining the following functions.\footnote{The green ones are changes or additions from the last assignment}
+Currently, I am maintaining the following \textcolor{ForestGreen}{helper} functions \textcolor{ForestGreen}{in my Utils file}.\footnote{The green ones are changes or additions from the last assignment}
 \begin{itemize}
 \item load\_problem: Given a path to a file, it reads the content of the file into a dictionary of information.
 \item feasibility\_check: It takes a solution (list) and a problem dictionary and checks if the solution is feasible. If it is not feasible, it outputs the reason why. It does not check validity (since the aim
@@ -131,6 +131,17 @@ Currently, I am maintaining the following functions.\footnote{The green ones are
 \item \textcolor{ForestGreen}{latex\_replace\_line: Change the optimal solution and its seed in that file.}
 
 If there are any questions or nice recommendations to get a better structure, just send me a message.
+\end{itemize}
+
+\clearpage
+Moreover, there is a new file for Heuristics where I collect all of the important algorithms and their helper functions.
+\begin{itemize}
+\item \textcolor{ForestGreen}{alter\_solution\_1insert: A function which takes a current solution and outputs a next solution by using the 1-insert-operation. The output is not necessary feasible, but of course valid}
+\item \textcolor{ForestGreen}{alter\_solution\_2exchange: A function which takes a current solution and outputs a next solution by using the 2-exchange-operation. The output is not necessary feasible, but of course valid}
+\item \textcolor{ForestGreen}{alter\_solution\_3exchange: A function which takes a current solution and outputs a next solution by using the 3-exchange-operation. The output is not necessary feasible, but of course valid}
+\item \textcolor{ForestGreen}{local\_search: This function takes a problem, an initial solution, a number of iterations (10.000) and the allowed neighbouring function and performs a local search}
+\item \textcolor{ForestGreen}{simulated\_annealing: This function takes a problem, an initial solution, a number of iterations (10.000) and the allowed neighbouring function and performs a simulated annealing}
+\item \textcolor{ForestGreen}{local\_search\_sim\_annealing\_latex: This function takes as input the allowed neighbouring function(s), the heuristics method, the problem and the number of iterations and performs the heuristics on randomly chosen seeds. It then calculates the average time and objective and runs the \LaTeX functions to change the tables of this PDF}
 \end{itemize}
 
 \clearpage
