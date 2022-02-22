@@ -163,7 +163,7 @@ def feasibility_check(solution: list(), problem: dict()):
 		if len(set_visited-set_allowed_to_visit) > 0:
 			logging.debug(f"Solution not feasible - Vehicle served call without permission")
 			reason_not_feasible = "Incompatible call and vehicle"
-			break
+			return (True if reason_not_feasible == "" else False), reason_not_feasible
 
 	# (2) Capacity of the vehicle
 	for veh_ind, l in enumerate(sol_split_by_vehicle):
@@ -180,60 +180,85 @@ def feasibility_check(solution: list(), problem: dict()):
 				if size_available < 0:
 					logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} got overloaded")
 					reason_not_feasible = "Vehicle got overloaded"
-					break
+					return (True if reason_not_feasible == "" else False), reason_not_feasible
 
 	# (3) Time windows at both nodes
+	veh_times = list()
+	
+	# loop through all vehicles
 	for veh_ind, l in enumerate(sol_split_by_vehicle):
+		# Starting time of each vehicle
 		curr_time = vehicle_info[veh_ind][2]
-		
+
+		# Only check feasibility if vehicle is not empty
 		length_list = len(l)
 		if length_list > 0:
 			calls_visited = set()
-			home_node = vehicle_info[veh_ind][1]
-			call_numb = l[0]-1
-			calls_visited.add(call_numb)
-			ci = call_info[call_numb]
-			start_node = ci[1]
 
-			next_travel_time = travel_cost_dict[(veh_ind+1, home_node, start_node)][0]
-			curr_time += next_travel_time
-			for i in range(1, length_list):
+			# Get home node
+			home_node = vehicle_info[veh_ind][1]
+
+			# First call number
+			call_numb = l[0]
+			# Information about first call number
+			ci = call_info[call_numb-1]
+			pickup_node = ci[1]
+
+			goal_node = home_node
+
+			# Go through all other nodes
+			for i in range(0, length_list):
+				start_node = goal_node
+
 				call_numb = l[i]-1
-				if call_numb in calls_visited:
-					calls_visited.remove(call_numb)
-					ci = call_info[call_numb]
+				ci = call_info[call_numb]
+
+				if call_numb+1 in calls_visited:
 					goal_node = ci[2]
-					lower_del, upper_del = call_info[call_numb][7:9]
+				else:
+					goal_node = ci[1]
+
+				next_travel_time = travel_cost_dict[(veh_ind+1, start_node, goal_node)][0]
+				
+				curr_time += next_travel_time
+
+				# if already visited, delivery
+				if call_numb+1 in calls_visited:
+					calls_visited.remove(call_numb+1)
+	
+					lower_del, upper_del = ci[7:9]
 
 					if curr_time > upper_del:
 						logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} came too late")
 						reason_not_feasible = "Vehicle came too late"
-						break
-					if curr_time > lower_del:
+						curr_time -= next_travel_time
+						return (True if reason_not_feasible == "" else False), reason_not_feasible
+					if curr_time < lower_del:
 						curr_time = lower_del
-
+					
 					next_loading_time = node_cost_dict[(veh_ind+1, call_numb+1)][2]
 					curr_time += next_loading_time
+
+				# if not visited yet, pickup
 				else:
-					calls_visited.add(call_numb)
-					ci = call_info[call_numb]
-					goal_node = ci[1]
-					lower_pickup, upper_pickup = call_info[call_numb][5:7]
+					calls_visited.add(call_numb+1)
+
+					lower_pickup, upper_pickup = ci[5:7]
 
 					if curr_time > upper_pickup:
 						logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} came too late")
 						reason_not_feasible = "Vehicle came too late"
-						break
-					if curr_time > lower_pickup:
+						curr_time -= next_travel_time
+						return (True if reason_not_feasible == "" else False), reason_not_feasible
+					if curr_time < lower_pickup:
 						curr_time = lower_pickup
 
 					next_loading_time = node_cost_dict[(veh_ind+1, call_numb+1)][0]
 					curr_time += next_loading_time
 
-				next_travel_time =  travel_cost_dict[(veh_ind+1, start_node, goal_node)][0]
-				curr_time += next_travel_time
 
-				start_node = goal_node
+		# Remove later
+		veh_times.append(curr_time)
 	
 	logging.debug(f"Feasible: {(True if reason_not_feasible == '' else False)}, Reason: {reason_not_feasible}")
 	return (True if reason_not_feasible == "" else False), reason_not_feasible
