@@ -15,12 +15,41 @@ def main():
 		prob = load_problem(tf)
 		init_sol = initial_solution(problem=prob)
 
-		local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=[0], method="ls")
-		local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=[0,1], method="ls")
-		local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=[0,1,2], method="ls")
-		local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=[0], method="sa")
-		local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=[0,1], method="sa")
-		local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=[0,1,2], method="sa")
+		num_vehicles, num_calls, best_solution, best_cost, seeds = local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=[0], method="ls")
+		overall_best_solution = best_solution
+		overall_best_cost = best_cost
+		overall_seeds = seeds
 		
+		num_vehicles, num_calls, best_solution, best_cost, seeds = local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=[0,1], method="ls")
+		if best_cost < overall_best_cost:
+			overall_best_solution = best_solution
+			overall_best_cost = best_cost
+			overall_seeds = seeds
+
+		num_vehicles, num_calls, best_solution, best_cost, seeds = local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=[0,1,2], method="ls")
+		if best_cost < overall_best_cost:
+			overall_best_solution = best_solution
+			overall_best_cost = best_cost
+			overall_seeds = seeds
+		
+		num_vehicles, num_calls, best_solution, best_cost, seeds = local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=[0], method="sa")
+		if best_cost < overall_best_cost:
+			overall_best_solution = best_solution
+			overall_best_cost = best_cost
+			overall_seeds = seeds
+		
+		num_vehicles, num_calls, best_solution, best_cost, seeds = local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=[0,1], method="sa")
+		if best_cost < overall_best_cost:
+			overall_best_solution = best_solution
+			overall_best_cost = best_cost
+			overall_seeds = seeds
+		
+		num_vehicles, num_calls, best_solution, best_cost, seeds = local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=[0,1,2], method="sa")
+		if best_cost < overall_best_cost:
+			overall_best_solution = best_solution
+			overall_best_cost = best_cost
+			overall_seeds = seeds
+		latex_replace_line(num_vehicles = num_vehicles, num_calls = num_calls, best_solution = overall_best_solution, seeds = overall_seeds)
+
 if __name__ == "__main__":
 	main()
