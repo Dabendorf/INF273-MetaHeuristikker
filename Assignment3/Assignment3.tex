@@ -120,7 +120,7 @@ bindingoffset=0mm, top=20mm,bottom=20mm}
 Currently, I am maintaining the following \textcolor{ForestGreen}{helper} functions \textcolor{ForestGreen}{in my Utils file}.\footnote{The green ones are changes or additions from the last assignment}
 \begin{itemize}
 \item load\_problem: Given a path to a file, it reads the content of the file into a dictionary of information.
-\item feasibility\_check: It takes a solution (list) and a problem dictionary and checks if the solution is feasible. If it is not feasible, it outputs the reason why. It does not check validity (since the aim
+\item \textcolor{Orange}{feasibility\_check: It takes a solution (list) and a problem dictionary and checks if the solution is feasible. If it is not feasible, it outputs the reason why. It does not check validity. This one got changed after Ahmed found a major mistake in it. I hope it now works correctly}
 \item cost\_function: It takes a solution (list) and a problem dictionary and calculates the cost of the function. As feasibility\_check it does not check if the original solution was valid.
 \item splitting\_a\_list\_at\_zeros: Helper function which splits a solution into vehicles and if needed a dummy vehicle.
 \textcolor{ForestGreen}{\item initial\_solution: Generates an initial default solution to start with. This is always a solution where the dummy vehicle handles all calls.}
