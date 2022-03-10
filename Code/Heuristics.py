@@ -7,7 +7,7 @@ import numpy as np
 from timeit import default_timer as timer
 import math
 
-from Utils import split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
+from Utils import problem_to_helper_structure, split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
 
 logger = logging.getLogger(__name__)
 
@@ -245,15 +245,15 @@ def alter_solution_3exchange(problem: dict(), current_solution: List[int]) -> Li
 	
 	return new_sol
 
-def alter_solution_placeholder1(problem: dict(), current_solution: List[int]) -> List[int]:
+def alter_solution_placeholder1(problem: dict(), current_solution: List[int], helper_data) -> List[int]:
 	# TODO
 	return current_solution
 
-def alter_solution_placeholder2(problem: dict(), current_solution: List[int]) -> List[int]:
+def alter_solution_placeholder2(problem: dict(), current_solution: List[int], helper_data) -> List[int]:
 	# TODO
 	return current_solution
 
-def alter_solution_placeholder3(problem: dict(), current_solution: List[int]) -> List[int]:
+def alter_solution_placeholder3(problem: dict(), current_solution: List[int], helper_data) -> List[int]:
 	# TODO
 	return current_solution
 
@@ -384,6 +384,9 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 
 	delta_w = list()
 
+	# Initialise helper data structure
+	helper_data = problem_to_helper_structure(problem)
+
 	w = 0
 	while w < 100 or not delta_w:
 		neighbourfunc_id = choices(allowed_neighbours, probabilities, k=1)[0]
@@ -395,11 +398,11 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		elif neighbourfunc_id == 3:
 			new_sol = alter_solution_3exchange(problem, inc_sol)
 		elif neighbourfunc_id == 4:
-			new_sol = alter_solution_placeholder1(problem, inc_sol)
+			new_sol = alter_solution_placeholder1(problem, inc_sol, helper_data)
 		elif neighbourfunc_id == 5:
-			new_sol = alter_solution_placeholder2(problem, inc_sol)
+			new_sol = alter_solution_placeholder2(problem, inc_sol, helper_data)
 		elif neighbourfunc_id == 6:
-			new_sol = alter_solution_placeholder3(problem, inc_sol)
+			new_sol = alter_solution_placeholder3(problem, inc_sol, helper_data)
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
 		if feasiblity:
@@ -433,11 +436,11 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		elif neighbourfunc_id == 3:
 			new_sol = alter_solution_3exchange(problem, inc_sol)
 		elif neighbourfunc_id == 4:
-			new_sol = alter_solution_placeholder1(problem, inc_sol)
+			new_sol = alter_solution_placeholder1(problem, inc_sol, helper_data)
 		elif neighbourfunc_id == 5:
-			new_sol = alter_solution_placeholder2(problem, inc_sol)
+			new_sol = alter_solution_placeholder2(problem, inc_sol, helper_data)
 		elif neighbourfunc_id == 6:
-			new_sol = alter_solution_placeholder3(problem, inc_sol)
+			new_sol = alter_solution_placeholder3(problem, inc_sol, helper_data)
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
 		if feasiblity:
