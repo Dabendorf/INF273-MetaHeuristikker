@@ -2,7 +2,7 @@ from typing import List
 import numpy as np
 from collections import defaultdict
 import logging
-from random import randint, randrange, random, choice, seed
+from random import randint, randrange, random, choice, seed, choices
 import numpy as np
 from timeit import default_timer as timer
 import math
@@ -245,6 +245,18 @@ def alter_solution_3exchange(problem: dict(), current_solution: List[int]) -> Li
 	
 	return new_sol
 
+def alter_solution_placeholder1(problem: dict(), current_solution: List[int]) -> List[int]:
+	# TODO
+	return current_solution
+
+def alter_solution_placeholder2(problem: dict(), current_solution: List[int]) -> List[int]:
+	# TODO
+	return current_solution
+
+def alter_solution_placeholder3(problem: dict(), current_solution: List[int]) -> List[int]:
+	# TODO
+	return current_solution
+
 def local_search(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [1,2,3]):
 	""" Local loops n-times over the neighbours of the currently best solution
 		If the randomly chosen neighbour is better than the current one, and its feasible,
@@ -357,8 +369,101 @@ def simulated_annealing(problem: dict(), init_sol, num_of_iterations: int = 1000
 	logging.debug(f"Improvement: {improvement}%")
 
 	return best_sol, best_cost, improvement
+
+def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [4, 5, 6], probabilities: list = [1/3, 1/3, 1/3]):
+	""" Improved simulated annealing algorithm as stated in the slides of Ahmed for assignment 4"""
+	logging.info(f"Start improved simulated annealing with neighbour(s) {allowed_neighbours}")
+
+	t_f = 0.1 # final temperature
+	cost = cost_function(init_sol, problem)
+	best_sol = init_sol
+	inc_sol = init_sol
+	best_cost = cost
+	inc_cost = cost
+	orig_cost = cost
+
+	delta_w = list()
+
+	w = 0
+	while w < 100 or not delta_w:
+		neighbourfunc_id = choices(allowed_neighbours, probabilities, k=1)[0]
+		# Note: The original numbers have been changed from [0, 1, 2] to [1, 2, 3]
+		if neighbourfunc_id == 1:
+			new_sol = alter_solution_1insert(problem, inc_sol, 0.8)
+		elif neighbourfunc_id == 2:
+			new_sol = alter_solution_2exchange(problem, inc_sol)
+		elif neighbourfunc_id == 3:
+			new_sol = alter_solution_3exchange(problem, inc_sol)
+		elif neighbourfunc_id == 4:
+			new_sol = alter_solution_placeholder1(problem, inc_sol)
+		elif neighbourfunc_id == 5:
+			new_sol = alter_solution_placeholder2(problem, inc_sol)
+		elif neighbourfunc_id == 6:
+			new_sol = alter_solution_placeholder3(problem, inc_sol)
+
+		feasiblity, _ = feasibility_check(new_sol, problem)
+		if feasiblity:
+			new_cost = cost_function(new_sol, problem)
+			delta_e = new_cost - inc_cost
+			if delta_e < 0:
+				inc_sol = new_sol
+				inc_cost = new_cost
+				if inc_cost < best_cost:
+					best_sol = inc_sol
+					best_cost = inc_cost
+			elif random() < 0.8:
+				inc_sol = new_sol
+				inc_cost = new_cost
+				delta_w.append(delta_e)
+		w += 1
 	
-def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_iterations: int = 10000, num_of_rounds: int = 10, allowed_neighbours: list = [1,2,3], method:str = "ls"):
+	delta_avg = sum(delta_w)/len(delta_w)
+
+	t_0 = (-delta_avg)/math.log(0.8)
+	alpha = (t_f/t_0) ** (1/(num_of_iterations-w))
+	t = t_0
+
+	for i in range(num_of_iterations-w):
+		neighbourfunc_id = choices(allowed_neighbours, probabilities, k=1)[0]
+		# Note: The original numbers have been changed from [0, 1, 2] to [1, 2, 3]
+		if neighbourfunc_id == 1:
+			new_sol = alter_solution_1insert(problem, inc_sol, 0.8)
+		elif neighbourfunc_id == 2:
+			new_sol = alter_solution_2exchange(problem, inc_sol)
+		elif neighbourfunc_id == 3:
+			new_sol = alter_solution_3exchange(problem, inc_sol)
+		elif neighbourfunc_id == 4:
+			new_sol = alter_solution_placeholder1(problem, inc_sol)
+		elif neighbourfunc_id == 5:
+			new_sol = alter_solution_placeholder2(problem, inc_sol)
+		elif neighbourfunc_id == 6:
+			new_sol = alter_solution_placeholder3(problem, inc_sol)
+
+		feasiblity, _ = feasibility_check(new_sol, problem)
+		if feasiblity:
+			new_cost = cost_function(new_sol, problem)
+			delta_e = new_cost - inc_cost
+
+			if delta_e < 0:
+				inc_sol = new_sol
+				inc_cost = new_cost
+				if inc_cost < best_cost:
+					best_sol = inc_sol
+					best_cost = inc_cost
+			elif random() < (math.e ** (-delta_e/t)):
+				inc_sol = new_sol
+				inc_cost = new_cost
+		
+		t = alpha * t
+
+	improvement = round(100*(orig_cost-best_cost)/orig_cost, 2)
+	logging.debug(f"Original cost: {orig_cost}")
+	logging.debug(f"New cost: {best_cost}")
+	logging.debug(f"Improvement: {improvement}%")
+
+	return best_sol, best_cost, improvement
+	
+def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_iterations: int = 10000, num_of_rounds: int = 10, allowed_neighbours: list = [1,2,3], probabilities: list = [1/3, 1/3, 1/3], method:str = "ls"):
 	""" Performs any sort of heuristic on a number of neighbours
 		It runs n times and takes the average of all of it, also returning the time consumption
 		It finally runs the \LaTeX methods to add a new solution to the table 
@@ -366,8 +471,11 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 
 	if method == "ls":
 		logging.debug("Start local search \LaTeX")
-	else:
+	elif method == "sa":
 		logging.debug("Start simulated annealing \LaTeX")
+	elif method == "isa":
+		logging.debug("Start improved simulated annealing \LaTeX")
+	
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
 
@@ -387,15 +495,23 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 		if method == "ls":
 			method_str = "Local Search"
 			sol, cost, improvement = local_search(problem, init_sol, num_of_iterations, allowed_neighbours)
-		else:
+		elif method == "sa":
 			method_str = "Simulated Annealing"
-			sol, cost, improvement = simulated_annealing(problem,init_sol, num_of_iterations, allowed_neighbours)
+			sol, cost, improvement = simulated_annealing(problem, init_sol, num_of_iterations, allowed_neighbours)
+		elif method == "isa":
+			method_str = "Simulated Annealing"
+			sol, cost, improvement = improved_simulated_annealing(problem, init_sol, num_of_iterations, allowed_neighbours, probabilities)
 		if allowed_neighbours == [0]:
-			method_str+= "-1-insert"
+			method_str += "-1-insert"
 		elif allowed_neighbours == [0,1]:
-			method_str+= "-2-exchange"
+			method_str += "-2-exchange"
 		elif allowed_neighbours == [0,1,2]:
-			method_str+= "-3-exchange"
+			method_str += "-3-exchange"
+		elif allowed_neighbours == [4,5,6]:
+			if probabilities == [1/3, 1/3, 1/3]:
+				method_str += "SA-new operators (equal weights)"
+			else:
+				method_str += "SA-new operators (tuned weights)"
 
 		finish_time = timer()
 		average_times.append(finish_time-start_time)
@@ -413,4 +529,3 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 	latex_add_line(num_vehicles = num_vehicles, num_calls = num_calls, method = method_str, average_obj = average_objective, best_obj = best_cost, improvement = improvement, running_time = average_time)
 	
 	return num_vehicles, num_calls, best_solution, best_cost, seeds
-	#latex_replace_line(num_vehicles = num_vehicles, num_calls = num_calls, best_solution = best_solution, seeds = seeds)

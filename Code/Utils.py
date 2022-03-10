@@ -3,7 +3,6 @@ import numpy as np
 from collections import defaultdict
 import logging
 import random
-import numpy as np
 from timeit import default_timer as timer
 
 logger = logging.getLogger(__name__)
@@ -598,3 +597,7 @@ def latex_replace_line(num_vehicles: int, num_calls: int, best_solution, seeds):
 		contents = "".join(contents)
 		f.write(contents)
 	logging.debug("Finish to replace optimal solution in table")
+
+def problem_to_helper_structure(problem: dict()):
+	""" This function takes a problem data structure and 
+		outputs a helper data strcture to better insert information into it"""
