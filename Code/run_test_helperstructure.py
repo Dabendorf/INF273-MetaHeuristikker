@@ -4,7 +4,7 @@ from Utils import *
 import logging
 
 def main():
-	logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
+	logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.DEBUG)
 	logger = logging.getLogger(__name__)
 	logger.disabled = False
 
@@ -19,18 +19,28 @@ def main():
 		helper_info = problem_to_helper_structure(problem=prob, sol=init_sol)
 
 		print("Initial helper structure: ")
-		print(f"New solution: {new_sol}")
+		print(f"New solution: {init_sol}")
 		print(f"Helper info: {helper_info}")
 
 		new_sol, helper_info = remove_call_from_array(problem=prob, sol=init_sol, helper_structure=helper_info, call_num=4, vehicle_num=4)
-		print("Removing one call from vehicle: ")
+		print(f"\nRemoving one call from vehicle: ")
 		print(f"New solution: {new_sol}")
 		print(f"Helper info: {helper_info}")
 		
 		new_sol, helper_info = insert_call_into_array(problem=prob, sol=new_sol, helper_structure=helper_info, call_num=4, vehicle_num=1)
-		print("Adding one call to vehicle: ")
+		print(f"\nAdding one call to vehicle: ")
 		print(f"New solution: {new_sol}")
 		print(f"Helper info: {helper_info}")
+
+		"""new_sol, helper_info = remove_call_from_array(problem=prob, sol=new_sol, helper_structure=helper_info, call_num=4, vehicle_num=1)
+		print(f"\nRemoving one call from vehicle: ")
+		print(f"New solution: {new_sol}")
+		print(f"Helper info: {helper_info}")
+		
+		new_sol, helper_info = insert_call_into_array(problem=prob, sol=new_sol, helper_structure=helper_info, call_num=4, vehicle_num=2)
+		print(f"\nAdding one call to vehicle: ")
+		print(f"New solution: {new_sol}")
+		print(f"Helper info: {helper_info}")"""
 
 if __name__ == "__main__":
 	main()

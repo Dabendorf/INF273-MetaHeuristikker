@@ -637,10 +637,14 @@ def problem_to_helper_structure(problem: dict(), sol):
 def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, vehicle_num):
 	""" """
 
-	logging.debug("Start problem to helper structure method")
+	logging.debug(f"Inserting call {call_num} into vehicle {vehicle_num}")
 
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
+
+	# Lookup_call_in_vehicle: Loopup_list in which vehicle a call is in
+	# latest_arrival_time: sorted list of tuples: 
+	# arrival_info: 
 	[lookup_call_in_vehicle, latest_arrival_time, arrival_info] = helper_structure
 
 	# Split the vehicles and get the specific vehicle to insert into
@@ -673,7 +677,37 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 	return merge_vehice_lists(sol_split_by_vehicle), [lookup_call_in_vehicle, latest_arrival_time, arrival_info]
 
 def remove_call_from_array(problem: dict(), sol, helper_structure, call_num, vehicle_num):
-	pass
+	""" """
+
+	logging.debug(f"Removing call {call_num} from vehicle {vehicle_num}")
+
+	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
+	[lookup_call_in_vehicle, latest_arrival_time, arrival_info] = helper_structure
+
+	# Split the vehicles and get the specific vehicle to insert into
+	sol_split_by_vehicle = split_a_list_at_zeros(sol)
+	call_list_vehicle = sol_split_by_vehicle[vehicle_num-1]
+	print(call_list_vehicle)
+	print(sol_split_by_vehicle)
+
+	# Updating the arrival information
+
+	# if removing from dummy vehicle, nothing to update
+	if num_vehicles < vehicle_num:
+		logging.debug("Removing from dummy vehicle, nothing to update")
+	else:
+		logging.debug("Removing from vehicle, updating information around")
+		# latest_arrival_time TODO
+		# arrival_info TODO
+
+	# Remove call from solution and from lookup
+	lookup_call_in_vehicle[call_num] = None
+	call_list_vehicle = [x for x in call_list_vehicle if x != call_num]
+
+	# Remerge list and return the list and the helper structure
+	sol_split_by_vehicle[vehicle_num-1] = call_list_vehicle
+	return merge_vehice_lists(sol_split_by_vehicle), [lookup_call_in_vehicle, latest_arrival_time, arrival_info]
 
 def merge_vehice_lists(splitted_solution: list()):
 	overall_list = list()
