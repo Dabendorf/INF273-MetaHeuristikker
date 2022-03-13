@@ -641,6 +641,9 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
+	call_info = problem["call_info"]
+	travel_times = problem["travel_time_cost"]
+	node_times = problem["node_time_cost"]
 
 	# Lookup_call_in_vehicle: Loopup_list in which vehicle a call is in
 	# latest_arrival_time: sorted list of tuples: 
@@ -658,10 +661,39 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 		call_list_vehicle.append(call_num)
 		call_list_vehicle.append(call_num)
 		# Update the helper information
-		# TODO
+		print("KLINGER\n\n")
+		print(latest_arrival_time)
+		print(arrival_info)
+
 		lookup_call_in_vehicle[call_num] = vehicle_num
-		#latest_arrival_time (time, 'call_num', 'node{a,b}')
-		#arrival_info
+		_, call_origin, call_dest, _, _, lower_pickup, upper_pickup, lower_del, upper_del = call_info[call_num-1]
+		start_info = latest_arrival_time[vehicle_num-1][0]
+
+		time_start_to_pickup = travel_times[(vehicle_num, start_info[2], call_origin)][0]
+		time_pickup_to_delivery = travel_times[(vehicle_num, call_origin, call_dest)][0]
+
+		temp_arr_route_value = start_info[0]+time_start_to_pickup
+		if temp_arr_route_value < lower_pickup:
+			max_arrival = lower_pickup
+			waiting_time = lower_pickup-max_arrival
+		else:
+			max_arrival = temp_arr_route_value
+			waiting_time = 0
+
+		latest_arrival_time[vehicle_num-1].append((max_arrival, str(call_num)+"a", call_origin))
+		arrival_info[str(call_num)+"a"] = (max_arrival, waiting_time)
+		
+		temp_arr_route_value = max_arrival+time_pickup_to_delivery+node_times[(vehicle_num, call_num)][0]
+		if temp_arr_route_value < lower_del:
+			max_arrival = lower_del
+			waiting_time = lower_del-max_arrival
+		else:
+			max_arrival = temp_arr_route_value
+			waiting_time = 0
+
+		latest_arrival_time[vehicle_num-1].append((max_arrival, str(call_num)+"b", call_dest))
+		arrival_info[str(call_num)+"b"] = (max_arrival, waiting_time)
+		# latest_arrival_time (time, 'call_num{a,b}', 'node')
 	else:
 		# Find correct insertion position
 		# TODO
