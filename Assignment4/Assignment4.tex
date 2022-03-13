@@ -128,8 +128,13 @@ Currently, I am maintaining the following helper functions in my Utils file.\foo
 \item random\_solution: Generates a random solution. The generator itself is quite bad in my view because I overtuned it a bit. It automatically gives one vehicle exactly one call and the rest goes to the dummy vehicle. That way I got solutions for file 3 and 4 but the solutions for all files are quite bad.\footnote{But since we do not need that random solution generator any longer I keep it like that.}
 \item blind\_random\_search: Takes a problem and a number of iterations to find the best out of n random feasible solutions if any is found.
 \item blind\_search\_latex\_generator: This function runs the blind\_random\_search and writes the data into \LaTeX tables since I am obviously too lazy to do it myself.
-latex\_add\_line: Adds a new result line into an results table of this file.
-latex\_replace\_line: Change the optimal solution and its seed in that file.
+\item latex\_add\_line: Adds a new result line into an results table of this file.
+\item latex\_replace\_line: Change the optimal solution and its seed in that file.
+
+\item \textcolor{ForestGreen}{problem\_to\_helper\_structure: }
+\item \textcolor{ForestGreen}{insert\_call\_into\_array: }
+\item \textcolor{ForestGreen}{remove\_call\_from\_array: }
+\item \textcolor{ForestGreen}{merge\_vehice\_lists: }
 
 If there are any questions or nice recommendations to get a better structure, just send me a message.
 \end{itemize}

@@ -4,6 +4,7 @@ from collections import defaultdict
 import logging
 import random
 from timeit import default_timer as timer
+from itertools import chain
 
 logger = logging.getLogger(__name__)
 
@@ -598,6 +599,86 @@ def latex_replace_line(num_vehicles: int, num_calls: int, best_solution, seeds):
 		f.write(contents)
 	logging.debug("Finish to replace optimal solution in table")
 
-def problem_to_helper_structure(problem: dict()):
+def problem_to_helper_structure(problem: dict(), sol):
 	""" This function takes a problem data structure and 
 		outputs a helper data strcture to better insert information into it"""
+
+	logging.debug("Start problem to helper structure method")
+
+	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
+
+	print(problem.keys())
+	print(f"Initial solution: {sol}")
+
+	# in which vehicle is a call
+	# init everything as dummy vehicle
+	lookup_call_in_vehicle = [None]
+
+	latest_arrival_time = list(list())
+
+	arrival_info = dict()
+
+	for call_num in range(num_calls):
+		lookup_call_in_vehicle.append(num_vehicles+1)
+		#latest_arrival_time.append((problem["call_info"][call_num][6], str(call_num+1)+"a"))
+		#latest_arrival_time.append((problem["call_info"][call_num][8], str(call_num+1)+"b"))
+	for vehicle in range(num_vehicles):
+		veh_info = problem["vehicle_info"][vehicle]
+		latest_arrival_time.append([(veh_info[2], "start", veh_info[1])])
+
+	#latest_arrival_time.sort(reverse=True)
+	print(f"Lookup Call->Vehicle: {lookup_call_in_vehicle}")
+	print(f"Latest_arrival_time: {latest_arrival_time}")
+	print(f"Arrival information: {arrival_info}")
+
+	return [lookup_call_in_vehicle, latest_arrival_time, arrival_info]
+
+def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, vehicle_num):
+	""" """
+
+	logging.debug("Start problem to helper structure method")
+
+	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
+	[lookup_call_in_vehicle, latest_arrival_time, arrival_info] = helper_structure
+
+	# Split the vehicles and get the specific vehicle to insert into
+	sol_split_by_vehicle = split_a_list_at_zeros(sol)
+	call_list_vehicle = sol_split_by_vehicle[vehicle_num-1]
+	print(call_list_vehicle)
+	print(sol_split_by_vehicle)
+
+	# If vehicle is empty, just insert the call two times
+	if len(call_list_vehicle)==0:
+		call_list_vehicle.append(call_num)
+		call_list_vehicle.append(call_num)
+		# Update the helper information
+		# TODO
+		lookup_call_in_vehicle[call_num] = vehicle_num
+		#latest_arrival_time (time, 'call_num', 'node{a,b}')
+		#arrival_info
+	else:
+		# Find correct insertion position
+		# TODO
+		# Update the helper information
+		# TODO
+
+		# Placeholder, to remove TODO
+		call_list_vehicle.append(call_num)
+		call_list_vehicle.append(call_num)
+	
+	# Remerge list and return the list and the helper structure
+	sol_split_by_vehicle[vehicle_num-1] = call_list_vehicle
+	return merge_vehice_lists(sol_split_by_vehicle), [lookup_call_in_vehicle, latest_arrival_time, arrival_info]
+
+def remove_call_from_array(problem: dict(), sol, helper_structure, call_num, vehicle_num):
+	pass
+
+def merge_vehice_lists(splitted_solution: list()):
+	overall_list = list()
+	for i in splitted_solution:
+		overall_list.extend(i)
+		overall_list.append(0)
+	
+	return overall_list[:-1]
