@@ -613,6 +613,7 @@ def problem_to_helper_structure(problem: dict(), sol):
 
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
+	call_info = problem["call_info"]
 
 	print(problem.keys())
 	logging.debug(f"Initial solution: {sol}")
@@ -625,13 +626,20 @@ def problem_to_helper_structure(problem: dict(), sol):
 
 	arrival_info = dict()
 
-	for call_num in range(num_calls):
-		lookup_call_in_vehicle.append(num_vehicles+1)
 	for vehicle in range(num_vehicles):
 		veh_info = problem["vehicle_info"][vehicle]
 		latest_arrival_time.append([(veh_info[2], "start", veh_info[1])])
+	
+	# Add dummy list
+	latest_arrival_time.append([])
+	for call_num in range(num_calls):
+		specific_call_info = call_info[call_num]
+		latest_arrival_time[num_vehicles].append((specific_call_info[6], str(call_num+1)+"a", specific_call_info[1]))
+		latest_arrival_time[num_vehicles].append((specific_call_info[8], str(call_num+1)+"b", specific_call_info[2]))
+		lookup_call_in_vehicle.append(num_vehicles+1)
 
-	#latest_arrival_time.sort(reverse=True)
+	# Sort dummy vehicle times
+	latest_arrival_time[num_vehicles].sort(reverse=True)
 	logging.debug(f"Lookup Call->Vehicle: {lookup_call_in_vehicle}")
 	logging.debug(f"Latest_arrival_time: {latest_arrival_time}")
 	logging.debug(f"Arrival information: {arrival_info}")
@@ -724,6 +732,7 @@ def remove_call_from_array(problem: dict(), sol, helper_structure, call_num, veh
 
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
+	call_info = problem["call_info"][call_num-1]
 
 	# Unpack helper structure
 	# Lookup_call_in_vehicle (list): Loopup_list in which vehicle a call is in
@@ -742,6 +751,8 @@ def remove_call_from_array(problem: dict(), sol, helper_structure, call_num, veh
 	# if removing from dummy vehicle, nothing to update
 	if num_vehicles < vehicle_num:
 		logging.debug("Removing from dummy vehicle, nothing to update")
+		latest_arrival_time[num_vehicles].remove((call_info[6], str(call_num)+"a", call_info[1]))
+		latest_arrival_time[num_vehicles].remove((call_info[8], str(call_num)+"b", call_info[2]))
 	else:
 		logging.debug("Removing from vehicle, updating information around")
 		# latest_arrival_time TODO
