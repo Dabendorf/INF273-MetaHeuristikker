@@ -578,7 +578,7 @@ def latex_replace_line(num_vehicles: int, num_calls: int, best_solution, seeds):
 	try:
 		idx = contents.index(f"\end{{lstlisting}}%Call\_{num_calls}\_Vehicle\_{num_vehicles}\n")
 	except:
-		print(f"\end{{lstlisting}}%Call\_{num_calls}\_Vehicle\_{num_vehicles}\n")
+		logging.error(f"\end{{lstlisting}}%Call\_{num_calls}\_Vehicle\_{num_vehicles}\n")
 		logging.error(f"ValueError: there is no table for the file Call_{num_calls}_Vehicle_{num_vehicles}")
 		exit(0)
 
@@ -639,13 +639,15 @@ def problem_to_helper_structure(problem: dict(), sol):
 	return [lookup_call_in_vehicle, latest_arrival_time, arrival_info]
 
 def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, vehicle_num):
-	""" """
+	""" Function takes a problem, a solution and a current helper structure
+		It then adds a specific call into a specific vehicle
+		Returns updated helper structure and solution"""
 
 	logging.debug(f"Inserting call {call_num} into vehicle {vehicle_num}")
 
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
-	call_info = problem["call_info"]
+	call_info = problem["call_info"][call_num-1]
 	travel_times = problem["travel_time_cost"]
 	node_times = problem["node_time_cost"]
 
@@ -662,18 +664,20 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 	logging.debug(f"Vehicle call split: {sol_split_by_vehicle}")
 
 	# If vehicle is empty, just insert the call two times
+	# Update helper function correctly
 	if len(call_list_vehicle)==0:
 		call_list_vehicle.append(call_num)
 		call_list_vehicle.append(call_num)
 		
 		# Update the helper information
 		lookup_call_in_vehicle[call_num] = vehicle_num
-		_, call_origin, call_dest, _, _, lower_pickup, upper_pickup, lower_del, upper_del = call_info[call_num-1]
+		_, call_origin, call_dest, _, _, lower_pickup, upper_pickup, lower_del, upper_del = call_info
 		start_info = latest_arrival_time[vehicle_num-1][0]
 
 		time_start_to_pickup = travel_times[(vehicle_num, start_info[2], call_origin)][0]
 		time_pickup_to_delivery = travel_times[(vehicle_num, call_origin, call_dest)][0]
 
+		# Pickup node
 		temp_arr_route_value = start_info[0]+time_start_to_pickup
 		if temp_arr_route_value < lower_pickup:
 			max_arrival = lower_pickup
@@ -682,9 +686,10 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 			max_arrival = temp_arr_route_value
 			waiting_time = 0
 
-		latest_arrival_time[vehicle_num-1].append((max_arrival, str(call_num)+"a", call_origin))
+		latest_arrival_time[vehicle_num-1].append((call_info[6], str(call_num)+"a", call_origin))
 		arrival_info[str(call_num)+"a"] = (max_arrival, waiting_time)
 		
+		# Deliver node
 		temp_arr_route_value = max_arrival+time_pickup_to_delivery+node_times[(vehicle_num, call_num)][0]
 		if temp_arr_route_value < lower_del:
 			max_arrival = lower_del
@@ -693,7 +698,7 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 			max_arrival = temp_arr_route_value
 			waiting_time = 0
 
-		latest_arrival_time[vehicle_num-1].append((max_arrival, str(call_num)+"b", call_dest))
+		latest_arrival_time[vehicle_num-1].append((call_info[8], str(call_num)+"b", call_dest))
 		arrival_info[str(call_num)+"b"] = (max_arrival, waiting_time)
 		# latest_arrival_time (time, 'call_num{a,b}', 'node')
 	else:
@@ -711,7 +716,9 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 	return merge_vehice_lists(sol_split_by_vehicle), [lookup_call_in_vehicle, latest_arrival_time, arrival_info]
 
 def remove_call_from_array(problem: dict(), sol, helper_structure, call_num, vehicle_num):
-	""" """
+	""" Function takes a problem, a solution and a current helper structure
+		It then removes a specific call from a specific vehicle
+		Returns updated helper structure and solution"""
 
 	logging.debug(f"Removing call {call_num} from vehicle {vehicle_num}")
 
