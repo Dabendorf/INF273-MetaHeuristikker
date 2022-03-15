@@ -18,12 +18,12 @@ def main():
 		best_sol = [4 , 4 , 7 , 7 , 0 , 2 , 2 , 0 , 1 , 5 , 5 , 3 , 3 , 1 , 0 , 6 , 6]
 		helper_info = problem_to_helper_structure(problem=prob, sol=init_sol)
 
-		print("Initial helper structure: ")
+		"""print("Initial helper structure: ")
 		print(f"New solution: {init_sol}")
-		print(f"Helper info: {helper_info}")
+		print(f"Helper info: {helper_info}")"""
 
 		new_sol, helper_info = remove_call_from_array(problem=prob, sol=init_sol, helper_structure=helper_info, call_num=4, vehicle_num=4)
-		print(f"\nRemoving one call from vehicle: ")
+		#print(f"\nRemoving one call from vehicle: ")
 		print(f"New solution: {new_sol}")
 		print(f"Helper info: {helper_info}")
 		

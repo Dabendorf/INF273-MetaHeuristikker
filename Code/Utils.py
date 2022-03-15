@@ -601,7 +601,13 @@ def latex_replace_line(num_vehicles: int, num_calls: int, best_solution, seeds):
 
 def problem_to_helper_structure(problem: dict(), sol):
 	""" This function takes a problem data structure and 
-		outputs a helper data strcture to better insert information into it"""
+		outputs a helper data strcture to better insert information into it
+		
+		The helper structure consists of these information:
+		- Lookup_call_in_vehicle (list): Loopup_list in which vehicle a call is in
+		- latest_arrival_time (list(list)): [[(latest_arrival, call_num, node_num)]] (for each vehicle)
+		- arrival_info dict(): {node_num{a,b} : (current_arrival, waiting_time)}
+	"""
 
 	logging.debug("Start problem to helper structure method")
 
@@ -609,7 +615,7 @@ def problem_to_helper_structure(problem: dict(), sol):
 	num_calls = problem["num_calls"]
 
 	print(problem.keys())
-	print(f"Initial solution: {sol}")
+	logging.debug(f"Initial solution: {sol}")
 
 	# in which vehicle is a call
 	# init everything as dummy vehicle
@@ -621,16 +627,14 @@ def problem_to_helper_structure(problem: dict(), sol):
 
 	for call_num in range(num_calls):
 		lookup_call_in_vehicle.append(num_vehicles+1)
-		#latest_arrival_time.append((problem["call_info"][call_num][6], str(call_num+1)+"a"))
-		#latest_arrival_time.append((problem["call_info"][call_num][8], str(call_num+1)+"b"))
 	for vehicle in range(num_vehicles):
 		veh_info = problem["vehicle_info"][vehicle]
 		latest_arrival_time.append([(veh_info[2], "start", veh_info[1])])
 
 	#latest_arrival_time.sort(reverse=True)
-	print(f"Lookup Call->Vehicle: {lookup_call_in_vehicle}")
-	print(f"Latest_arrival_time: {latest_arrival_time}")
-	print(f"Arrival information: {arrival_info}")
+	logging.debug(f"Lookup Call->Vehicle: {lookup_call_in_vehicle}")
+	logging.debug(f"Latest_arrival_time: {latest_arrival_time}")
+	logging.debug(f"Arrival information: {arrival_info}")
 
 	return [lookup_call_in_vehicle, latest_arrival_time, arrival_info]
 
@@ -645,26 +649,24 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 	travel_times = problem["travel_time_cost"]
 	node_times = problem["node_time_cost"]
 
-	# Lookup_call_in_vehicle: Loopup_list in which vehicle a call is in
-	# latest_arrival_time: sorted list of tuples: 
-	# arrival_info: 
+	# Unpack helper structure
+	# Lookup_call_in_vehicle (list): Loopup_list in which vehicle a call is in
+	# latest_arrival_time (list(list)): [[(latest_arrival, call_num, node_num)]] (for each vehicle)
+	# arrival_info dict(): {node_num{a,b} : (current_arrival, waiting_time)}
 	[lookup_call_in_vehicle, latest_arrival_time, arrival_info] = helper_structure
 
 	# Split the vehicles and get the specific vehicle to insert into
 	sol_split_by_vehicle = split_a_list_at_zeros(sol)
 	call_list_vehicle = sol_split_by_vehicle[vehicle_num-1]
-	print(call_list_vehicle)
-	print(sol_split_by_vehicle)
+	logging.debug(f"Calls of this vehicle: {call_list_vehicle}")
+	logging.debug(f"Vehicle call split: {sol_split_by_vehicle}")
 
 	# If vehicle is empty, just insert the call two times
 	if len(call_list_vehicle)==0:
 		call_list_vehicle.append(call_num)
 		call_list_vehicle.append(call_num)
+		
 		# Update the helper information
-		print("KLINGER\n\n")
-		print(latest_arrival_time)
-		print(arrival_info)
-
 		lookup_call_in_vehicle[call_num] = vehicle_num
 		_, call_origin, call_dest, _, _, lower_pickup, upper_pickup, lower_del, upper_del = call_info[call_num-1]
 		start_info = latest_arrival_time[vehicle_num-1][0]
@@ -715,13 +717,18 @@ def remove_call_from_array(problem: dict(), sol, helper_structure, call_num, veh
 
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
+
+	# Unpack helper structure
+	# Lookup_call_in_vehicle (list): Loopup_list in which vehicle a call is in
+	# latest_arrival_time (list(list)): [[(latest_arrival, call_num, node_num)]] (for each vehicle)
+	# arrival_info dict(): {node_num{a,b} : (current_arrival, waiting_time)}
 	[lookup_call_in_vehicle, latest_arrival_time, arrival_info] = helper_structure
 
 	# Split the vehicles and get the specific vehicle to insert into
 	sol_split_by_vehicle = split_a_list_at_zeros(sol)
 	call_list_vehicle = sol_split_by_vehicle[vehicle_num-1]
-	print(call_list_vehicle)
-	print(sol_split_by_vehicle)
+	logging.debug(f"Calls of this vehicle: {call_list_vehicle}")
+	logging.debug(f"Vehicle call split: {sol_split_by_vehicle}")
 
 	# Updating the arrival information
 
