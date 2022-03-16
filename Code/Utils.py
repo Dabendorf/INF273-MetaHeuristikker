@@ -634,8 +634,7 @@ def problem_to_helper_structure(problem: dict(), sol):
 	latest_arrival_time.append([])
 	for call_num in range(num_calls):
 		specific_call_info = call_info[call_num]
-		latest_arrival_time[num_vehicles].append((specific_call_info[6], str(call_num+1)+"a", specific_call_info[1]))
-		latest_arrival_time[num_vehicles].append((specific_call_info[8], str(call_num+1)+"b", specific_call_info[2]))
+		latest_arrival_time[num_vehicles].append((specific_call_info[6], str(call_num+1)+"a", specific_call_info[1], specific_call_info[8], str(call_num+1)+"b", specific_call_info[2]))
 		lookup_call_in_vehicle.append(num_vehicles+1)
 
 	# Sort dummy vehicle times
@@ -694,7 +693,6 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 			max_arrival = temp_arr_route_value
 			waiting_time = 0
 
-		latest_arrival_time[vehicle_num-1].append((call_info[6], str(call_num)+"a", call_origin))
 		arrival_info[str(call_num)+"a"] = (max_arrival, waiting_time)
 		
 		# Deliver node
@@ -706,9 +704,8 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 			max_arrival = temp_arr_route_value
 			waiting_time = 0
 
-		latest_arrival_time[vehicle_num-1].append((call_info[8], str(call_num)+"b", call_dest))
 		arrival_info[str(call_num)+"b"] = (max_arrival, waiting_time)
-		# latest_arrival_time (time, 'call_num{a,b}', 'node')
+		latest_arrival_time[vehicle_num-1].append((call_info[6], str(call_num)+"a", call_origin, call_info[8], str(call_num)+"b", call_dest))
 	else:
 		# Find correct insertion position
 		# TODO
@@ -751,8 +748,7 @@ def remove_call_from_array(problem: dict(), sol, helper_structure, call_num, veh
 	# if removing from dummy vehicle, nothing to update
 	if num_vehicles < vehicle_num:
 		logging.debug("Removing from dummy vehicle, nothing to update")
-		latest_arrival_time[num_vehicles].remove((call_info[6], str(call_num)+"a", call_info[1]))
-		latest_arrival_time[num_vehicles].remove((call_info[8], str(call_num)+"b", call_info[2]))
+		latest_arrival_time[num_vehicles].remove((call_info[6], str(call_num)+"a", call_info[1], call_info[8], str(call_num)+"b", call_info[2]))
 	else:
 		logging.debug("Removing from vehicle, updating information around")
 		# latest_arrival_time TODO
