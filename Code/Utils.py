@@ -830,6 +830,9 @@ def remove_call_from_array(problem: dict(), sol, helper_structure, call_num, veh
 
 	# Remerge list and return the list and the helper structure
 	sol_split_by_vehicle[vehicle_num-1] = call_list_vehicle
+	# TODO uncomment these two
+	#del arrival_info[f"{call_num}a"]
+	#del arrival_info[f"{call_num}b"]
 	return removal_successful, merge_vehice_lists(sol_split_by_vehicle), [lookup_call_in_vehicle, latest_arrival_time, arrival_info]
 
 def merge_vehice_lists(splitted_solution: list()):
