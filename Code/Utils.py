@@ -716,6 +716,7 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 		# TODO
 
 		# Placeholder, to remove TODO
+		# find correct position
 		call_list_vehicle.append(call_num)
 		call_list_vehicle.append(call_num)
 	
@@ -823,6 +824,11 @@ def remove_call_from_array(problem: dict(), sol, helper_structure, call_num, veh
 				else:
 					waiting_time_new = 0
 				arrival_info[call_node_string] = (arrival_new, waiting_time_new)
+		removal_successful = True
+		del arrival_info[f"{call_num}a"]
+		del arrival_info[f"{call_num}b"]
+		latest_arrival_time[vehicle_num-1].remove((call_info_to_remove[6], str(call_num)+"a", call_info_to_remove[1], call_info_to_remove[8], str(call_num)+"b", call_info_to_remove[2]))
+
 
 	# Remove call from solution and from lookup
 	lookup_call_in_vehicle[call_num] = None
@@ -830,9 +836,7 @@ def remove_call_from_array(problem: dict(), sol, helper_structure, call_num, veh
 
 	# Remerge list and return the list and the helper structure
 	sol_split_by_vehicle[vehicle_num-1] = call_list_vehicle
-	# TODO uncomment these two
-	#del arrival_info[f"{call_num}a"]
-	#del arrival_info[f"{call_num}b"]
+
 	return removal_successful, merge_vehice_lists(sol_split_by_vehicle), [lookup_call_in_vehicle, latest_arrival_time, arrival_info]
 
 def merge_vehice_lists(splitted_solution: list()):
