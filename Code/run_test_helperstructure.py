@@ -41,11 +41,23 @@ def main():
 		print(f"Helper info: {pformat(helper_info)}")
 		print(f"Removal successful: {success}")
 		
-		"""success, new_sol, helper_info = insert_call_into_array(problem=prob, sol=new_sol, helper_structure=helper_info, call_num=4, vehicle_num=2)
+		success, new_sol, helper_info = insert_call_into_array(problem=prob, sol=new_sol, helper_structure=helper_info, call_num=4, vehicle_num=2)
 		print(f"\nAdding one call to vehicle: ")
 		print(f"New solution: {new_sol}")
 		print(f"Helper info: {pformat(helper_info)}")
-		print(f"Insertion successful: {success}")"""
+		print(f"Insertion successful: {success}")
+
+		success, new_sol, helper_info = remove_call_from_array(problem=prob, sol=new_sol, helper_structure=helper_info, call_num=5, vehicle_num=4)
+		print(f"\nRemoving one call from vehicle: ")
+		print(f"New solution: {new_sol}")
+		print(f"Helper info: {pformat(helper_info)}")
+		print(f"Removal successful: {success}")
+		
+		success, new_sol, helper_info = insert_call_into_array(problem=prob, sol=new_sol, helper_structure=helper_info, call_num=5, vehicle_num=2)
+		print(f"\nAdding one call to vehicle: ")
+		print(f"New solution: {new_sol}")
+		print(f"Helper info: {pformat(helper_info)}")
+		print(f"Insertion successful: {success}")
 
 if __name__ == "__main__":
 	main()

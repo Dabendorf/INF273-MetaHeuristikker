@@ -654,7 +654,8 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
-	call_info = problem["call_info"][call_num-1]
+	call_info = problem["call_info"]
+	call_to_insert_info = problem["call_info"][call_num-1]
 	travel_times = problem["travel_time_cost"]
 	node_times = problem["node_time_cost"]
 
@@ -680,7 +681,7 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 		
 		# Update the helper information
 		lookup_call_in_vehicle[call_num] = vehicle_num
-		_, call_origin, call_dest, _, _, lower_pickup, upper_pickup, lower_del, upper_del = call_info
+		_, call_origin, call_dest, _, _, lower_pickup, upper_pickup, lower_del, upper_del = call_to_insert_info
 		start_info = latest_arrival_time[vehicle_num-1][0]
 
 		time_start_to_pickup = travel_times[(vehicle_num, start_info[2], call_origin)][0]
@@ -707,18 +708,53 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 			waiting_time = 0
 
 		arrival_info[str(call_num)+"b"] = (max_arrival, waiting_time)
-		latest_arrival_time[vehicle_num-1].append((call_info[6], str(call_num)+"a", call_origin, call_info[8], str(call_num)+"b", call_dest))
+		latest_arrival_time[vehicle_num-1].append((call_to_insert_info[6], str(call_num)+"a", call_origin, call_to_insert_info[8], str(call_num)+"b", call_dest))
 		insertion_successful = True
 	else:
 		# Find correct insertion position
 		# TODO
 		# Update the helper information
-		# TODO
+		lookup_call_in_vehicle[call_num] = vehicle_num
+		_, call_origin, call_dest, _, _, lower_pickup, upper_pickup, lower_del, upper_del = call_to_insert_info
+		print(lookup_call_in_vehicle)
+
+		insert_extra_time = 0
+		already_seen = set()
+
+		print(call_list_vehicle)
+		for idx_call in range(len(call_list_vehicle)+1):
+			# Extra case for last insert position
+			if idx_call == len(call_list_vehicle):
+				letter = None
+				temp_node = None
+				temp_call_num = float("inf")
+			else:
+				temp_call_num = call_list_vehicle[idx_call]
+			
+			if temp_call_num != float("inf"):
+				if temp_call_num not in already_seen:
+					already_seen.add(temp_call_num)
+					letter = "a"
+					temp_node = call_info[call_list_vehicle[idx_call]-1][1]
+					#temp_lower_bound = call_info[call_list_vehicle[idx_call]-1][5]
+				else:
+					already_seen.remove(temp_call_num)
+					letter = "b"
+					temp_node = call_info[call_list_vehicle[idx_call]-1][2]
+					#temp_lower_bound = call_info[call_list_vehicle[idx_call]-1][7]
+				print(f"{temp_node}{letter}")
+				print(idx_call)
+			
+			
+
+		#lookup_call_in_vehicle
+		#latest_arrival_time
+		#arrival_info
 
 		# Placeholder, to remove TODO
 		# find correct position
-		call_list_vehicle.append(call_num)
-		call_list_vehicle.append(call_num)
+		#call_list_vehicle.append(call_num)
+		#call_list_vehicle.append(call_num)
 	
 	# Remerge list and return the list and the helper structure
 	sol_split_by_vehicle[vehicle_num-1] = call_list_vehicle
