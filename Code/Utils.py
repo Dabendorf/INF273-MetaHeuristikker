@@ -658,7 +658,7 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 	travel_times = problem["travel_time_cost"]
 	node_times = problem["node_time_cost"]
 
-	insertion_sucessful = False
+	insertion_successful = False
 
 	# Unpack helper structure
 	# Lookup_call_in_vehicle (list): Loopup_list in which vehicle a call is in
@@ -708,7 +708,7 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 
 		arrival_info[str(call_num)+"b"] = (max_arrival, waiting_time)
 		latest_arrival_time[vehicle_num-1].append((call_info[6], str(call_num)+"a", call_origin, call_info[8], str(call_num)+"b", call_dest))
-		insertion_sucessful = True
+		insertion_successful = True
 	else:
 		# Find correct insertion position
 		# TODO
@@ -721,7 +721,7 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 	
 	# Remerge list and return the list and the helper structure
 	sol_split_by_vehicle[vehicle_num-1] = call_list_vehicle
-	return insertion_sucessful, merge_vehice_lists(sol_split_by_vehicle), [lookup_call_in_vehicle, latest_arrival_time, arrival_info]
+	return insertion_successful, merge_vehice_lists(sol_split_by_vehicle), [lookup_call_in_vehicle, latest_arrival_time, arrival_info]
 
 def remove_call_from_array(problem: dict(), sol, helper_structure, call_num, vehicle_num):
 	""" Function takes a problem, a solution and a current helper structure
@@ -732,9 +732,12 @@ def remove_call_from_array(problem: dict(), sol, helper_structure, call_num, veh
 
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
-	call_info = problem["call_info"][call_num-1]
+	call_info_to_remove = problem["call_info"][call_num-1]
+	call_info = problem["call_info"]
+	travel_times = problem["travel_time_cost"]
+	node_times = problem["node_time_cost"]
 
-	removal_sucessful = False
+	removal_successful = False
 
 	# Unpack helper structure
 	# Lookup_call_in_vehicle (list): Loopup_list in which vehicle a call is in
@@ -753,10 +756,54 @@ def remove_call_from_array(problem: dict(), sol, helper_structure, call_num, veh
 	# if removing from dummy vehicle, nothing to update
 	if num_vehicles < vehicle_num:
 		logging.debug("Removing from dummy vehicle, nothing to update")
-		latest_arrival_time[num_vehicles].remove((call_info[6], str(call_num)+"a", call_info[1], call_info[8], str(call_num)+"b", call_info[2]))
-		removal_sucessful = True
+		latest_arrival_time[num_vehicles].remove((call_info_to_remove[6], str(call_num)+"a", call_info_to_remove[1], call_info_to_remove[8], str(call_num)+"b", call_info_to_remove[2]))
+		removal_successful = True
 	else:
 		logging.debug("Removing from vehicle, updating information around")
+		#latest_arrival_time[vehicle_num-1].remove((call_info[6], str(call_num)+"a", call_info[1], call_info[8], str(call_num)+"b", call_info[2]))
+		
+		print(f"Calllist of that vehicle: {call_list_vehicle}")
+		idx_pickup_call = call_list_vehicle.index(call_num)
+		idx_delivery_call = call_list_vehicle[idx_pickup_call+1:].index(call_num)+(idx_pickup_call+1)
+		print(f"idx pickup: {idx_pickup_call}")
+		print(f"idx delivery: {idx_delivery_call}")
+
+		# if call pickup and delivery are behind each other
+		"""if (idx_delivery_call-idx_pickup_call) == 1:
+			# TODO
+			time_diff = travel_times[(vehicle_num, call_info[1], call_info[2])][0] + travel_times[(vehicle_num, call_info[1], call_info[2])][0]
+		else:
+			# TODO
+			time_diff = 0"""
+		
+		# Removing c from a->b->c (a->b)
+		# Pickup node:
+		if idx_pickup_call == 0:
+			node_a = latest_arrival_time[vehicle_num-1][0][2]
+		else:
+			node_a = call_info[call_list_vehicle[idx_pickup_call-1]-1][1]
+
+		if idx_delivery_call == call_list_vehicle[-1]:
+			node_b = None
+			time_diff = None
+		else:
+			node_b = call_info[call_list_vehicle[idx_pickup_call+1]-1][2]
+			time_diff = travel_times[(vehicle_num, node_a, call_info_to_remove[1])][0] + travel_times[(vehicle_num, call_info_to_remove[1], node_b)][0] - travel_times[(vehicle_num, node_a, node_b)][0] + node_times[(vehicle_num, call_num)][0]
+
+		print(f"Nodea: {node_a}")
+		print(f"Nodeb: {node_b}")
+		print(f"Timediff: {time_diff}")
+		print(travel_times[(vehicle_num, node_a, call_info_to_remove[1])][0])
+		print(travel_times[(vehicle_num, call_info_to_remove[1], node_b)][0])
+		print( - travel_times[(vehicle_num, node_a, node_b)][0])
+		print(node_times[(vehicle_num, call_num)][0])
+		
+		
+		#travel_times[(vehicle_num, call_info[1], call_info[2])][0]
+		
+		for idx_call in range(idx_pickup_call+1, len(call_list_vehicle)):
+			print(idx_call)
+
 		# latest_arrival_time TODO
 		# arrival_info TODO
 
@@ -766,7 +813,7 @@ def remove_call_from_array(problem: dict(), sol, helper_structure, call_num, veh
 
 	# Remerge list and return the list and the helper structure
 	sol_split_by_vehicle[vehicle_num-1] = call_list_vehicle
-	return removal_sucessful, merge_vehice_lists(sol_split_by_vehicle), [lookup_call_in_vehicle, latest_arrival_time, arrival_info]
+	return removal_successful, merge_vehice_lists(sol_split_by_vehicle), [lookup_call_in_vehicle, latest_arrival_time, arrival_info]
 
 def merge_vehice_lists(splitted_solution: list()):
 	overall_list = list()
