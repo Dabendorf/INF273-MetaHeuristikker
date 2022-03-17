@@ -783,12 +783,8 @@ def remove_call_from_array(problem: dict(), sol, helper_structure, call_num, veh
 		else:
 			node_a = call_info[call_list_vehicle[idx_pickup_call-1]-1][1]
 
-		if idx_delivery_call == call_list_vehicle[-1]:
-			node_b = None
-			time_diff = None
-		else:
-			node_b = call_info[call_list_vehicle[idx_pickup_call+1]-1][2]
-			time_diff = travel_times[(vehicle_num, node_a, call_info_to_remove[1])][0] + travel_times[(vehicle_num, call_info_to_remove[1], node_b)][0] - travel_times[(vehicle_num, node_a, node_b)][0] + node_times[(vehicle_num, call_num)][0]
+		node_b = call_info[call_list_vehicle[idx_pickup_call+1]-1][2]
+		time_diff = travel_times[(vehicle_num, node_a, call_info_to_remove[1])][0] + travel_times[(vehicle_num, call_info_to_remove[1], node_b)][0] - travel_times[(vehicle_num, node_a, node_b)][0] + node_times[(vehicle_num, call_num)][0]
 
 		print(f"Nodea: {node_a}")
 		print(f"Nodeb: {node_b}")
@@ -797,9 +793,25 @@ def remove_call_from_array(problem: dict(), sol, helper_structure, call_num, veh
 		print(travel_times[(vehicle_num, call_info_to_remove[1], node_b)][0])
 		print( - travel_times[(vehicle_num, node_a, node_b)][0])
 		print(node_times[(vehicle_num, call_num)][0])
-		
-		
-		#travel_times[(vehicle_num, call_info[1], call_info[2])][0]
+
+		# Delivery node:
+		node_a = call_info[call_list_vehicle[idx_delivery_call-1]-1][1]
+
+		if idx_delivery_call == len(call_list_vehicle)-1:
+			node_b = None
+			time_diff = None
+		else:
+			node_b = call_info[call_list_vehicle[idx_delivery_call+1]-1][2]
+			time_diff = travel_times[(vehicle_num, node_a, call_info_to_remove[2])][0] + travel_times[(vehicle_num, call_info_to_remove[2], node_b)][0] - travel_times[(vehicle_num, node_a, node_b)][0] + node_times[(vehicle_num, call_num)][2]
+
+		if node_b:
+			print(f"Nodea: {node_a}")
+			print(f"Nodeb: {node_b}")
+			print(f"Timediff: {time_diff}")
+			print(travel_times[(vehicle_num, node_a, call_info_to_remove[2])][0])
+			print(travel_times[(vehicle_num, call_info_to_remove[2], node_b)][0])
+			print(- travel_times[(vehicle_num, node_a, node_b)][0])
+			print(node_times[(vehicle_num, call_num)][2])
 		
 		for idx_call in range(idx_pickup_call+1, len(call_list_vehicle)):
 			print(idx_call)
