@@ -599,73 +599,21 @@ def latex_replace_line(num_vehicles: int, num_calls: int, best_solution, seeds):
 		f.write(contents)
 	logging.debug("Finish to replace optimal solution in table")
 
-def problem_to_helper_structure(problem: dict(), sol):
-	""" This function takes a problem data structure and 
-		outputs a helper data strcture to better insert information into it
-		
-		The helper structure consists of these information:
-		- Lookup_call_in_vehicle (list): Loopup_list in which vehicle a call is in
-		- latest_arrival_time (list(list)): [[(latest_arrival, call_num, node_num)]] (for each vehicle)
-		- arrival_info dict(): {node_num{a,b} : (current_arrival, waiting_time)}
-	"""
 
-	logging.debug("Start problem to helper structure method")
 
-	num_vehicles = problem["num_vehicles"]
-	num_calls = problem["num_calls"]
-	call_info = problem["call_info"]
-
-	print(problem.keys())
-	logging.debug(f"Initial solution: {sol}")
-
-	# in which vehicle is a call
-	# init everything as dummy vehicle
-	lookup_call_in_vehicle = [None]
-
-	latest_arrival_time = list(list())
-
-	arrival_info = dict()
-
-	for vehicle in range(num_vehicles):
-		veh_info = problem["vehicle_info"][vehicle]
-		latest_arrival_time.append([(veh_info[2], "start", veh_info[1])])
-	
-	# Add dummy list
-	latest_arrival_time.append([])
-	for call_num in range(num_calls):
-		specific_call_info = call_info[call_num]
-		latest_arrival_time[num_vehicles].append((specific_call_info[6], str(call_num+1)+"a", specific_call_info[1], specific_call_info[8], str(call_num+1)+"b", specific_call_info[2]))
-		lookup_call_in_vehicle.append(num_vehicles+1)
-
-	# Sort dummy vehicle times
-	latest_arrival_time[num_vehicles].sort(reverse=True)
-	logging.debug(f"Lookup Call->Vehicle: {lookup_call_in_vehicle}")
-	logging.debug(f"Latest_arrival_time: {latest_arrival_time}")
-	logging.debug(f"Arrival information: {arrival_info}")
-
-	return [lookup_call_in_vehicle, latest_arrival_time, arrival_info]
-
-def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, vehicle_num):
-	""" Function takes a problem, a solution and a current helper structure
-		It then adds a specific call into a specific vehicle
-		Returns updated helper structure and solution"""
+def insert_call_into_array(problem: dict(), sol, call_num, vehicle_num):
+	""" """
 
 	logging.debug(f"Inserting call {call_num} into vehicle {vehicle_num}")
 
-	num_vehicles = problem["num_vehicles"]
+	"""num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
 	call_info = problem["call_info"]
 	call_to_insert_info = problem["call_info"][call_num-1]
 	travel_times = problem["travel_time_cost"]
-	node_times = problem["node_time_cost"]
+	node_times = problem["node_time_cost"]"""
 
 	insertion_successful = False
-
-	# Unpack helper structure
-	# Lookup_call_in_vehicle (list): Loopup_list in which vehicle a call is in
-	# latest_arrival_time (list(list)): [[(latest_arrival, call_num, node_num)]] (for each vehicle)
-	# arrival_info dict(): {node_num{a,b} : (current_arrival, waiting_time)}
-	[lookup_call_in_vehicle, latest_arrival_time, arrival_info] = helper_structure
 
 	# Split the vehicles and get the specific vehicle to insert into
 	sol_split_by_vehicle = split_a_list_at_zeros(sol)
@@ -673,174 +621,55 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 	logging.debug(f"Calls of this vehicle: {call_list_vehicle}")
 	logging.debug(f"Vehicle call split: {sol_split_by_vehicle}")
 
-	# If vehicle is empty, just insert the call two times
-	# Update helper function correctly
-	if len(call_list_vehicle)==0:
-		call_list_vehicle.append(call_num)
-		call_list_vehicle.append(call_num)
-		
-		# Update the helper information
-		lookup_call_in_vehicle[call_num] = vehicle_num
-		_, call_origin, call_dest, _, _, lower_pickup, upper_pickup, lower_del, upper_del = call_to_insert_info
-		start_info = latest_arrival_time[vehicle_num-1][0]
+	len_call_list = len(call_list_vehicle)
+	found1 = False
+	found2 = False
+	for insert_idx_1 in range(len_call_list+1):
+		if found1: 
+			break
+		#print(f"A: try index {insert_idx_1}")
+		temp_call_list = call_list_vehicle.copy()
+		temp_call_list.insert(insert_idx_1, call_num)
 
-		time_start_to_pickup = travel_times[(vehicle_num, start_info[2], call_origin)][0]
-		time_pickup_to_delivery = travel_times[(vehicle_num, call_origin, call_dest)][0]
+		is_feas, _ = feasibility_helper(temp_call_list, problem, vehicle_num)
+		if is_feas:
+			found1 = True
 
-		# Pickup node
-		temp_arr_route_value = start_info[0]+time_start_to_pickup
-		if temp_arr_route_value < lower_pickup:
-			max_arrival = lower_pickup
-			waiting_time = lower_pickup-temp_arr_route_value
-			print(f"Changed 1: {lower_pickup} {max_arrival}")
-		else:
-			max_arrival = temp_arr_route_value
-			waiting_time = 0
-			print("Changed 2")
-
-		arrival_info[str(call_num)+"a"] = (max_arrival, waiting_time)
-		
-		# Deliver node
-		temp_arr_route_value = max_arrival+time_pickup_to_delivery+node_times[(vehicle_num, call_num)][0]
-		if temp_arr_route_value < lower_del:
-			max_arrival = lower_del
-			waiting_time = lower_del-temp_arr_route_value
-			print("Changed 3")
-		else:
-			max_arrival = temp_arr_route_value
-			waiting_time = 0
-			print("Changed 4")
-
-		arrival_info[str(call_num)+"b"] = (max_arrival, waiting_time)
-		latest_arrival_time[vehicle_num-1].append((call_to_insert_info[6], str(call_num)+"a", call_origin, call_to_insert_info[8], str(call_num)+"b", call_dest))
-		insertion_successful = True
-	else:
-		# Find correct insertion position
-		# TODO
-		# Update the helper information
-		lookup_call_in_vehicle[call_num] = vehicle_num
-		_, call_origin, call_dest, _, _, lower_pickup, upper_pickup, lower_del, upper_del = call_to_insert_info
-		print(lookup_call_in_vehicle)
-
-		insert_extra_time = 0
-		already_seen = set()
-
-		print(f"Call_list vehicle: {call_list_vehicle}")
-		global_time_diff = 0
-		insert_pos_a = None
-		insert_pos_b = None
-		for idx_call in range(len(call_list_vehicle)):
-			if  insert_pos_a is not None:
+		for insert_idx_2 in range(1, len_call_list+2):
+			if found2:
 				break
-			print("DAJHDJKASHDJAKSHDASJKHDASJKDHASJKDHAJDHASDKHADJKASHDJKASHD")
+			#print(f"B: try index {insert_idx_2}")
+			temp_call_list_2 = temp_call_list.copy()
+			temp_call_list_2.insert(insert_idx_2, call_num)
+			is_feas, _ = feasibility_helper(temp_call_list_2, problem, vehicle_num)
 
-			# Node a, the node before the insertion of pickup
-			if idx_call == 0:
-				temp_node_a = latest_arrival_time[vehicle_num-1][0][2]
-			else:
-				temp_call_num_a = call_list_vehicle[idx_call-1]
-				if temp_call_num_a not in already_seen:
-					already_seen.add(temp_call_num_a)
-					letter_a = "a"
-					temp_node_a = call_info[call_list_vehicle[idx_call-1]-1][1]
-				else:
-					#already_seen.remove(temp_call_num_a)
-					letter_a = "b"
-					temp_node_a = call_info[call_list_vehicle[idx_call-1]-1][2]
-			print(f"Node a: {temp_node_a}")
+			if is_feas:
+				found2 = True
+		if not found2:
+			feas1 = False
 
-			# Node b, the node after the insertion of delivery
-			temp_call_num_b = call_list_vehicle[idx_call]
-			if temp_call_num_b not in already_seen:
-				letter_b = "a"
-				temp_node_b = call_info[call_list_vehicle[idx_call]-1][1]
-			else:
-				letter_b = "b"
-				temp_node_b = call_info[call_list_vehicle[idx_call]-1][2]
-			print(f"Node b: {temp_node_b}")
+	if found1 and found2:
+		insertion_successful = True
+		call_list_vehicle = temp_call_list_2
 
-			time_diff = travel_times[(vehicle_num, temp_node_a, call_origin)][0] + travel_times[(vehicle_num, call_origin, temp_node_b)][0] - travel_times[(vehicle_num, temp_node_a, temp_node_b)][0] + node_times[(vehicle_num, call_num)][0]
-			print(f"Timediff: {time_diff}")
-			print(f"{temp_node_a}->{call_to_insert_info[1]}->{temp_node_b}")
-			"""print("Consists of: ")
-			print(f"{travel_times[(vehicle_num, temp_node_a, call_origin)][0]}")
-			print(f"{travel_times[(vehicle_num, call_origin, temp_node_b)][0]}")
-			print(f"-{travel_times[(vehicle_num, temp_node_a, temp_node_b)][0]}")
-			print(f"{node_times[(vehicle_num, call_num)][0]}")"""
-
-			arrival_old, waiting_time_old = arrival_info[f"{temp_call_num_b}{letter_b}"]
-			print(f"OldArrival: {arrival_old}")
-			print(f"OldWaiting: {waiting_time_old}")
-
-			arrival_temp = arrival_old+time_diff-waiting_time_old
-			if letter_b == "a":
-				temp_lower_bound = call_info[call_list_vehicle[idx_call]-1][5]
-				temp_upper_bound = call_info[call_list_vehicle[idx_call]-1][6]
-			else:
-				temp_lower_bound = call_info[call_list_vehicle[idx_call]-1][7]
-				temp_upper_bound = call_info[call_list_vehicle[idx_call]-1][8]
-
-			print(f"Lower Bound: {temp_lower_bound}")
-			print(f"Upper Bound: {temp_upper_bound}")
-			print(f"Arrival temp: {arrival_temp}")
-			arrival_new = max(arrival_temp, temp_lower_bound)
-
-			if arrival_temp < temp_lower_bound:
-				waiting_time_new = temp_lower_bound-arrival_temp
-			else:
-				waiting_time_new = 0
-
-			if arrival_new <= temp_upper_bound:
-				arrival_info[f"{call_list_vehicle[idx_call]}{letter_b}"] = (arrival_new, waiting_time_new)
-				print(f"UPDATED {call_list_vehicle[idx_call]}{letter_b} = {(arrival_new, waiting_time_new)}")
-				global_time_diff = arrival_new - arrival_old
-				insert_pos_a = idx_call
-				print(f"Insertion position: {insert_pos_a}")
-				print(f"Global time  diff: {global_time_diff}")
-				print(f"{call_num}a")
-				print(f"{call_list_vehicle[idx_call-1]}{letter_b}")
-				print(temp_node_a)
-
-				# Gidder ikke den shiten her lenger
-
-			else:
-				print("No insertion")
-			
-
-		#lookup_call_in_vehicle
-		#latest_arrival_time
-		#arrival_info
-
-		# Placeholder, to remove TODO
-		# find correct position
-		#call_list_vehicle.append(call_num)
-		#call_list_vehicle.append(call_num)
 	
 	# Remerge list and return the list and the helper structure
 	sol_split_by_vehicle[vehicle_num-1] = call_list_vehicle
-	return insertion_successful, merge_vehice_lists(sol_split_by_vehicle), [lookup_call_in_vehicle, latest_arrival_time, arrival_info]
+	return insertion_successful, merge_vehice_lists(sol_split_by_vehicle)
 
-def remove_call_from_array(problem: dict(), sol, helper_structure, call_num, vehicle_num):
-	""" Function takes a problem, a solution and a current helper structure
-		It then removes a specific call from a specific vehicle
-		Returns updated helper structure and solution"""
+def remove_call_from_array(problem: dict(), sol, call_num, vehicle_num):
+	"""  """
 
 	logging.debug(f"Removing call {call_num} from vehicle {vehicle_num}")
 
-	num_vehicles = problem["num_vehicles"]
+	"""num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
 	call_info_to_remove = problem["call_info"][call_num-1]
 	call_info = problem["call_info"]
 	travel_times = problem["travel_time_cost"]
-	node_times = problem["node_time_cost"]
+	node_times = problem["node_time_cost"]"""
 
-	removal_successful = False
-
-	# Unpack helper structure
-	# Lookup_call_in_vehicle (list): Loopup_list in which vehicle a call is in
-	# latest_arrival_time (list(list)): [[(latest_arrival, call_num, node_num)]] (for each vehicle)
-	# arrival_info dict(): {node_num{a,b} : (current_arrival, waiting_time)}
-	[lookup_call_in_vehicle, latest_arrival_time, arrival_info] = helper_structure
+	removal_successful = True
 
 	# Split the vehicles and get the specific vehicle to insert into
 	sol_split_by_vehicle = split_a_list_at_zeros(sol)
@@ -848,92 +677,12 @@ def remove_call_from_array(problem: dict(), sol, helper_structure, call_num, veh
 	logging.debug(f"Calls of this vehicle: {call_list_vehicle}")
 	logging.debug(f"Vehicle call split: {sol_split_by_vehicle}")
 
-	# Updating the arrival information
-
-	# if removing from dummy vehicle, nothing to update
-	if num_vehicles < vehicle_num:
-		logging.debug("Removing from dummy vehicle, nothing to update")
-		latest_arrival_time[num_vehicles].remove((call_info_to_remove[6], str(call_num)+"a", call_info_to_remove[1], call_info_to_remove[8], str(call_num)+"b", call_info_to_remove[2]))
-		removal_successful = True
-	else:
-		logging.debug("Removing from vehicle, updating information around")
-		#latest_arrival_time[vehicle_num-1].remove((call_info[6], str(call_num)+"a", call_info[1], call_info[8], str(call_num)+"b", call_info[2]))
-		
-		print(f"Calllist of that vehicle: {call_list_vehicle}")
-		idx_pickup_call = call_list_vehicle.index(call_num)
-		idx_delivery_call = call_list_vehicle[idx_pickup_call+1:].index(call_num)+(idx_pickup_call+1)
-		print(f"idx pickup: {idx_pickup_call}")
-		print(f"idx delivery: {idx_delivery_call}")
-		
-		# Removing c from a->b->c (a->b)
-		# Pickup node:
-		if idx_pickup_call == 0:
-			node_a = latest_arrival_time[vehicle_num-1][0][2]
-		else:
-			node_a = call_info[call_list_vehicle[idx_pickup_call-1]-1][1]
-
-		node_b = call_info[call_list_vehicle[idx_pickup_call+1]-1][2]
-		global_time_diff = travel_times[(vehicle_num, node_a, call_info_to_remove[1])][0] + travel_times[(vehicle_num, call_info_to_remove[1], node_b)][0] - travel_times[(vehicle_num, node_a, node_b)][0] + node_times[(vehicle_num, call_num)][0]
-
-		already_seen = set()
-		for idx_call in range(0, idx_pickup_call+1):
-			already_seen.add(call_list_vehicle[idx_call])
-
-		print(already_seen)
-		for idx_call in range(idx_pickup_call+1, len(call_list_vehicle)):
-			temp_call_num = call_list_vehicle[idx_call]
-			if temp_call_num not in already_seen:
-				already_seen.add(temp_call_num)
-				letter = "a"
-				temp_node = call_info[call_list_vehicle[idx_call]-1][1]
-				temp_lower_bound = call_info[call_list_vehicle[idx_call]-1][5]
-			else:
-				already_seen.remove(temp_call_num)
-				letter = "b"
-				temp_node = call_info[call_list_vehicle[idx_call]-1][2]
-				temp_lower_bound = call_info[call_list_vehicle[idx_call]-1][7]
-			print(idx_call)
-			print(call_list_vehicle[idx_call])
-			call_node_string = f"{temp_call_num}{letter}"
-			arrival_old, waiting_time_old = arrival_info[call_node_string]
-			print(f"OldArrival: {arrival_old}")
-			print(f"OldWaiting: {waiting_time_old}")
-
-			if temp_call_num == call_num:
-				# Delivery node:
-				node_a = call_info[call_list_vehicle[idx_delivery_call-1]-1][1]
-
-				if idx_delivery_call == len(call_list_vehicle)-1:
-					node_b = None
-					global_time_diff = None
-				else:
-					node_b = call_info[call_list_vehicle[idx_delivery_call+1]-1][2]
-					time_diff = travel_times[(vehicle_num, node_a, call_info_to_remove[2])][0] + travel_times[(vehicle_num, call_info_to_remove[2], node_b)][0] - travel_times[(vehicle_num, node_a, node_b)][0] + node_times[(vehicle_num, call_num)][2]
-					global_time_diff += time_diff
-
-			if global_time_diff is not None:
-				print(f"Node {temp_node}")
-				arrival_temp = arrival_old-global_time_diff-waiting_time_old
-				arrival_new = max(arrival_temp, temp_lower_bound)
-				if arrival_temp < temp_lower_bound:
-					waiting_time_new = temp_lower_bound-arrival_temp
-				else:
-					waiting_time_new = 0
-				arrival_info[call_node_string] = (arrival_new, waiting_time_new)
-		removal_successful = True
-		del arrival_info[f"{call_num}a"]
-		del arrival_info[f"{call_num}b"]
-		latest_arrival_time[vehicle_num-1].remove((call_info_to_remove[6], str(call_num)+"a", call_info_to_remove[1], call_info_to_remove[8], str(call_num)+"b", call_info_to_remove[2]))
-
-
-	# Remove call from solution and from lookup
-	lookup_call_in_vehicle[call_num] = None
 	call_list_vehicle = [x for x in call_list_vehicle if x != call_num]
 
 	# Remerge list and return the list and the helper structure
 	sol_split_by_vehicle[vehicle_num-1] = call_list_vehicle
 
-	return removal_successful, merge_vehice_lists(sol_split_by_vehicle), [lookup_call_in_vehicle, latest_arrival_time, arrival_info]
+	return removal_successful, merge_vehice_lists(sol_split_by_vehicle)
 
 def merge_vehice_lists(splitted_solution: list()):
 	overall_list = list()
@@ -942,3 +691,117 @@ def merge_vehice_lists(splitted_solution: list()):
 		overall_list.append(0)
 	
 	return overall_list[:-1]
+
+def feasibility_helper(solution: list(), problem: dict(), vehicle_num: int):
+	"""Checks if a solution is feasibile and if not what the reason for that is
+	TODO write new description
+	:param solution: The input solution of order of calls for each vehicle to the problem
+	:param problem: The pickup and delivery problem dictionary
+	:return: whether the problem is feasible and the reason for probable infeasibility
+	"""
+	logging.debug(f"Start helper function")
+	#logging.debug(f"Solution: {solution}")
+	#logging.debug(f"Problem keys: {problem.keys()}")
+
+	num_vehicles = problem["num_vehicles"]
+	vehicle_info = problem["vehicle_info"]
+	vehicle_calls = problem["vehicle_calls"]
+	call_info = problem["call_info"]
+	travel_cost_dict = problem["travel_time_cost"]
+	node_cost_dict = problem["node_time_cost"]
+
+	reason_not_feasible = ""
+
+	# (2) Capacity of the vehicle
+	veh_ind = vehicle_num-1
+	l = solution
+	size_available = vehicle_info[veh_ind][3]
+	
+	calls_visited = set()
+	for call in l:
+		if call in calls_visited:
+			calls_visited.remove(call)
+			size_available += call_info[call-1][3]
+		else:
+			calls_visited.add(call)
+			size_available -= call_info[call-1][3]
+			if size_available < 0:
+				logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} got overloaded")
+				reason_not_feasible = "Vehicle got overloaded"
+				return (True if reason_not_feasible == "" else False), reason_not_feasible
+
+	# (3) Time windows at both nodes
+	
+	# loop through all vehicles
+	# Starting time of each vehicle
+	curr_time = vehicle_info[veh_ind][2]
+
+	# Only check feasibility if vehicle is not empty
+	length_list = len(l)
+	if length_list > 0:
+		calls_visited = set()
+
+		# Get home node
+		home_node = vehicle_info[veh_ind][1]
+
+		# First call number
+		call_numb = l[0]
+		# Information about first call number
+		ci = call_info[call_numb-1]
+		pickup_node = ci[1]
+
+		goal_node = home_node
+
+		# Go through all other nodes
+		for i in range(0, length_list):
+			start_node = goal_node
+
+			call_numb = l[i]-1
+			ci = call_info[call_numb]
+
+			if call_numb+1 in calls_visited:
+				goal_node = ci[2]
+			else:
+				goal_node = ci[1]
+
+			next_travel_time = travel_cost_dict[(veh_ind+1, start_node, goal_node)][0]
+			
+			curr_time += next_travel_time
+
+			# if already visited, delivery
+			if call_numb+1 in calls_visited:
+				calls_visited.remove(call_numb+1)
+
+				lower_del, upper_del = ci[7:9]
+
+				if curr_time > upper_del:
+					logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} came too late")
+					reason_not_feasible = "Vehicle came too late"
+					curr_time -= next_travel_time
+					return (True if reason_not_feasible == "" else False), reason_not_feasible
+				if curr_time < lower_del:
+					curr_time = lower_del
+				
+				next_loading_time = node_cost_dict[(veh_ind+1, call_numb+1)][2]
+				curr_time += next_loading_time
+
+			# if not visited yet, pickup
+			else:
+				calls_visited.add(call_numb+1)
+
+				lower_pickup, upper_pickup = ci[5:7]
+
+				if curr_time > upper_pickup:
+					logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} came too late")
+					reason_not_feasible = "Vehicle came too late"
+					curr_time -= next_travel_time
+					return (True if reason_not_feasible == "" else False), reason_not_feasible
+				if curr_time < lower_pickup:
+					curr_time = lower_pickup
+
+				next_loading_time = node_cost_dict[(veh_ind+1, call_numb+1)][0]
+				curr_time += next_loading_time
+
+	
+	logging.debug(f"Feasible: {(True if reason_not_feasible == '' else False)}, Reason: {reason_not_feasible}")
+	return (True if reason_not_feasible == "" else False), reason_not_feasible

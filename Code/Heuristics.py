@@ -7,7 +7,7 @@ import numpy as np
 from timeit import default_timer as timer
 import math
 
-from Utils import problem_to_helper_structure, split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
+from Utils import  insert_call_into_array, remove_call_from_array, split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
 
 logger = logging.getLogger(__name__)
 
@@ -245,15 +245,94 @@ def alter_solution_3exchange(problem: dict(), current_solution: List[int]) -> Li
 	
 	return new_sol
 
-def alter_solution_placeholder1(problem: dict(), current_solution: List[int], helper_data) -> List[int]:
+def alter_solution_4kinsert(problem: dict(), current_solution: List[int]) -> List[int]:
+	""" """
+	k = 3
+	iterations = 0
+	inserts_done = 0
+
+	num_vehicles = problem["num_vehicles"]
+	vehicle_calls = problem["vehicle_calls"]
+
+	logging.debug(f"Alter solution: 1-insert")
+	# Two situations: From dummy to vehicle or from vehicle to vehicle
+	# Moves from vehicle to vehicle
+
+	while iterations < 3*k and inserts_done < k:
+		iterations += 1
+		found_swap = False
+		sol = split_a_list_at_zeros(current_solution)
+
+		bound_prob_vehicle_vehicle = 0.8
+		while not found_swap:
+			if random() > bound_prob_vehicle_vehicle:
+				vehicle1 = randint(0,num_vehicles-1)
+				vehicle2 = vehicle1
+				while vehicle1 == vehicle2:
+					vehicle2 = randint(0,num_vehicles-1)
+
+				if len(sol[vehicle2]) > 0:
+					found_swap = True
+					log_message = f"Move a call from vehicle {vehicle2} to vehicle {vehicle1}"
+
+			# Moves from dummy to vehicle
+			else:
+				vehicle1 = randint(0,num_vehicles-1)
+				vehicle2 = num_vehicles
+				try:
+					if len(sol[vehicle2]) > 0:
+						found_swap = True
+						log_message = f"Move a call from dummy vehicle to vehicle {vehicle1}"
+				except IndexError:
+					bound_prob_vehicle_vehicle = 0
+
+		logging.debug(log_message)
+
+		# Only move calls which are allowed into a vehicle
+		# After 10 illegal operations, do it anyway
+		call_not_allowed = True
+		count_call_iterations = 0
+		while call_not_allowed and count_call_iterations < 10:
+			call_to_move = choice(sol[vehicle2])
+			if call_to_move in vehicle_calls[vehicle1+1]:
+				call_not_allowed = False
+			else:
+				count_call_iterations += 1
+				if count_call_iterations == 10:
+					logging.debug("Did not swap anything, nothing to get swapped found")
+					return current_solution
+
+		#sol[vehicle2].remove(call_to_move)
+		#sol[vehicle2].remove(call_to_move)
+
+		#rand_pos1 = randrange(len(sol[vehicle1])+1)
+		#rand_pos2 = randrange(len(sol[vehicle1])+1)
+		#sol[vehicle1].insert(rand_pos1, call_to_move)
+		#sol[vehicle1].insert(rand_pos2, call_to_move)
+		_, new_sol = remove_call_from_array(problem, current_solution.copy(), call_to_move, vehicle2+1)
+		successfull, new_sol = insert_call_into_array(problem, new_sol, call_to_move, vehicle1+1)
+
+		if successfull:
+			current_solution = new_sol.copy()
+			inserts_done += 1
+
+		"""new_sol = []
+		num_veh_counter = 0
+		for el in sol:
+			new_sol.extend(el)
+			new_sol.append(0)
+			num_veh_counter += 1
+
+		if num_veh_counter > num_vehicles:
+			new_sol.pop()"""
+		
+	return current_solution
+
+def alter_solution_placeholder2(problem: dict(), current_solution: List[int]) -> List[int]:
 	# TODO
 	return current_solution
 
-def alter_solution_placeholder2(problem: dict(), current_solution: List[int], helper_data) -> List[int]:
-	# TODO
-	return current_solution
-
-def alter_solution_placeholder3(problem: dict(), current_solution: List[int], helper_data) -> List[int]:
+def alter_solution_placeholder3(problem: dict(), current_solution: List[int]) -> List[int]:
 	# TODO
 	return current_solution
 
@@ -384,9 +463,6 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 
 	delta_w = list()
 
-	# Initialise helper data structure
-	helper_data = problem_to_helper_structure(problem)
-
 	w = 0
 	while w < 100 or not delta_w:
 		neighbourfunc_id = choices(allowed_neighbours, probabilities, k=1)[0]
@@ -398,11 +474,11 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		elif neighbourfunc_id == 3:
 			new_sol = alter_solution_3exchange(problem, inc_sol)
 		elif neighbourfunc_id == 4:
-			new_sol = alter_solution_placeholder1(problem, inc_sol, helper_data)
+			new_sol = alter_solution_4kinsert(problem, inc_sol)
 		elif neighbourfunc_id == 5:
-			new_sol = alter_solution_placeholder2(problem, inc_sol, helper_data)
+			new_sol = alter_solution_placeholder2(problem, inc_sol)
 		elif neighbourfunc_id == 6:
-			new_sol = alter_solution_placeholder3(problem, inc_sol, helper_data)
+			new_sol = alter_solution_placeholder3(problem, inc_sol)
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
 		if feasiblity:
@@ -436,11 +512,11 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		elif neighbourfunc_id == 3:
 			new_sol = alter_solution_3exchange(problem, inc_sol)
 		elif neighbourfunc_id == 4:
-			new_sol = alter_solution_placeholder1(problem, inc_sol, helper_data)
+			new_sol = alter_solution_4kinsert(problem, inc_sol)
 		elif neighbourfunc_id == 5:
-			new_sol = alter_solution_placeholder2(problem, inc_sol, helper_data)
+			new_sol = alter_solution_placeholder2(problem, inc_sol)
 		elif neighbourfunc_id == 6:
-			new_sol = alter_solution_placeholder3(problem, inc_sol, helper_data)
+			new_sol = alter_solution_placeholder3(problem, inc_sol)
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
 		if feasiblity:
