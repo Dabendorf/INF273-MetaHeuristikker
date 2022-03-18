@@ -821,10 +821,11 @@ def problem_to_helper_structure(problem: dict(), sol):
 	# Add dummy list
 	for call_num in range(num_calls):
 		specific_call_info = call_info[call_num]
-		latest_arrival_time.append((specific_call_info[6], str(call_num+1)+"a", specific_call_info[1], specific_call_info[8], str(call_num+1)+"b", specific_call_info[2]))
+		#latest_arrival_time.append((specific_call_info[6], str(call_num+1)+"a", specific_call_info[1], specific_call_info[8], str(call_num+1)+"b", specific_call_info[2]))
+		latest_arrival_time.append((specific_call_info[6], specific_call_info[8], call_num+1))
 
 	# Sort dummy vehicle times
-	latest_arrival_time.sort(reverse=True)
+	latest_arrival_time.sort(reverse=False)
 	logging.debug(f"Latest_arrival_time: {latest_arrival_time}")
 
 	return latest_arrival_time

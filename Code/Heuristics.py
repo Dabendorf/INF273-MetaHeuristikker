@@ -306,14 +306,27 @@ def alter_solution_4kinsert(problem: dict(), current_solution: List[int], helper
 		#print(f"To swap from {veh_to_swap[0]}: {to_swap_from_0_set}")
 		#print(f"To swap from {veh_to_swap[1]}: {to_swap_from_1_set}")
 
+		#print(helper_structure)
+
 		to_swap_from_0 = list(to_swap_from_0_set)
 		to_swap_from_1 = list(to_swap_from_1_set)
 
 		if len(to_swap_from_0) == 0 or len(to_swap_from_1) == 0:
 			continue
 
-		call0 = choice(list(to_swap_from_0))
-		call1 = choice(list(to_swap_from_1))
+		#p = [(call_num, helper_call) for call_num in to_swap_from_0 for helper_call in helper_structure if call_num == helper_call[2]]
+		#print(p)
+		#q = [call_num for helper_call in helper_structure for call_num in to_swap_from_0 if call_num == helper_call[2]]
+		#print(q)
+
+		to_swap_from_0 = [call_num for helper_call in helper_structure for call_num in to_swap_from_0 if call_num == helper_call[2]]
+		to_swap_from_1 = [call_num for helper_call in helper_structure for call_num in to_swap_from_1 if call_num == helper_call[2]]
+
+		#print(f"To swap from {veh_to_swap[0]}: {to_swap_from_0}")
+		#print(f"To swap from {veh_to_swap[1]}: {to_swap_from_1}")
+
+		call0 = choice(to_swap_from_0)
+		call1 = choice(to_swap_from_1)
 
 		#print(f"Call choosen vehicle {veh_to_swap[0]}: {call0}")
 		#print(f"Call choosen vehicle {veh_to_swap[1]}: {call1}")
