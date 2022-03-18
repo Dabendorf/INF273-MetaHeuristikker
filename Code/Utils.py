@@ -726,10 +726,13 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 		already_seen = set()
 
 		print(f"Call_list vehicle: {call_list_vehicle}")
+		global_time_diff = 0
+		insert_pos_a = None
+		insert_pos_b = None
 		for idx_call in range(len(call_list_vehicle)):
-			global_time_diff = 0
-			insert_pos_a = None
-			insert_pos_b = None
+			if  insert_pos_a is not None:
+				break
+			print("DAJHDJKASHDJAKSHDASJKHDASJKDHASJKDHAJDHASDKHADJKASHDJKASHD")
 
 			# Node a, the node before the insertion of pickup
 			if idx_call == 0:
@@ -759,26 +762,49 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 			time_diff = travel_times[(vehicle_num, temp_node_a, call_origin)][0] + travel_times[(vehicle_num, call_origin, temp_node_b)][0] - travel_times[(vehicle_num, temp_node_a, temp_node_b)][0] + node_times[(vehicle_num, call_num)][0]
 			print(f"Timediff: {time_diff}")
 			print(f"{temp_node_a}->{call_to_insert_info[1]}->{temp_node_b}")
-			print("Consists of: ")
+			"""print("Consists of: ")
 			print(f"{travel_times[(vehicle_num, temp_node_a, call_origin)][0]}")
 			print(f"{travel_times[(vehicle_num, call_origin, temp_node_b)][0]}")
 			print(f"-{travel_times[(vehicle_num, temp_node_a, temp_node_b)][0]}")
-			print(f"{node_times[(vehicle_num, call_num)][0]}")
-			"""
-			global_time_diff = travel_times[(vehicle_num, node_a, call_info_to_remove[1])][0] + travel_times[(vehicle_num, call_info_to_remove[1], node_b)][0] - travel_times[(vehicle_num, node_a, node_b)][0] + node_times[(vehicle_num, call_num)][0]
+			print(f"{node_times[(vehicle_num, call_num)][0]}")"""
 
+			arrival_old, waiting_time_old = arrival_info[f"{temp_call_num_b}{letter_b}"]
+			print(f"OldArrival: {arrival_old}")
+			print(f"OldWaiting: {waiting_time_old}")
 
-			node_a = call_info[call_list_vehicle[idx_delivery_call-1]-1][1]
-
-			if idx_delivery_call == len(call_list_vehicle)-1:
-				node_b = None
-				global_time_diff = None
+			arrival_temp = arrival_old+time_diff-waiting_time_old
+			if letter_b == "a":
+				temp_lower_bound = call_info[call_list_vehicle[idx_call]-1][5]
+				temp_upper_bound = call_info[call_list_vehicle[idx_call]-1][6]
 			else:
-				node_b = call_info[call_list_vehicle[idx_delivery_call+1]-1][2]
-				time_diff = travel_times[(vehicle_num, node_a, call_info_to_remove[2])][0] + travel_times[(vehicle_num, call_info_to_remove[2], node_b)][0] - travel_times[(vehicle_num, node_a, node_b)][0] + node_times[(vehicle_num, call_num)][2]
-				global_time_diff += time_diff"""
+				temp_lower_bound = call_info[call_list_vehicle[idx_call]-1][7]
+				temp_upper_bound = call_info[call_list_vehicle[idx_call]-1][8]
 
-			
+			print(f"Lower Bound: {temp_lower_bound}")
+			print(f"Upper Bound: {temp_upper_bound}")
+			print(f"Arrival temp: {arrival_temp}")
+			arrival_new = max(arrival_temp, temp_lower_bound)
+
+			if arrival_temp < temp_lower_bound:
+				waiting_time_new = temp_lower_bound-arrival_temp
+			else:
+				waiting_time_new = 0
+
+			if arrival_new <= temp_upper_bound:
+				arrival_info[f"{call_list_vehicle[idx_call]}{letter_b}"] = (arrival_new, waiting_time_new)
+				print(f"UPDATED {call_list_vehicle[idx_call]}{letter_b} = {(arrival_new, waiting_time_new)}")
+				global_time_diff = arrival_new - arrival_old
+				insert_pos_a = idx_call
+				print(f"Insertion position: {insert_pos_a}")
+				print(f"Global time  diff: {global_time_diff}")
+				print(f"{call_num}a")
+				print(f"{call_list_vehicle[idx_call-1]}{letter_b}")
+				print(temp_node_a)
+
+				# Gidder ikke den shiten her lenger
+
+			else:
+				print("No insertion")
 			
 
 		#lookup_call_in_vehicle
