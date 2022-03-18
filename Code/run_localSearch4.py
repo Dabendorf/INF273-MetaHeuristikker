@@ -1,4 +1,4 @@
-from Heuristics import improved_simulated_annealing, local_search_sim_annealing_latex
+from Heuristics import alter_solution_4kinsert, improved_simulated_annealing, local_search_sim_annealing_latex
 from Utils import *
 
 import logging
@@ -15,20 +15,24 @@ def main():
 	for tf in test_files:
 		prob = load_problem(tf)
 		init_sol = initial_solution(problem=prob)
-		
-		num_vehicles, num_calls, best_solution, best_cost, seeds = local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=[4,5,6], probabilities = [1/3, 0, 0], method="isa")
+		init_sol = [4 , 4 , 7 , 7 , 0 , 2 , 2 , 0 , 1 , 5 , 5 , 3 , 3 , 1 , 0 , 6 , 6]
+
+		helper_structure = problem_to_helper_structure(prob, init_sol)
+
+		alter_solution_4kinsert(prob, init_sol, helper_structure)
+		"""num_vehicles, num_calls, best_solution, best_cost, seeds = local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=[4,5,6], probabilities = [1/3, 0, 0], method="isa")
 		overall_best_solution = best_solution
 		overall_best_cost = best_cost
 		overall_seeds = seeds
 		
-		"""num_vehicles, num_calls, best_solution, best_cost, seeds = local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=[4,5,6], probabilities = [1/3, 0, 0], method="isa")
+		num_vehicles, num_calls, best_solution, best_cost, seeds = local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=[4,5,6], probabilities = [1/3, 0, 0], method="isa")
 		if best_cost < overall_best_cost:
 			overall_best_solution = best_solution
 			overall_best_cost = best_cost
-			overall_seeds = seeds"""
+			overall_seeds = seeds
 
 		print(overall_best_cost)
-		print(overall_best_solution)
+		print(overall_best_solution)"""
 		
 		#latex_replace_line(num_vehicles = num_vehicles, num_calls = num_calls, best_solution = overall_best_solution, seeds = overall_seeds)
 

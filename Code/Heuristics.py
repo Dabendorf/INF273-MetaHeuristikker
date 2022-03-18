@@ -2,12 +2,12 @@ from typing import List
 import numpy as np
 from collections import defaultdict
 import logging
-from random import randint, randrange, random, choice, seed, choices
+from random import randint, randrange, random, choice, seed, choices, sample
 import numpy as np
 from timeit import default_timer as timer
 import math
 
-from Utils import  insert_call_into_array, remove_call_from_array, split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
+from Utils import problem_to_helper_structure, insert_call_into_array, remove_call_from_array, split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
 
 logger = logging.getLogger(__name__)
 
@@ -245,94 +245,96 @@ def alter_solution_3exchange(problem: dict(), current_solution: List[int]) -> Li
 	
 	return new_sol
 
-def alter_solution_4kinsert(problem: dict(), current_solution: List[int]) -> List[int]:
+def alter_solution_4kinsert(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
 	""" """
 	k = 3
 	iterations = 0
 	inserts_done = 0
+	bound_prob_vehicle_vehicle = 0.8
 
 	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
 	vehicle_calls = problem["vehicle_calls"]
 
-	logging.debug(f"Alter solution: 1-insert")
+	logging.debug(f"Alter solution: k-insert")
 	# Two situations: From dummy to vehicle or from vehicle to vehicle
 	# Moves from vehicle to vehicle
 
+	dummy_num = num_vehicles
+
 	while iterations < 3*k and inserts_done < k:
+		print("\n\n\n")
 		iterations += 1
-		found_swap = False
 		sol = split_a_list_at_zeros(current_solution)
+		print(sol)
+		# found_swap = False
 
-		bound_prob_vehicle_vehicle = 0.8
-		while not found_swap:
-			if random() > bound_prob_vehicle_vehicle:
-				vehicle1 = randint(0,num_vehicles-1)
-				vehicle2 = vehicle1
-				while vehicle1 == vehicle2:
-					vehicle2 = randint(0,num_vehicles-1)
+		if random() > bound_prob_vehicle_vehicle:
+			non_empty_lists = [idx for idx, l in enumerate(sol) if len(l) > 0 and idx+1<len(l)]
+			veh_to_swap = sample(non_empty_lists, 2)
+		else:
+			non_empty_lists = [idx for idx, l in enumerate(sol) if len(l) > 0]
+			veh_to_swap = sample(non_empty_lists, 2)
 
-				if len(sol[vehicle2]) > 0:
-					found_swap = True
-					log_message = f"Move a call from vehicle {vehicle2} to vehicle {vehicle1}"
+		print(f"Vehicles to swap (index): {veh_to_swap}")
+		print(vehicle_calls)
 
-			# Moves from dummy to vehicle
-			else:
-				vehicle1 = randint(0,num_vehicles-1)
-				vehicle2 = num_vehicles
-				try:
-					if len(sol[vehicle2]) > 0:
-						found_swap = True
-						log_message = f"Move a call from dummy vehicle to vehicle {vehicle1}"
-				except IndexError:
-					bound_prob_vehicle_vehicle = 0
+		if veh_to_swap[0] == dummy_num:
+			calls_allowed0 = set(range(1, num_calls+1))
+		else:
+			calls_allowed0 = vehicle_calls[veh_to_swap[0]+1]
 
-		logging.debug(log_message)
+		if veh_to_swap[1] == dummy_num:
+			calls_allowed1 = set(range(1, num_calls+1))
+		else:
+			calls_allowed1 = vehicle_calls[veh_to_swap[1]+1]
 
-		# Only move calls which are allowed into a vehicle
-		# After 10 illegal operations, do it anyway
-		call_not_allowed = True
-		count_call_iterations = 0
-		while call_not_allowed and count_call_iterations < 10:
-			call_to_move = choice(sol[vehicle2])
-			if call_to_move in vehicle_calls[vehicle1+1]:
-				call_not_allowed = False
-			else:
-				count_call_iterations += 1
-				if count_call_iterations == 10:
-					logging.debug("Did not swap anything, nothing to get swapped found")
-					return current_solution
+		print(f"Calls allowed for 0: {calls_allowed0}")
+		print(f"Calls allowed for 1: {calls_allowed1}")
+		print(f"Current sol for 0: {set(sol[veh_to_swap[0]])}")
+		print(f"Current sol for 1: {set(sol[veh_to_swap[0]])}")
+		#break
 
-		#sol[vehicle2].remove(call_to_move)
-		#sol[vehicle2].remove(call_to_move)
+		to_swap_from_0_set = calls_allowed0.intersection(set(sol[veh_to_swap[1]]))
+		to_swap_from_1_set = calls_allowed1.intersection(set(sol[veh_to_swap[0]])) 
 
-		#rand_pos1 = randrange(len(sol[vehicle1])+1)
-		#rand_pos2 = randrange(len(sol[vehicle1])+1)
-		#sol[vehicle1].insert(rand_pos1, call_to_move)
-		#sol[vehicle1].insert(rand_pos2, call_to_move)
-		_, new_sol = remove_call_from_array(problem, current_solution.copy(), call_to_move, vehicle2+1)
-		successfull, new_sol = insert_call_into_array(problem, new_sol, call_to_move, vehicle1+1)
+		print(f"To swap from 0: {to_swap_from_0_set}")
+		print(f"To swap from 1: {to_swap_from_1_set}")
 
-		if successfull:
-			current_solution = new_sol.copy()
-			inserts_done += 1
+		to_swap_from_0 = list(to_swap_from_0_set)
+		to_swap_from_1 = list(to_swap_from_1_set)
 
-		"""new_sol = []
-		num_veh_counter = 0
-		for el in sol:
-			new_sol.extend(el)
-			new_sol.append(0)
-			num_veh_counter += 1
+		if len(to_swap_from_0) == 0 or len(to_swap_from_1) == 0:
+			continue
 
-		if num_veh_counter > num_vehicles:
-			new_sol.pop()"""
+		call0 = choice(list(to_swap_from_0))
+		call1 = choice(list(to_swap_from_1))
+
+		print(f"Call choosen vehicle {veh_to_swap[0]+1}: {call0}")
+		print(f"Call choosen vehicle {veh_to_swap[1]+1}: {call1}")
+
+		solution_copy = current_solution.copy()
+		print(f"Remove call {call0} from vehicle {veh_to_swap[0]+1}")
+		_, new_sol = remove_call_from_array(problem, solution_copy, call0, veh_to_swap[0]+1)
+		print(f"Add call {call0} to vehicle {veh_to_swap[1]+1}")
+		successfull, new_sol = insert_call_into_array(problem, new_sol, call0, veh_to_swap[1]+1)
+
+		print(f"Remove call {call1} from vehicle {veh_to_swap[1]+1}")
+		_, new_sol = remove_call_from_array(problem, new_sol, call1, veh_to_swap[1]+1)
+		print(f"Add call {call1} to vehicle {veh_to_swap[0]+1}")
+		successfull, new_sol = insert_call_into_array(problem, new_sol, call1, veh_to_swap[0]+1)
+
+		print(successfull)
+		print(new_sol)
+		break # TODO remove
 		
 	return current_solution
 
-def alter_solution_placeholder2(problem: dict(), current_solution: List[int]) -> List[int]:
+def alter_solution_placeholder2(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
 	# TODO
 	return current_solution
 
-def alter_solution_placeholder3(problem: dict(), current_solution: List[int]) -> List[int]:
+def alter_solution_placeholder3(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
 	# TODO
 	return current_solution
 
@@ -455,6 +457,7 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 
 	t_f = 0.1 # final temperature
 	cost = cost_function(init_sol, problem)
+	
 	best_sol = init_sol
 	inc_sol = init_sol
 	best_cost = cost
@@ -462,6 +465,8 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 	orig_cost = cost
 
 	delta_w = list()
+
+	helper_structure = problem_to_helper_structure(problem, init_sol)
 
 	w = 0
 	while w < 100 or not delta_w:
@@ -474,11 +479,11 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		elif neighbourfunc_id == 3:
 			new_sol = alter_solution_3exchange(problem, inc_sol)
 		elif neighbourfunc_id == 4:
-			new_sol = alter_solution_4kinsert(problem, inc_sol)
+			new_sol = alter_solution_4kinsert(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 5:
-			new_sol = alter_solution_placeholder2(problem, inc_sol)
+			new_sol = alter_solution_placeholder2(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 6:
-			new_sol = alter_solution_placeholder3(problem, inc_sol)
+			new_sol = alter_solution_placeholder3(problem, inc_sol, helper_structure)
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
 		if feasiblity:
@@ -512,11 +517,11 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		elif neighbourfunc_id == 3:
 			new_sol = alter_solution_3exchange(problem, inc_sol)
 		elif neighbourfunc_id == 4:
-			new_sol = alter_solution_4kinsert(problem, inc_sol)
+			new_sol = alter_solution_4kinsert(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 5:
-			new_sol = alter_solution_placeholder2(problem, inc_sol)
+			new_sol = alter_solution_placeholder2(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 6:
-			new_sol = alter_solution_placeholder3(problem, inc_sol)
+			new_sol = alter_solution_placeholder3(problem, inc_sol, helper_structure)
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
 		if feasiblity:

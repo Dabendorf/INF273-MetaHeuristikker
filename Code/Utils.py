@@ -599,19 +599,11 @@ def latex_replace_line(num_vehicles: int, num_calls: int, best_solution, seeds):
 		f.write(contents)
 	logging.debug("Finish to replace optimal solution in table")
 
-
-
 def insert_call_into_array(problem: dict(), sol, call_num, vehicle_num):
-	""" """
+	""" This function inserts a call into a solution for one vehicle
+		It tries the first possible positions and also returns if something was found"""
 
 	logging.debug(f"Inserting call {call_num} into vehicle {vehicle_num}")
-
-	"""num_vehicles = problem["num_vehicles"]
-	num_calls = problem["num_calls"]
-	call_info = problem["call_info"]
-	call_to_insert_info = problem["call_info"][call_num-1]
-	travel_times = problem["travel_time_cost"]
-	node_times = problem["node_time_cost"]"""
 
 	insertion_successful = False
 
@@ -658,16 +650,9 @@ def insert_call_into_array(problem: dict(), sol, call_num, vehicle_num):
 	return insertion_successful, merge_vehice_lists(sol_split_by_vehicle)
 
 def remove_call_from_array(problem: dict(), sol, call_num, vehicle_num):
-	"""  """
+	"""  Function removes a call from a solution """
 
 	logging.debug(f"Removing call {call_num} from vehicle {vehicle_num}")
-
-	"""num_vehicles = problem["num_vehicles"]
-	num_calls = problem["num_calls"]
-	call_info_to_remove = problem["call_info"][call_num-1]
-	call_info = problem["call_info"]
-	travel_times = problem["travel_time_cost"]
-	node_times = problem["node_time_cost"]"""
 
 	removal_successful = True
 
@@ -693,19 +678,15 @@ def merge_vehice_lists(splitted_solution: list()):
 	return overall_list[:-1]
 
 def feasibility_helper(solution: list(), problem: dict(), vehicle_num: int):
-	"""Checks if a solution is feasibile and if not what the reason for that is
-	TODO write new description
+	""" This is a helper function which checks if the solution for one specific vehicle is feasible or not
+	It is a shorter version of the long feasibility function
+
 	:param solution: The input solution of order of calls for each vehicle to the problem
 	:param problem: The pickup and delivery problem dictionary
-	:return: whether the problem is feasible and the reason for probable infeasibility
+	:return: whether the solution is feasible and the reason for probable infeasibility
 	"""
-	logging.debug(f"Start helper function")
-	#logging.debug(f"Solution: {solution}")
-	#logging.debug(f"Problem keys: {problem.keys()}")
-
-	num_vehicles = problem["num_vehicles"]
+	logging.debug(f"Start helper feasibility function")
 	vehicle_info = problem["vehicle_info"]
-	vehicle_calls = problem["vehicle_calls"]
 	call_info = problem["call_info"]
 	travel_cost_dict = problem["travel_time_cost"]
 	node_cost_dict = problem["node_time_cost"]
@@ -805,3 +786,41 @@ def feasibility_helper(solution: list(), problem: dict(), vehicle_num: int):
 	
 	logging.debug(f"Feasible: {(True if reason_not_feasible == '' else False)}, Reason: {reason_not_feasible}")
 	return (True if reason_not_feasible == "" else False), reason_not_feasible
+
+def problem_to_helper_structure(problem: dict(), sol):
+	""" This function takes a problem data structure and 
+		outputs a helper data strcture to better insert information into it
+		
+		The helper structure consists of these information:
+		- Lookup_call_in_vehicle (list): Loopup_list in which vehicle a call is in
+		- latest_arrival_time (list(list)): [[(latest_arrival, call_num, node_num)]] (for each vehicle)
+		- arrival_info dict(): {node_num{a,b} : (current_arrival, waiting_time)}
+	"""
+
+	logging.debug("Start problem to helper structure method")
+
+	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
+	call_info = problem["call_info"]
+
+	logging.debug(f"Initial solution: {sol}")
+
+	# in which vehicle is a call
+	# init everything as dummy vehicle
+
+	latest_arrival_time = []
+
+	"""for vehicle in range(num_vehicles):
+		veh_info = problem["vehicle_info"][vehicle]
+		latest_arrival_time.append((veh_info[2], "start", veh_info[1]))"""
+	
+	# Add dummy list
+	for call_num in range(num_calls):
+		specific_call_info = call_info[call_num]
+		latest_arrival_time.append((specific_call_info[6], str(call_num+1)+"a", specific_call_info[1], specific_call_info[8], str(call_num+1)+"b", specific_call_info[2]))
+
+	# Sort dummy vehicle times
+	latest_arrival_time.sort(reverse=True)
+	logging.debug(f"Latest_arrival_time: {latest_arrival_time}")
+
+	return latest_arrival_time
