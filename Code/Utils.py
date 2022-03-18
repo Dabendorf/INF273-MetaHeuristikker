@@ -690,6 +690,10 @@ def feasibility_helper(solution: list(), problem: dict(), vehicle_num: int):
 	call_info = problem["call_info"]
 	travel_cost_dict = problem["travel_time_cost"]
 	node_cost_dict = problem["node_time_cost"]
+	num_vehicles = problem["num_vehicles"]
+
+	if vehicle_num > num_vehicles:
+		return True, ""
 
 	reason_not_feasible = ""
 

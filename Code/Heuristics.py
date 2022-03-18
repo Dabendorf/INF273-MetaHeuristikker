@@ -1,3 +1,4 @@
+from multiprocessing.sharedctypes import Value
 from typing import List
 import numpy as np
 from collections import defaultdict
@@ -7,7 +8,7 @@ import numpy as np
 from timeit import default_timer as timer
 import math
 
-from Utils import problem_to_helper_structure, insert_call_into_array, remove_call_from_array, split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
+from Utils import merge_vehice_lists, problem_to_helper_structure, insert_call_into_array, remove_call_from_array, split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
 
 logger = logging.getLogger(__name__)
 
@@ -263,43 +264,47 @@ def alter_solution_4kinsert(problem: dict(), current_solution: List[int], helper
 	dummy_num = num_vehicles
 
 	while iterations < 3*k and inserts_done < k:
-		print("\n\n\n")
+		#print("\n\n\n")
 		iterations += 1
 		sol = split_a_list_at_zeros(current_solution)
-		print(sol)
+		#print(f"Splitted solution: {sol}")
 		# found_swap = False
 
-		if random() > bound_prob_vehicle_vehicle:
-			non_empty_lists = [idx for idx, l in enumerate(sol) if len(l) > 0 and idx+1<len(l)]
-			veh_to_swap = sample(non_empty_lists, 2)
-		else:
-			non_empty_lists = [idx for idx, l in enumerate(sol) if len(l) > 0]
-			veh_to_swap = sample(non_empty_lists, 2)
+		try:
+			if random() > bound_prob_vehicle_vehicle:
+				non_empty_lists = [idx for idx, l in enumerate(sol) if len(l) > 0 and idx+1<len(l)]
+				veh_to_swap = sample(non_empty_lists, 2)
+			else:
+				non_empty_lists = [idx for idx, l in enumerate(sol) if len(l) > 0]
+				veh_to_swap = sample(non_empty_lists, 2)
+		except ValueError:
+			return current_solution
 
-		print(f"Vehicles to swap (index): {veh_to_swap}")
-		print(vehicle_calls)
+		veh_to_swap[0] += 1
+		veh_to_swap[1] += 1
+		#print(f"Vehicles to swap (index): {veh_to_swap}")
+		#print(f"Allowed calls vehicles: {vehicle_calls}")
 
-		if veh_to_swap[0] == dummy_num:
+		if veh_to_swap[0]-1 == dummy_num:
 			calls_allowed0 = set(range(1, num_calls+1))
 		else:
-			calls_allowed0 = vehicle_calls[veh_to_swap[0]+1]
+			calls_allowed0 = vehicle_calls[veh_to_swap[0]]
 
-		if veh_to_swap[1] == dummy_num:
+		if veh_to_swap[1]-1 == dummy_num:
 			calls_allowed1 = set(range(1, num_calls+1))
 		else:
-			calls_allowed1 = vehicle_calls[veh_to_swap[1]+1]
+			calls_allowed1 = vehicle_calls[veh_to_swap[1]]
 
-		print(f"Calls allowed for 0: {calls_allowed0}")
-		print(f"Calls allowed for 1: {calls_allowed1}")
-		print(f"Current sol for 0: {set(sol[veh_to_swap[0]])}")
-		print(f"Current sol for 1: {set(sol[veh_to_swap[0]])}")
-		#break
+		#print(f"Calls allowed for vehicle {veh_to_swap[0]}: {calls_allowed0}")
+		#print(f"Calls allowed for vehicle {veh_to_swap[1]}: {calls_allowed1}")
+		#print(f"Current sol for vehicle {veh_to_swap[0]}: {set(sol[veh_to_swap[0]-1])}")
+		#print(f"Current sol for vehicle {veh_to_swap[1]}: {set(sol[veh_to_swap[1]-1])}")
 
-		to_swap_from_0_set = calls_allowed0.intersection(set(sol[veh_to_swap[1]]))
-		to_swap_from_1_set = calls_allowed1.intersection(set(sol[veh_to_swap[0]])) 
+		to_swap_from_0_set = calls_allowed1.intersection(set(sol[veh_to_swap[0]-1]))
+		to_swap_from_1_set = calls_allowed0.intersection(set(sol[veh_to_swap[1]-1])) 
 
-		print(f"To swap from 0: {to_swap_from_0_set}")
-		print(f"To swap from 1: {to_swap_from_1_set}")
+		#print(f"To swap from {veh_to_swap[0]}: {to_swap_from_0_set}")
+		#print(f"To swap from {veh_to_swap[1]}: {to_swap_from_1_set}")
 
 		to_swap_from_0 = list(to_swap_from_0_set)
 		to_swap_from_1 = list(to_swap_from_1_set)
@@ -310,25 +315,29 @@ def alter_solution_4kinsert(problem: dict(), current_solution: List[int], helper
 		call0 = choice(list(to_swap_from_0))
 		call1 = choice(list(to_swap_from_1))
 
-		print(f"Call choosen vehicle {veh_to_swap[0]+1}: {call0}")
-		print(f"Call choosen vehicle {veh_to_swap[1]+1}: {call1}")
+		#print(f"Call choosen vehicle {veh_to_swap[0]}: {call0}")
+		#print(f"Call choosen vehicle {veh_to_swap[1]}: {call1}")
 
 		solution_copy = current_solution.copy()
-		print(f"Remove call {call0} from vehicle {veh_to_swap[0]+1}")
-		_, new_sol = remove_call_from_array(problem, solution_copy, call0, veh_to_swap[0]+1)
-		print(f"Add call {call0} to vehicle {veh_to_swap[1]+1}")
-		successfull, new_sol = insert_call_into_array(problem, new_sol, call0, veh_to_swap[1]+1)
-
-		print(f"Remove call {call1} from vehicle {veh_to_swap[1]+1}")
-		_, new_sol = remove_call_from_array(problem, new_sol, call1, veh_to_swap[1]+1)
-		print(f"Add call {call1} to vehicle {veh_to_swap[0]+1}")
-		successfull, new_sol = insert_call_into_array(problem, new_sol, call1, veh_to_swap[0]+1)
-
-		print(successfull)
-		print(new_sol)
-		break # TODO remove
 		
-	return current_solution
+		_, new_sol = remove_call_from_array(problem, solution_copy, call0, veh_to_swap[0])
+		successfull, new_sol = insert_call_into_array(problem, new_sol, call0, veh_to_swap[1])
+		#print(successfull)
+		if not successfull:
+			break
+
+		_, new_sol = remove_call_from_array(problem, new_sol, call1, veh_to_swap[1])
+		successfull, new_sol = insert_call_into_array(problem, new_sol, call1, veh_to_swap[0])
+
+		if successfull:
+			sol = new_sol.copy()
+			inserts_done += 1
+	
+	new = sol
+	if len(current_solution) == new:
+		return new
+	else:
+		return current_solution
 
 def alter_solution_placeholder2(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
 	# TODO
