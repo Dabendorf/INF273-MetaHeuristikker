@@ -691,10 +691,12 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 		temp_arr_route_value = start_info[0]+time_start_to_pickup
 		if temp_arr_route_value < lower_pickup:
 			max_arrival = lower_pickup
-			waiting_time = lower_pickup-max_arrival
+			waiting_time = lower_pickup-temp_arr_route_value
+			print(f"Changed 1: {lower_pickup} {max_arrival}")
 		else:
 			max_arrival = temp_arr_route_value
 			waiting_time = 0
+			print("Changed 2")
 
 		arrival_info[str(call_num)+"a"] = (max_arrival, waiting_time)
 		
@@ -702,10 +704,12 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 		temp_arr_route_value = max_arrival+time_pickup_to_delivery+node_times[(vehicle_num, call_num)][0]
 		if temp_arr_route_value < lower_del:
 			max_arrival = lower_del
-			waiting_time = lower_del-max_arrival
+			waiting_time = lower_del-temp_arr_route_value
+			print("Changed 3")
 		else:
 			max_arrival = temp_arr_route_value
 			waiting_time = 0
+			print("Changed 4")
 
 		arrival_info[str(call_num)+"b"] = (max_arrival, waiting_time)
 		latest_arrival_time[vehicle_num-1].append((call_to_insert_info[6], str(call_num)+"a", call_origin, call_to_insert_info[8], str(call_num)+"b", call_dest))
@@ -752,49 +756,27 @@ def insert_call_into_array(problem: dict(), sol, helper_structure, call_num, veh
 				temp_node_b = call_info[call_list_vehicle[idx_call]-1][2]
 			print(f"Node b: {temp_node_b}")
 
-			"""# Extra case for last insert position
-			if idx_call == len(call_list_vehicle):
-				letter = None
-				temp_node = None
-				temp_call_num = float("inf")
-			else:
-				temp_call_num = call_list_vehicle[idx_call]
-			
-			if temp_call_num != float("inf"):
-				if temp_call_num not in already_seen:
-					already_seen.add(temp_call_num)
-					letter = "a"
-					temp_node = call_info[call_list_vehicle[idx_call]-1][1]
-					#temp_lower_bound = call_info[call_list_vehicle[idx_call]-1][5]
-				else:
-					already_seen.remove(temp_call_num)
-					letter = "b"
-					temp_node = call_info[call_list_vehicle[idx_call]-1][2]
-					#temp_lower_bound = call_info[call_list_vehicle[idx_call]-1][7]
-				print(f"{temp_node}{letter}")
-				print(idx_call)
-			else:
-				print(f"no node")
-				print(idx_call)
-				
-			if idx_pickup_call == 0:
-				node_a = latest_arrival_time[vehicle_num-1][0][2]
-			else:
-				node_a = call_info[call_list_vehicle[idx_pickup_call-1]-1][1]
-
-			node_b = call_info[call_list_vehicle[idx_pickup_call+1]-1][2]
+			time_diff = travel_times[(vehicle_num, temp_node_a, call_origin)][0] + travel_times[(vehicle_num, call_origin, temp_node_b)][0] - travel_times[(vehicle_num, temp_node_a, temp_node_b)][0] + node_times[(vehicle_num, call_num)][0]
+			print(f"Timediff: {time_diff}")
+			print(f"{temp_node_a}->{call_to_insert_info[1]}->{temp_node_b}")
+			print("Consists of: ")
+			print(f"{travel_times[(vehicle_num, temp_node_a, call_origin)][0]}")
+			print(f"{travel_times[(vehicle_num, call_origin, temp_node_b)][0]}")
+			print(f"-{travel_times[(vehicle_num, temp_node_a, temp_node_b)][0]}")
+			print(f"{node_times[(vehicle_num, call_num)][0]}")
+			"""
 			global_time_diff = travel_times[(vehicle_num, node_a, call_info_to_remove[1])][0] + travel_times[(vehicle_num, call_info_to_remove[1], node_b)][0] - travel_times[(vehicle_num, node_a, node_b)][0] + node_times[(vehicle_num, call_num)][0]
 
 
-		node_a = call_info[call_list_vehicle[idx_delivery_call-1]-1][1]
+			node_a = call_info[call_list_vehicle[idx_delivery_call-1]-1][1]
 
-		if idx_delivery_call == len(call_list_vehicle)-1:
-			node_b = None
-			global_time_diff = None
-		else:
-			node_b = call_info[call_list_vehicle[idx_delivery_call+1]-1][2]
-			time_diff = travel_times[(vehicle_num, node_a, call_info_to_remove[2])][0] + travel_times[(vehicle_num, call_info_to_remove[2], node_b)][0] - travel_times[(vehicle_num, node_a, node_b)][0] + node_times[(vehicle_num, call_num)][2]
-			global_time_diff += time_diff"""
+			if idx_delivery_call == len(call_list_vehicle)-1:
+				node_b = None
+				global_time_diff = None
+			else:
+				node_b = call_info[call_list_vehicle[idx_delivery_call+1]-1][2]
+				time_diff = travel_times[(vehicle_num, node_a, call_info_to_remove[2])][0] + travel_times[(vehicle_num, call_info_to_remove[2], node_b)][0] - travel_times[(vehicle_num, node_a, node_b)][0] + node_times[(vehicle_num, call_num)][2]
+				global_time_diff += time_diff"""
 
 			
 			
