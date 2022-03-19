@@ -825,7 +825,7 @@ def problem_to_helper_structure(problem: dict(), sol):
 		latest_arrival_time.append((specific_call_info[6], specific_call_info[8], call_num+1))
 
 	# Sort dummy vehicle times
-	latest_arrival_time.sort(reverse=False)
+	latest_arrival_time.sort(reverse=True)
 	logging.debug(f"Latest_arrival_time: {latest_arrival_time}")
 
 	return latest_arrival_time

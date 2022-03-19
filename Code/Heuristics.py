@@ -3,12 +3,12 @@ from typing import List
 import numpy as np
 from collections import defaultdict
 import logging
-from random import randint, randrange, random, choice, seed, choices, sample
+from random import randint, randrange, random, choice, seed, choices, sample, shuffle
 import numpy as np
 from timeit import default_timer as timer
 import math
 
-from Utils import merge_vehice_lists, problem_to_helper_structure, insert_call_into_array, remove_call_from_array, split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
+from Utils import feasibility_helper, merge_vehice_lists, problem_to_helper_structure, insert_call_into_array, remove_call_from_array, split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
 
 logger = logging.getLogger(__name__)
 
@@ -249,38 +249,41 @@ def alter_solution_3exchange(problem: dict(), current_solution: List[int]) -> Li
 def alter_solution_4kinsert(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
 	""" """
 	#print(current_solution)
-	k = 3
-	iterations = 0
-	inserts_done = 0
-	bound_prob_vehicle_vehicle = 0.8
+	#print("Nr 4")
 
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
 	vehicle_calls = problem["vehicle_calls"]
 
+	# Hyperparameters
+	k = 3 # num of inserts
+	bound_prob_vehicle_vehicle = 0.8 # probability that dummy doesnt get reinserted
+	max_iterations = 3*k # maximum iterations until while breaks
+	bound_calls_in_dummy = num_calls//3 # if bigger then take out of dummy
+	bound_empty_vehicles = num_vehicles//3
+	bound_dummy_prob = 0.3 # bound for dummy if only 1insert
+	prob_decrease = 0.4
+
+	iterations = 0
+	inserts_done = 0
+
 	logging.debug(f"Alter solution: k-insert")
-	# Two situations: From dummy to vehicle or from vehicle to vehicle
-	# Moves from vehicle to vehicle
 
 	dummy_num = num_vehicles
 
-	while iterations < 3*k and inserts_done < k:
-		#print("\n\n\n")
+	while iterations < max_iterations and inserts_done < k:
 		iterations += 1
 		sol = split_a_list_at_zeros(current_solution)
 		sol_spread = [len(k)//2 for k in sol]
 		
-		if sol_spread[-1] > num_calls//3 or sol_spread.count(0) > num_vehicles/3:
+		if sol_spread[-1] > bound_calls_in_dummy or sol_spread.count(0) > bound_empty_vehicles:
 			only1insert = True
-			#print("1insert")
 		else:
 			only1insert = False
-			#print("kexchange")
-		#print(sol_spread)
 		try:
 			bound = bound_prob_vehicle_vehicle
 			if only1insert:
-				bound = 0.03
+				bound = bound_dummy_prob
 			if random() > bound:
 				non_empty_lists = [idx for idx, l in enumerate(sol) if len(l) > 0]
 			else:
@@ -299,6 +302,7 @@ def alter_solution_4kinsert(problem: dict(), current_solution: List[int], helper
 			else:
 				veh_to_swap = sample(non_empty_lists, 2)
 		except ValueError:
+			print("Nr 4 Value Error")
 			return current_solution
 		
 		veh_to_swap[0] += 1
@@ -358,7 +362,7 @@ def alter_solution_4kinsert(problem: dict(), current_solution: List[int], helper
 		#print(f"To swap from {veh_to_swap[1]}: {to_swap_from_1}")
 
 		try:
-			probabilities = [0.5**i for i in range(0, len(to_swap_from_0))]
+			probabilities = [prob_decrease**i for i in range(0, len(to_swap_from_0))]
 			call0 = choices(to_swap_from_0, weights=probabilities)[0]
 			#call0 = to_swap_from_0[0]#choice(to_swap_from_0)
 			#print(call0)
@@ -367,7 +371,7 @@ def alter_solution_4kinsert(problem: dict(), current_solution: List[int], helper
 			continue
 		
 		if not only1insert:
-			probabilities = [0.5**i for i in range(0, len(to_swap_from_1))]
+			probabilities = [prob_decrease**i for i in range(0, len(to_swap_from_1))]
 			call1 = choices(to_swap_from_1, weights=probabilities)[0]
 			#call1 = to_swap_from_1[0]#choice(to_swap_from_1)
 
@@ -401,13 +405,58 @@ def alter_solution_4kinsert(problem: dict(), current_solution: List[int], helper
 	
 	new = current_solution
 	if len(current_solution) == new:
+		#print("Nr 4 New solution")
+		#print(len(new))
 		return new
 	else:
+		#print("Nr 4 Old Solution")
+		#print(len(current_solution))
 		return current_solution
 
 def alter_solution_placeholder2(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
 	# TODO
-	return current_solution
+
+	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
+	vehicle_calls = problem["vehicle_calls"]
+	#print("Nr 5")
+
+	print(current_solution)
+
+	sol_temp = split_a_list_at_zeros(current_solution)
+	sol = sol_temp[:-1]
+	dummy = sol_temp[-1]
+	sol_spread = [len(k)//2 for k in sol]
+	list_with_many_calls = [idx for idx, l in enumerate(sol_spread) if l >= 2]
+	#print(sol_spread)
+	#print(list_with_many_calls)
+	#print(f"Current sol {current_solution}")
+	if len(list_with_many_calls) > 0:
+		rand_vehicle = choice(list_with_many_calls)
+		for i in range(len(sol[rand_vehicle])-3):
+			#print(f"Sol før: {sol}")
+			temp_sol = sol[rand_vehicle][0:i] + sorted(sol[rand_vehicle][i:i+4], key=lambda k: random())+ sol[rand_vehicle][i+4:]
+			#print(f"Sol etter: {sol}")
+			isFeasible, _ = feasibility_helper(temp_sol, problem, rand_vehicle)
+			#print(isFeasible)
+			if isFeasible:
+				sol[rand_vehicle] = temp_sol
+				sol.append(dummy)
+				#print("Nr 5 changed")
+				#print(temp_sol)
+				#print(sol)
+				merged = merge_vehice_lists(sol)
+				#print(merged)
+				#print(len(merged))
+				#exit(0)
+				return merged
+		#print("Nr 5 not changed")
+		#print(len(current_solution))
+		return current_solution
+	else:
+		#print("Nr 5 no big list")
+		#print(len(current_solution))
+		return current_solution
 
 def alter_solution_placeholder3(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
 	# TODO
@@ -677,6 +726,7 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 		improvements.append(improvement)
 		average_objectives.append(cost)
 
+		print(f"Cost: {cost}")
 		if cost < best_cost:
 			best_cost = cost
 			best_solution = sol
