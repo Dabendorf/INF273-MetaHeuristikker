@@ -421,7 +421,7 @@ def alter_solution_placeholder2(problem: dict(), current_solution: List[int], he
 	vehicle_calls = problem["vehicle_calls"]
 	#print("Nr 5")
 
-	print(current_solution)
+	#print(current_solution)
 
 	sol_temp = split_a_list_at_zeros(current_solution)
 	sol = sol_temp[:-1]
@@ -437,7 +437,9 @@ def alter_solution_placeholder2(problem: dict(), current_solution: List[int], he
 			#print(f"Sol før: {sol}")
 			temp_sol = sol[rand_vehicle][0:i] + sorted(sol[rand_vehicle][i:i+4], key=lambda k: random())+ sol[rand_vehicle][i+4:]
 			#print(f"Sol etter: {sol}")
-			isFeasible, _ = feasibility_helper(temp_sol, problem, rand_vehicle)
+			#print("Rand vehicle")
+			#print(rand_vehicle)
+			isFeasible, _ = feasibility_helper(temp_sol, problem, rand_vehicle+1)
 			#print(isFeasible)
 			if isFeasible:
 				sol[rand_vehicle] = temp_sol
