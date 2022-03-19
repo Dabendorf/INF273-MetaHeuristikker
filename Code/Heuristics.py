@@ -250,6 +250,7 @@ def alter_solution_4kinsert(problem: dict(), current_solution: List[int], helper
 	""" """
 	#print(current_solution)
 	#print("Nr 4")
+	#print(f"4: {current_solution}")
 
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
@@ -421,7 +422,7 @@ def alter_solution_placeholder2(problem: dict(), current_solution: List[int], he
 	vehicle_calls = problem["vehicle_calls"]
 	#print("Nr 5")
 
-	#print(current_solution)
+	#print(f"5: {current_solution}")
 
 	sol_temp = split_a_list_at_zeros(current_solution)
 	sol = sol_temp[:-1]
@@ -461,7 +462,15 @@ def alter_solution_placeholder2(problem: dict(), current_solution: List[int], he
 		return current_solution
 
 def alter_solution_placeholder3(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
-	# TODO
+	# TODO Greedy insertion
+	return current_solution
+
+def alter_solution_placeholder4(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
+	# TODO regret insertion
+	return current_solution
+
+def alter_solution_placeholder5(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
+	# TODO first possible insertion
 	return current_solution
 
 def local_search(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [1,2,3]):
@@ -610,6 +619,10 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 			new_sol = alter_solution_placeholder2(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 6:
 			new_sol = alter_solution_placeholder3(problem, inc_sol, helper_structure)
+		elif neighbourfunc_id == 7:
+			new_sol = alter_solution_placeholder4(problem, inc_sol, helper_structure)
+		elif neighbourfunc_id == 8:
+			new_sol = alter_solution_placeholder5(problem, inc_sol, helper_structure)
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
 		if feasiblity:
@@ -648,6 +661,10 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 			new_sol = alter_solution_placeholder2(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 6:
 			new_sol = alter_solution_placeholder3(problem, inc_sol, helper_structure)
+		elif neighbourfunc_id == 7:
+			new_sol = alter_solution_placeholder4(problem, inc_sol, helper_structure)
+		elif neighbourfunc_id == 8:
+			new_sol = alter_solution_placeholder5(problem, inc_sol, helper_structure)
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
 		if feasiblity:
