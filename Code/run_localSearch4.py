@@ -9,7 +9,8 @@ def main():
 	logger.disabled = False
 
 	test_files = ["../Data/Call_7_Vehicle_3.txt", "../Data/Call_18_Vehicle_5.txt", "../Data/Call_35_Vehicle_7.txt", "../Data/Call_80_Vehicle_20.txt", "../Data/Call_130_Vehicle_40.txt", "../Data/Call_300_Vehicle_90.txt"]
-	test_files = ["../Data/Call_18_Vehicle_5.txt"]
+	test_files = ["../Data/Call_7_Vehicle_3.txt"]
+	#test_files = ["../Data/Call_18_Vehicle_5.txt"]
 
 	# Runs through all test files and performs both local search and simulated annealing
 	for tf in test_files:
@@ -21,7 +22,7 @@ def main():
 
 		#alter_solution_4kinsert(prob, init_sol, helper_structure)
 		#break
-		num_vehicles, num_calls, best_solution, best_cost, seeds = local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=[4,1], probabilities = [1/3, 1/3], method="isa")
+		num_vehicles, num_calls, best_solution, best_cost, seeds = local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=[4], probabilities = [1/3], method="isa")
 		overall_best_solution = best_solution
 		overall_best_cost = best_cost
 		overall_seeds = seeds

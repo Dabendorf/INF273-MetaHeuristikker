@@ -248,6 +248,7 @@ def alter_solution_3exchange(problem: dict(), current_solution: List[int]) -> Li
 
 def alter_solution_4kinsert(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
 	""" """
+	#print(current_solution)
 	k = 3
 	iterations = 0
 	inserts_done = 0
@@ -267,19 +268,39 @@ def alter_solution_4kinsert(problem: dict(), current_solution: List[int], helper
 		#print("\n\n\n")
 		iterations += 1
 		sol = split_a_list_at_zeros(current_solution)
-		#print(f"Splitted solution: {sol}")
-		# found_swap = False
-
+		sol_spread = [len(k)//2 for k in sol]
+		
+		if sol_spread[-1] > num_calls//3 or sol_spread.count(0) > num_vehicles/3:
+			only1insert = True
+			#print("1insert")
+		else:
+			only1insert = False
+			#print("kexchange")
+		#print(sol_spread)
 		try:
-			if random() > bound_prob_vehicle_vehicle:
-				non_empty_lists = [idx for idx, l in enumerate(sol) if len(l) > 0 and idx+1<len(l)]
-				veh_to_swap = sample(non_empty_lists, 2)
-			else:
+			bound = bound_prob_vehicle_vehicle
+			if only1insert:
+				bound = 0.03
+			if random() > bound:
 				non_empty_lists = [idx for idx, l in enumerate(sol) if len(l) > 0]
+			else:
+				non_empty_lists = [idx for idx, l in enumerate(sol[:-1]) if len(l) > 0]
+			if only1insert:
+				veh_to_swap = sample(non_empty_lists, 1)
+				empty_lists = [idx for idx, i in enumerate(sol_spread) if i < 3]
+				"""print(f"Vehtoswap: {veh_to_swap}")
+				print(f"sol {sol}")
+				print(f"non empty: {non_empty_lists}")
+				print(f"    empty: {empty_lists}")
+				print(sol_spread)
+				print(f"Sample: {sample(empty_lists, 1)}")"""
+				veh_to_swap.extend(sample(empty_lists, 1))
+				#print("End method")
+			else:
 				veh_to_swap = sample(non_empty_lists, 2)
 		except ValueError:
 			return current_solution
-
+		
 		veh_to_swap[0] += 1
 		veh_to_swap[1] += 1
 		#print(f"Vehicles to swap (index): {veh_to_swap}")
@@ -295,38 +316,60 @@ def alter_solution_4kinsert(problem: dict(), current_solution: List[int], helper
 		else:
 			calls_allowed1 = vehicle_calls[veh_to_swap[1]]
 
-		#print(f"Calls allowed for vehicle {veh_to_swap[0]}: {calls_allowed0}")
-		#print(f"Calls allowed for vehicle {veh_to_swap[1]}: {calls_allowed1}")
-		#print(f"Current sol for vehicle {veh_to_swap[0]}: {set(sol[veh_to_swap[0]-1])}")
-		#print(f"Current sol for vehicle {veh_to_swap[1]}: {set(sol[veh_to_swap[1]-1])}")
+		"""print(f"Calls allowed for vehicle {veh_to_swap[0]}: {calls_allowed0}")
+		print(f"Calls allowed for vehicle {veh_to_swap[1]}: {calls_allowed1}")
+		print(f"Current sol for vehicle {veh_to_swap[0]}: {set(sol[veh_to_swap[0]-1])}")
+		print(f"Current sol for vehicle {veh_to_swap[1]}: {set(sol[veh_to_swap[1]-1])}")"""
 
 		to_swap_from_0_set = calls_allowed1.intersection(set(sol[veh_to_swap[0]-1]))
-		to_swap_from_1_set = calls_allowed0.intersection(set(sol[veh_to_swap[1]-1])) 
+
+		if not only1insert:
+			to_swap_from_1_set = calls_allowed0.intersection(set(sol[veh_to_swap[1]-1])) 
 
 		#print(f"To swap from {veh_to_swap[0]}: {to_swap_from_0_set}")
-		#print(f"To swap from {veh_to_swap[1]}: {to_swap_from_1_set}")
+		#if not only1insert:
+			#print(f"To swap from {veh_to_swap[1]}: {to_swap_from_1_set}")
+		#print(current_solution)
 
 		#print(helper_structure)
 
 		to_swap_from_0 = list(to_swap_from_0_set)
-		to_swap_from_1 = list(to_swap_from_1_set)
 
-		if len(to_swap_from_0) == 0 or len(to_swap_from_1) == 0:
-			continue
+		if not only1insert:
+			to_swap_from_1 = list(to_swap_from_1_set)
+		
+
+		if not only1insert:
+			if len(to_swap_from_0) == 0 or len(to_swap_from_1) == 0:
+				#print("ddd")
+				continue
 
 		#p = [(call_num, helper_call) for call_num in to_swap_from_0 for helper_call in helper_structure if call_num == helper_call[2]]
 		#print(p)
 		#q = [call_num for helper_call in helper_structure for call_num in to_swap_from_0 if call_num == helper_call[2]]
 		#print(q)
-
+		#print("sss")
 		to_swap_from_0 = [call_num for helper_call in helper_structure for call_num in to_swap_from_0 if call_num == helper_call[2]]
-		to_swap_from_1 = [call_num for helper_call in helper_structure for call_num in to_swap_from_1 if call_num == helper_call[2]]
+		#print(to_swap_from_0)
+		if not only1insert:
+			to_swap_from_1 = [call_num for helper_call in helper_structure for call_num in to_swap_from_1 if call_num == helper_call[2]]
 
 		#print(f"To swap from {veh_to_swap[0]}: {to_swap_from_0}")
 		#print(f"To swap from {veh_to_swap[1]}: {to_swap_from_1}")
 
-		call0 = choice(to_swap_from_0)
-		call1 = choice(to_swap_from_1)
+		try:
+			probabilities = [0.5**i for i in range(0, len(to_swap_from_0))]
+			call0 = choices(to_swap_from_0, weights=probabilities)[0]
+			#call0 = to_swap_from_0[0]#choice(to_swap_from_0)
+			#print(call0)
+		except IndexError:
+			iterations += 1
+			continue
+		
+		if not only1insert:
+			probabilities = [0.5**i for i in range(0, len(to_swap_from_1))]
+			call1 = choices(to_swap_from_1, weights=probabilities)[0]
+			#call1 = to_swap_from_1[0]#choice(to_swap_from_1)
 
 		#print(f"Call choosen vehicle {veh_to_swap[0]}: {call0}")
 		#print(f"Call choosen vehicle {veh_to_swap[1]}: {call1}")
@@ -335,18 +378,28 @@ def alter_solution_4kinsert(problem: dict(), current_solution: List[int], helper
 		
 		_, new_sol = remove_call_from_array(problem, solution_copy, call0, veh_to_swap[0])
 		successfull, new_sol = insert_call_into_array(problem, new_sol, call0, veh_to_swap[1])
-		#print(successfull)
+
 		if not successfull:
+			#print("Abbruch")
 			break
 
-		_, new_sol = remove_call_from_array(problem, new_sol, call1, veh_to_swap[1])
-		successfull, new_sol = insert_call_into_array(problem, new_sol, call1, veh_to_swap[0])
+		if not only1insert:
+			_, new_sol = remove_call_from_array(problem, new_sol, call1, veh_to_swap[1])
+			successfull, new_sol = insert_call_into_array(problem, new_sol, call1, veh_to_swap[0])
+			#print(f"{call0}{call1} {veh_to_swap[0]} {veh_to_swap[1]}")
+		"""else:
+			print(f"{call0} {veh_to_swap[0]} {veh_to_swap[1]}")
+			print("1insert")"""
 
+		#print(datetime.datetime.now().time())
+		#print(successfull)
+		#print(current_solution)
 		if successfull:
-			sol = new_sol.copy()
+			current_solution = new_sol.copy()
 			inserts_done += 1
+		break
 	
-	new = sol
+	new = current_solution
 	if len(current_solution) == new:
 		return new
 	else:
