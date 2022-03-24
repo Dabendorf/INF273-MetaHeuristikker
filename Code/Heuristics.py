@@ -8,7 +8,7 @@ import numpy as np
 from timeit import default_timer as timer
 import math
 
-from Utils import feasibility_helper, merge_vehice_lists, problem_to_helper_structure, insert_call_into_array, remove_call_from_array, split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
+from Utils import feasibility_helper, greedy_insert_into_array, merge_vehice_lists, problem_to_helper_structure, insert_call_into_array, remove_call_from_array, split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
 
 logger = logging.getLogger(__name__)
 
@@ -461,7 +461,7 @@ def alter_solution_placeholder2(problem: dict(), current_solution: List[int], he
 		#print(len(current_solution))
 		return current_solution
 
-def alter_solution_placeholder3(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
+def alter_solution_greedy_insert(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
 	""" greedy insertion"""
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
@@ -520,7 +520,7 @@ def alter_solution_placeholder3(problem: dict(), current_solution: List[int], he
 
 			solution_copy = current_solution.copy()
 			_, new_sol = remove_call_from_array(problem, solution_copy, choosen_call, veh_to_swap[0])
-			successfull, new_sol = insert_call_into_array(problem, new_sol, choosen_call, veh_to_swap[1])
+			successfull, new_sol = greedy_insert_into_array(problem, new_sol, choosen_call, veh_to_swap[1])
 
 			if successfull:
 				current_solution = new_sol.copy()
@@ -685,7 +685,7 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		elif neighbourfunc_id == 5:
 			new_sol = alter_solution_placeholder2(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 6:
-			new_sol = alter_solution_placeholder3(problem, inc_sol, helper_structure)
+			new_sol = alter_solution_greedy_insert(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 7:
 			new_sol = alter_solution_placeholder4(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 8:
@@ -727,7 +727,7 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		elif neighbourfunc_id == 5:
 			new_sol = alter_solution_placeholder2(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 6:
-			new_sol = alter_solution_placeholder3(problem, inc_sol, helper_structure)
+			new_sol = alter_solution_greedy_insert(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 7:
 			new_sol = alter_solution_placeholder4(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 8:
