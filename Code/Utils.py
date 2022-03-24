@@ -603,7 +603,7 @@ def insert_call_into_array(problem: dict(), sol, call_num, vehicle_num):
 	""" This function inserts a call into a solution for one vehicle
 		It tries the first possible positions and also returns if something was found"""
 
-	logging.debug(f"Inserting call {call_num} into vehicle {vehicle_num}")
+	logging.debug(f"Inserting call {call_num} into vehicle {vehicle_num} (first fit)")
 
 	insertion_successful = False
 
@@ -647,6 +647,49 @@ def insert_call_into_array(problem: dict(), sol, call_num, vehicle_num):
 	
 	# Remerge list and return the list and the helper structure
 	sol_split_by_vehicle[vehicle_num-1] = call_list_vehicle
+	return insertion_successful, merge_vehice_lists(sol_split_by_vehicle)
+
+def greedy_insert_into_array(problem: dict(), sol, call_num, vehicle_num):
+	""" This function inserts a call into a solution for one vehicle
+		It tries all possible positions and returns the best cost of a feasible one
+		This is only the insertion part, use the removal function otherwise"""
+
+	logging.debug(f"Inserting call {call_num} into vehicle {vehicle_num} (greedy)")
+
+	insertion_successful = False
+
+	# Split the vehicles and get the specific vehicle to insert into
+	sol_split_by_vehicle = split_a_list_at_zeros(sol)
+	call_list_vehicle = sol_split_by_vehicle[vehicle_num-1]
+	logging.debug(f"All calls: {sol_split_by_vehicle}")
+	logging.debug(f"Calls of this vehicle: {call_list_vehicle}")
+	logging.debug(f"Vehicle call split: {sol_split_by_vehicle}")
+
+	temp_cost = float("inf")
+	output_sol = call_list_vehicle.copy()
+	len_call_list = len(call_list_vehicle)
+
+	for insert_idx_1 in range(len_call_list+1):
+		temp_call_list = call_list_vehicle.copy()
+		temp_call_list.insert(insert_idx_1, call_num)
+		is_feas, _ = feasibility_helper(temp_call_list, problem, vehicle_num)
+		if is_feas:
+			for insert_idx_2 in range(1, len_call_list+2):
+				temp_call_list_2 = temp_call_list.copy()
+				temp_call_list_2.insert(insert_idx_2, call_num)
+				is_feas, _ = feasibility_helper(temp_call_list_2, problem, vehicle_num)
+
+				if is_feas:
+					new_cost = cost_helper(temp_call_list_2, problem, vehicle_num)
+					#print(f"Old cost: {temp_cost}, new_cost: {new_cost}")
+					if new_cost < temp_cost:
+						temp_cost = new_cost
+						output_sol = temp_call_list_2
+						insertion_successful = True
+
+	
+	# Remerge list and return the list and the helper structure
+	sol_split_by_vehicle[vehicle_num-1] = output_sol
 	return insertion_successful, merge_vehice_lists(sol_split_by_vehicle)
 
 def remove_call_from_array(problem: dict(), sol, call_num, vehicle_num):
@@ -790,6 +833,72 @@ def feasibility_helper(solution: list(), problem: dict(), vehicle_num: int):
 	
 	logging.debug(f"Feasible: {(True if reason_not_feasible == '' else False)}, Reason: {reason_not_feasible}")
 	return (True if reason_not_feasible == "" else False), reason_not_feasible
+
+def cost_helper(solution: list(), problem: dict(), vehicle_num: int):
+	"""
+	Function calculates the cost (not to confuse with time) of a vehicle
+	This consists of transportation cost, origin and destination costs
+
+	:param solution: the proposed solution for the order of calls in one vehicle
+	:param problem: dictionary of problem data
+	:return: Integer with costs
+	"""
+	logging.debug(f"Start cost functionh helper for vehicle {vehicle_num}")
+	logging.debug(f"Solution: {solution}")
+	logging.debug(f"Problem keys: {problem.keys()}")
+
+	call_info = problem["call_info"]
+	travel_cost_dict = problem["travel_time_cost"]
+	node_cost_dict = problem["node_time_cost"]
+	vehicle_info = problem["vehicle_info"]
+
+	sum_travel_cost = 0
+	sum_node_cost = 0
+
+	#sol_split_by_vehicle = split_a_list_at_zeros(solution)[0:num_vehicles]
+	#logging.debug(f"Solution split by vehicle: {sol_split_by_vehicle}")
+
+	# Loop for costs of nodes and transport
+	veh_ind = vehicle_num-1
+	l = solution
+	#for veh_ind, l in enumerate(sol_split_by_vehicle):
+	set_visited = list(set(l))
+	for call_ind in set_visited:
+		# Nodes
+		call_cost_list = node_cost_dict[(veh_ind+1, call_ind)]
+		sum_node_cost += (call_cost_list[1] + call_cost_list[3])
+
+	# Transport (edges)
+	length_list = len(l)
+	if length_list > 0:
+		calls_visited = set()
+		home_node = vehicle_info[veh_ind][1]
+		call_numb = l[0]-1
+		calls_visited.add(call_numb)
+		ci = call_info[call_numb]
+		start_node = ci[1]
+
+		sum_travel_cost += travel_cost_dict[(veh_ind+1, home_node, start_node)][1]
+		
+		for i in range(1, length_list):
+			call_numb = l[i]-1
+			if call_numb in calls_visited:
+				calls_visited.remove(call_numb)
+				ci = call_info[call_numb]
+				goal_node = ci[2]
+			else:
+				calls_visited.add(call_numb)
+				ci = call_info[call_numb]
+				goal_node = ci[1]
+			sum_travel_cost += travel_cost_dict[(veh_ind+1, start_node, goal_node)][1]
+			start_node = goal_node
+
+	logging.debug(f"Cost of nodes: {sum_node_cost}")
+	logging.debug(f"Cost of travel: {sum_travel_cost}")
+
+	total_cost = sum_travel_cost + sum_node_cost
+	logging.debug(f"Total costs: {total_cost}")
+	return total_cost
 
 def problem_to_helper_structure(problem: dict(), sol):
 	""" This function takes a problem data structure and 
