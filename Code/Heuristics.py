@@ -462,8 +462,75 @@ def alter_solution_placeholder2(problem: dict(), current_solution: List[int], he
 		return current_solution
 
 def alter_solution_placeholder3(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
-	# TODO Greedy insertion
-	return current_solution
+	""" greedy insertion"""
+	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
+	vehicle_calls = problem["vehicle_calls"]
+
+	# Hyperparameters
+	bound_prob_vehicle_vehicle = 0.8 # probability that dummy doesnt get reinserted
+	max_iterations = 3 # maximum iterations until while breaks
+
+	iterations = 0
+
+	logging.debug(f"Alter solution: k-insert")
+
+	dummy_num = num_vehicles
+
+	while iterations < max_iterations:
+		iterations += 1
+		sol = split_a_list_at_zeros(current_solution)
+		
+		bound = bound_prob_vehicle_vehicle
+
+		# To swap from
+		non_empty_lists = [idx for idx, l in enumerate(sol) if len(l) > 0]
+		veh_to_swap = sample(non_empty_lists, 1)
+		
+		if random() > bound:
+			end_range = num_vehicles
+		else:
+			end_range = num_vehicles-1
+
+		veh_to = [veh_to_swap[0]]
+		while veh_to[0] == veh_to_swap[0]:
+			veh_to = sample(range(0, end_range), 1)
+		veh_to_swap.extend(veh_to)
+		
+		veh_to_swap[0] += 1
+		veh_to_swap[1] += 1
+		
+		# Which calls alre allowed for vehicle 1
+		if veh_to_swap[1]-1 == dummy_num:
+			calls_allowed1 = set(range(1, num_calls+1))
+		else:
+			calls_allowed1 = vehicle_calls[veh_to_swap[1]]
+
+		to_swap_from_0_set = calls_allowed1.intersection(set(sol[veh_to_swap[0]-1]))
+
+		"""print(f"Current sol: {sol}")
+		print(f"Move one call from {veh_to_swap[0]} to {veh_to_swap[1]}")
+		print(f"Calls in 0: {set(sol[veh_to_swap[0]-1])}")
+		print(f"Calls allowed 1: {calls_allowed1}")
+		print(f"Calls possible to insert: {to_swap_from_0_set}")"""
+
+		if to_swap_from_0_set:
+			choosen_call = choice(list(to_swap_from_0_set))
+			#print(f"Call choosen: {choosen_call}")
+
+			solution_copy = current_solution.copy()
+			_, new_sol = remove_call_from_array(problem, solution_copy, choosen_call, veh_to_swap[0])
+			successfull, new_sol = insert_call_into_array(problem, new_sol, choosen_call, veh_to_swap[1])
+
+			if successfull:
+				current_solution = new_sol.copy()
+				break
+	
+	new = current_solution
+	if len(current_solution) == new:
+		return new
+	else:
+		return current_solution
 
 def alter_solution_placeholder4(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
 	# TODO regret insertion
