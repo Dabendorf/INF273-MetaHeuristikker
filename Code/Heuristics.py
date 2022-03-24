@@ -552,28 +552,31 @@ def alter_solution_greedy_insert(problem: dict(), current_solution: List[int], h
 	bound = bound_prob_vehicle_vehicle
 
 	# To swap from
-	non_empty_lists = [idx for idx, l in enumerate(sol) if len(l) > 0]
+	non_empty_lists = [(idx+1) for idx, l in enumerate(sol) if len(l) > 0]
 	veh_to_swap_from = choice(non_empty_lists)
-	call_num = choice(list(vehicle_calls[veh_to_swap_from]))
+	#print(vehicle_calls)
+	#call_num = choice(list(vehicle_calls[veh_to_swap_from]))
+	#print(f"{sol} {veh_to_swap_from}")
+	call_num = choice(list(sol[veh_to_swap_from-1]))
 
 	if random() > bound:
 		end_range = num_vehicles
 	else:
 		end_range = num_vehicles-1
 
-	print(f"num of vehicles: {num_vehicles}")
-	for veh_to_insert_into in range(0, end_range):
+	#print(f"num of vehicles: {num_vehicles}")
+	for veh_to_insert_into in range(1, end_range+1):
 		if veh_to_insert_into == veh_to_swap_from:
 			continue
 	
 		#veh_to_swap_from += 1
 		#veh_to_insert_into += 1
 
-		if call_num not in vehicle_calls[veh_to_insert_into+1]:
+		if call_num not in vehicle_calls[veh_to_insert_into]:
 			continue
 
 		solution_copy = current_solution.copy()
-		print(f"From {veh_to_swap_from} to {veh_to_insert_into}")
+		#print(f"From {veh_to_swap_from} to {veh_to_insert_into}")
 		_, new_sol = remove_call_from_array(problem, solution_copy, call_num, veh_to_swap_from)
 		successfull, new_sol = greedy_insert_into_array(problem, new_sol, call_num, veh_to_insert_into)
 

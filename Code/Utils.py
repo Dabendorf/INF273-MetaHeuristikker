@@ -653,6 +653,7 @@ def greedy_insert_into_array(problem: dict(), sol, call_num, vehicle_num):
 	""" This function inserts a call into a solution for one vehicle
 		It tries all possible positions and returns the best cost of a feasible one
 		This is only the insertion part, use the removal function otherwise"""
+		# :param vehicle_num: Exact vehicle_num between [1, num_vehicles]
 
 	logging.debug(f"Inserting call {call_num} into vehicle {vehicle_num} (greedy)")
 
@@ -672,12 +673,12 @@ def greedy_insert_into_array(problem: dict(), sol, call_num, vehicle_num):
 	for insert_idx_1 in range(len_call_list+1):
 		temp_call_list = call_list_vehicle.copy()
 		temp_call_list.insert(insert_idx_1, call_num)
-		is_feas, _ = feasibility_helper(temp_call_list, problem, vehicle_num+1)
+		is_feas, _ = feasibility_helper(temp_call_list, problem, vehicle_num)
 		if is_feas:
 			for insert_idx_2 in range(1, len_call_list+2):
 				temp_call_list_2 = temp_call_list.copy()
 				temp_call_list_2.insert(insert_idx_2, call_num)
-				is_feas, _ = feasibility_helper(temp_call_list_2, problem, vehicle_num+1)
+				is_feas, _ = feasibility_helper(temp_call_list_2, problem, vehicle_num)
 
 				if is_feas:
 					new_cost = cost_helper(temp_call_list_2, problem, vehicle_num)
@@ -694,6 +695,7 @@ def greedy_insert_into_array(problem: dict(), sol, call_num, vehicle_num):
 
 def remove_call_from_array(problem: dict(), sol, call_num, vehicle_num):
 	"""  Function removes a call from a solution """
+	#:param vehicle_num: Exact vehicle_num between [1, num_vehicles]
 
 	logging.debug(f"Removing call {call_num} from vehicle {vehicle_num}")
 
@@ -726,6 +728,7 @@ def feasibility_helper(solution: list(), problem: dict(), vehicle_num: int):
 
 	:param solution: The input solution of order of calls for each vehicle to the problem
 	:param problem: The pickup and delivery problem dictionary
+	:param vehicle_num: Exact vehicle_num between [1, num_vehicles]
 	:return: whether the solution is feasible and the reason for probable infeasibility
 	"""
 	logging.debug(f"Start helper feasibility function")
@@ -841,6 +844,7 @@ def cost_helper(solution: list(), problem: dict(), vehicle_num: int):
 
 	:param solution: the proposed solution for the order of calls in one vehicle
 	:param problem: dictionary of problem data
+	:param vehicle_num: Exact vehicle_num between [1, num_vehicles]
 	:return: Integer with costs
 	"""
 	logging.debug(f"Start cost functionh helper for vehicle {vehicle_num}")
