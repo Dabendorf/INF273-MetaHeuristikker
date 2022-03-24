@@ -672,12 +672,12 @@ def greedy_insert_into_array(problem: dict(), sol, call_num, vehicle_num):
 	for insert_idx_1 in range(len_call_list+1):
 		temp_call_list = call_list_vehicle.copy()
 		temp_call_list.insert(insert_idx_1, call_num)
-		is_feas, _ = feasibility_helper(temp_call_list, problem, vehicle_num)
+		is_feas, _ = feasibility_helper(temp_call_list, problem, vehicle_num+1)
 		if is_feas:
 			for insert_idx_2 in range(1, len_call_list+2):
 				temp_call_list_2 = temp_call_list.copy()
 				temp_call_list_2.insert(insert_idx_2, call_num)
-				is_feas, _ = feasibility_helper(temp_call_list_2, problem, vehicle_num)
+				is_feas, _ = feasibility_helper(temp_call_list_2, problem, vehicle_num+1)
 
 				if is_feas:
 					new_cost = cost_helper(temp_call_list_2, problem, vehicle_num)

@@ -461,7 +461,7 @@ def alter_solution_placeholder2(problem: dict(), current_solution: List[int], he
 		#print(len(current_solution))
 		return current_solution
 
-def alter_solution_greedy_insert(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
+def alter_solution_greedy_insert_one_vehicle(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
 	""" greedy insertion"""
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
@@ -525,6 +525,63 @@ def alter_solution_greedy_insert(problem: dict(), current_solution: List[int], h
 			if successfull:
 				current_solution = new_sol.copy()
 				break
+	
+	new = current_solution
+	if len(current_solution) == new:
+		return new
+	else:
+		return current_solution
+
+def alter_solution_greedy_insert(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
+	""" greedy insertion"""
+	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
+	vehicle_calls = problem["vehicle_calls"]
+
+	# Hyperparameters
+	bound_prob_vehicle_vehicle = 0.8 # probability that dummy doesnt get reinserted
+
+	logging.debug(f"Alter solution: k-insert")
+
+	dummy_num = num_vehicles
+
+	best_cost = cost_function(current_solution, problem)
+
+	sol = split_a_list_at_zeros(current_solution)
+	
+	bound = bound_prob_vehicle_vehicle
+
+	# To swap from
+	non_empty_lists = [idx for idx, l in enumerate(sol) if len(l) > 0]
+	veh_to_swap_from = choice(non_empty_lists)
+	call_num = choice(list(vehicle_calls[veh_to_swap_from]))
+
+	if random() > bound:
+		end_range = num_vehicles
+	else:
+		end_range = num_vehicles-1
+
+	print(f"num of vehicles: {num_vehicles}")
+	for veh_to_insert_into in range(0, end_range):
+		if veh_to_insert_into == veh_to_swap_from:
+			continue
+	
+		#veh_to_swap_from += 1
+		#veh_to_insert_into += 1
+
+		if call_num not in vehicle_calls[veh_to_insert_into+1]:
+			continue
+
+		solution_copy = current_solution.copy()
+		print(f"From {veh_to_swap_from} to {veh_to_insert_into}")
+		_, new_sol = remove_call_from_array(problem, solution_copy, call_num, veh_to_swap_from)
+		successfull, new_sol = greedy_insert_into_array(problem, new_sol, call_num, veh_to_insert_into)
+
+		if successfull:
+			new_cost = cost_function(new_sol, problem)
+			if new_cost < best_cost:
+				current_solution = new_sol.copy()
+				best_cost = new_cost
 	
 	new = current_solution
 	if len(current_solution) == new:
@@ -687,7 +744,7 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		elif neighbourfunc_id == 6:
 			new_sol = alter_solution_greedy_insert(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 7:
-			new_sol = alter_solution_placeholder4(problem, inc_sol, helper_structure)
+			new_sol = alter_solution_greedy_insert_one_vehicle(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 8:
 			new_sol = alter_solution_placeholder5(problem, inc_sol, helper_structure)
 
@@ -729,7 +786,7 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		elif neighbourfunc_id == 6:
 			new_sol = alter_solution_greedy_insert(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 7:
-			new_sol = alter_solution_placeholder4(problem, inc_sol, helper_structure)
+			new_sol = alter_solution_greedy_insert_one_vehicle(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 8:
 			new_sol = alter_solution_placeholder5(problem, inc_sol, helper_structure)
 
