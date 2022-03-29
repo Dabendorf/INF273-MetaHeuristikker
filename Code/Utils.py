@@ -656,8 +656,15 @@ def greedy_insert_into_array(problem: dict(), sol, call_num, vehicle_num):
 		# :param vehicle_num: Exact vehicle_num between [1, num_vehicles]
 
 	logging.debug(f"Inserting call {call_num} into vehicle {vehicle_num} (greedy)")
+	num_vehicles = problem["num_vehicles"]
 
 	insertion_successful = False
+
+	
+
+	if vehicle_num > num_vehicles:
+		sol.extend([call_num, call_num])
+		return True, sol
 
 	# Split the vehicles and get the specific vehicle to insert into
 	sol_split_by_vehicle = split_a_list_at_zeros(sol)
@@ -694,8 +701,8 @@ def greedy_insert_into_array(problem: dict(), sol, call_num, vehicle_num):
 	return insertion_successful, merge_vehice_lists(sol_split_by_vehicle)
 
 def remove_call_from_array(problem: dict(), sol, call_num, vehicle_num):
-	"""  Function removes a call from a solution """
-	#:param vehicle_num: Exact vehicle_num between [1, num_vehicles]
+	"""  Function removes a call from a solution 
+		:param vehicle_num: Exact vehicle_num between [1, num_vehicles]"""
 
 	logging.debug(f"Removing call {call_num} from vehicle {vehicle_num}")
 

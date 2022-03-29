@@ -8,7 +8,7 @@ import numpy as np
 from timeit import default_timer as timer
 import math
 
-from Utils import feasibility_helper, greedy_insert_into_array, merge_vehice_lists, problem_to_helper_structure, insert_call_into_array, remove_call_from_array, split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
+from Utils import feasibility_helper, greedy_insert_into_array, merge_vehice_lists, problem_to_helper_structure, insert_call_into_array, remove_call_from_array, remove_highest_cost, split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
 
 logger = logging.getLogger(__name__)
 
@@ -473,7 +473,7 @@ def alter_solution_greedy_insert_one_vehicle(problem: dict(), current_solution: 
 
 	iterations = 0
 
-	logging.debug(f"Alter solution: k-insert")
+	logging.debug(f"Alter solution: greedy insert one vehicle, random removal")
 
 	dummy_num = num_vehicles
 
@@ -592,9 +592,52 @@ def alter_solution_greedy_insert(problem: dict(), current_solution: List[int], h
 	else:
 		return current_solution
 
-def alter_solution_placeholder4(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
+def alter_solution_greedy_insert_remove_highest_cost(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
+	""" greedy insertion"""
+	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
+	vehicle_calls = problem["vehicle_calls"]
+
+	# Hyperparameters
+	bound_prob_vehicle_vehicle = 0.8 # probability that dummy doesnt get reinserted
+
+	logging.debug(f"Alter solution: greedy insert one vehicle, highest_cost_removal")
+
+	veh_to_remove, call_to_remove = remove_highest_cost(problem, current_solution)
+	
+	if veh_to_remove == -1:
+		return current_solution
+
+	sol = split_a_list_at_zeros(current_solution)
+	vehicles_to_insert = [veh_idx for veh_idx in range(len(sol)-1) if veh_idx in vehicle_calls[veh_idx+1] and veh_to_remove-1 != veh_idx]
+
+	best_cost = cost_function(current_solution, problem)
+
+	if random() > bound_prob_vehicle_vehicle:
+		vehicles_to_insert.append(len(sol)-1)
+	
+	for veh_to_insert_into in vehicles_to_insert:
+		#print(f"veh_to_insert: {veh_to_insert_into}")
+		solution_copy = current_solution.copy()
+		_, new_sol = remove_call_from_array(problem, solution_copy, call_to_remove, veh_to_remove)
+		successfull, new_sol = greedy_insert_into_array(problem, new_sol, call_to_remove, veh_to_insert_into+1)
+
+		if successfull:
+			new_cost = cost_function(new_sol, problem)
+			if new_cost < best_cost:
+				current_solution = new_sol.copy()
+				best_cost = new_cost
+
+	new = current_solution
+	if len(current_solution) == new:
+		return new
+	else:
+		return current_solution
+
+
+def bla():
 	# TODO regret insertion
-	return current_solution
+	return 0
 
 def alter_solution_placeholder5(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
 	# TODO first possible insertion
@@ -750,6 +793,8 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 			new_sol = alter_solution_greedy_insert_one_vehicle(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 8:
 			new_sol = alter_solution_placeholder5(problem, inc_sol, helper_structure)
+		elif neighbourfunc_id == 9:
+			new_sol = alter_solution_greedy_insert_remove_highest_cost(problem, inc_sol, helper_structure)
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
 		if feasiblity:
@@ -792,6 +837,9 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 			new_sol = alter_solution_greedy_insert_one_vehicle(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 8:
 			new_sol = alter_solution_placeholder5(problem, inc_sol, helper_structure)
+		elif neighbourfunc_id == 9:
+			new_sol = alter_solution_greedy_insert_remove_highest_cost(problem, inc_sol, helper_structure)
+
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
 		if feasiblity:
