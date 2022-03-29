@@ -867,6 +867,7 @@ def cost_helper(solution: list(), problem: dict(), vehicle_num: int):
 	l = solution
 	#for veh_ind, l in enumerate(sol_split_by_vehicle):
 	set_visited = list(set(l))
+	#print(f"Set_visited: {set_visited}")
 	for call_ind in set_visited:
 		# Nodes
 		call_cost_list = node_cost_dict[(veh_ind+1, call_ind)]
@@ -943,6 +944,48 @@ def problem_to_helper_structure(problem: dict(), sol):
 
 	return latest_arrival_time
 
+def remove_highest_cost(problem: dict(), sol):
+	""" This function removes the cargo with the highest cost from all
+	
+		Returns vehicle num, call and new sol_array"""
+	logging.debug(f"Remove highest cost")
+	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
+	vehicle_info = problem["vehicle_info"]
+	vehicle_calls = problem["vehicle_calls"]
+	call_info = problem["call_info"]
+	travel_cost_dict = problem["travel_time_cost"]
+
+	sol_split_by_vehicle = split_a_list_at_zeros(sol)[:-1]
+	
+	biggest_diff = 0
+	veh_to_remove = -1
+	call_to_remove = -1
+
+	for veh_idx, veh in enumerate(sol_split_by_vehicle):
+		#print(f"{veh} {veh_idx+1}")
+		veh_cost_original = cost_helper(veh, problem, veh_idx+1)
+		calls_of_veh = list(set(veh))
+		#print(calls_of_veh)
+		for call_num in calls_of_veh:
+			temp_arr = sol_split_by_vehicle[veh_idx].copy()
+			temp_arr.remove(call_num)
+			temp_veh_costs = cost_helper(temp_arr, problem, veh_idx+1)
+			new_diff = veh_cost_original-temp_veh_costs
+
+			if new_diff > biggest_diff:
+				veh_to_remove = veh_idx+1
+				call_to_remove = call_num
+
+	return (veh_to_remove, call_to_remove)
+
+		
+
+
+def get_dist_diff(problem: dict(), callA, callB, callC):
+	logging.debug(f"Calculate distance difference between {callA}, {callB}, {callC}")
+
+
 def generate_dist_dict(problem: dict()):
 	""" This function generates a dictionary of distances ratios between nodes A->B and A->C->B
 		Distance based on cost, not on time """
@@ -958,65 +1001,65 @@ def generate_dist_dict(problem: dict()):
 	dist_diff_dict = dict()
 	#key: (vehicle, node_A, node_B, node_C) -> (dist_without_C, dist_with_C, ratio)
 	for veh_num in range(1, num_vehicles+1):
-		for call_num_A in range(1, num_calls+1):
+		list_of_possible_calls = list(vehicle_calls[veh_num])
+		for call_num_A in list_of_possible_calls:
 			for call_num_A_appendix in ["a", "b"]:
-				for call_num_B in range(1, num_calls+1):
+				for call_num_B in list_of_possible_calls:
 					for call_num_B_appendix in ["a", "b"]:
-						for call_num_C in range(1, num_calls+1):
+						for call_num_C in list_of_possible_calls:
 							for call_num_C_appendix in ["a", "b"]:
-								if call_num_A in vehicle_calls[veh_num] and call_num_B in vehicle_calls[veh_num] and call_num_C in vehicle_calls[veh_num]:
-									node_A_str = f"{call_num_A}{call_num_A_appendix}"
-									node_B_str = f"{call_num_B}{call_num_B_appendix}"
-									node_C_str = f"{call_num_C}{call_num_C_appendix}"
-									if node_A_str != node_B_str and node_B_str != node_C_str and node_A_str != node_C_str:
-										call_A = call_info[call_num_A-1]
-										call_B = call_info[call_num_B-1]
-										call_C = call_info[call_num_C-1]
+								node_A_str = f"{call_num_A}{call_num_A_appendix}"
+								node_B_str = f"{call_num_B}{call_num_B_appendix}"
+								node_C_str = f"{call_num_C}{call_num_C_appendix}"
+								if node_A_str != node_B_str and node_B_str != node_C_str and node_A_str != node_C_str:
+									call_A = call_info[call_num_A-1]
+									call_B = call_info[call_num_B-1]
+									call_C = call_info[call_num_C-1]
 
-										if call_num_A_appendix == "a":
-											node_A = call_A[1]
+									if call_num_A_appendix == "a":
+										node_A = call_A[1]
+									else:
+										node_A = call_A[2]
+									
+									if call_num_B_appendix == "a":
+										node_B = call_B[1]
+									else:
+										node_B = call_B[2]
+
+									if call_num_C_appendix == "a":
+										node_C = call_C[1]
+									else:
+										node_C = call_C[2]
+
+									dont_continue = False
+									if call_num_A == call_num_B:
+										if call_num_A_appendix == "b":
+											#print(f"{node_A_str} {node_B_str}")
+											dont_continue = True
+									if call_num_A == call_num_C:
+										if call_num_A_appendix == "b":
+											#print(f"{node_A_str} {node_C_str}")
+											dont_continue = True
+									if call_num_C == call_num_B:
+										if call_num_C_appendix == "b":
+											#print(f"{node_C_str} {node_B_str}")
+											dont_continue = True
+
+									if not dont_continue:
+										dist_A_B = travel_cost_dict[(veh_num, node_A, node_B)][1]
+										dist_A_C = travel_cost_dict[(veh_num, node_A, node_C)][1]
+										dist_C_B = travel_cost_dict[(veh_num, node_C, node_B)][1]
+
+										"""print(f"veh: {veh_num}, A: {node_A}, B: {node_B}, C: {node_C}")
+										print(f"{dist_A_B}")
+										print(f"{dist_A_C}")
+										print(f"{dist_C_B}")"""
+										dist_with_C = dist_A_C+dist_C_B
+										if dist_A_B == 0:
+											proportion = (dist_with_C)/0.01
 										else:
-											node_A = call_A[2]
-										
-										if call_num_B_appendix == "a":
-											node_B = call_B[1]
-										else:
-											node_B = call_B[2]
+											proportion = (dist_with_C)/dist_A_B
 
-										if call_num_C_appendix == "a":
-											node_C = call_C[1]
-										else:
-											node_C = call_C[2]
-
-										dont_continue = False
-										if call_num_A == call_num_B:
-											if call_num_A_appendix == "b":
-												#print(f"{node_A_str} {node_B_str}")
-												dont_continue = True
-										if call_num_A == call_num_C:
-											if call_num_A_appendix == "b":
-												#print(f"{node_A_str} {node_C_str}")
-												dont_continue = True
-										if call_num_C == call_num_B:
-											if call_num_C_appendix == "b":
-												#print(f"{node_C_str} {node_B_str}")
-												dont_continue = True
-
-										if not dont_continue:
-											dist_A_B = travel_cost_dict[(veh_num, node_A, node_B)][1]
-											dist_A_C = travel_cost_dict[(veh_num, node_A, node_C)][1]
-											dist_C_B = travel_cost_dict[(veh_num, node_C, node_B)][1]
-
-											"""print(f"veh: {veh_num}, A: {node_A}, B: {node_B}, C: {node_C}")
-											print(f"{dist_A_B}")
-											print(f"{dist_A_C}")
-											print(f"{dist_C_B}")"""
-											dist_with_C = dist_A_C+dist_C_B
-											if dist_A_B == 0:
-												proportion = (dist_with_C)/0.01
-											else:
-												proportion = (dist_with_C)/dist_A_B
-
-											dist_diff_dict[(veh_num, node_A_str, node_B_str, node_C_str)] = (dist_with_C, dist_A_B, proportion)
+										dist_diff_dict[(veh_num, node_A_str, node_B_str, node_C_str)] = (dist_with_C, dist_A_B, proportion)
 
 	return dist_diff_dict

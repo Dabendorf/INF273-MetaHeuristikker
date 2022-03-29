@@ -17,7 +17,10 @@ def main():
 	for tf in test_files:
 		prob = load_problem(tf)
 		init_sol = initial_solution(problem=prob)
-		#init_sol = [4 , 4 , 7 , 7 , 0 , 2 , 2 , 0 , 1 , 5 , 5 , 3 , 3 , 1 , 0 , 6 , 6]
+		init_sol = [4 , 4 , 7 , 7 , 0 , 2 , 2 , 0 , 1 , 5 , 5 , 3 , 3 , 1 , 0 , 6 , 6]
+
+		print(remove_highest_cost(prob, init_sol))
+		exit(0)
 
 		helper_structure = problem_to_helper_structure(prob, init_sol)
 
