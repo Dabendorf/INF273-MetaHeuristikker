@@ -1,10 +1,7 @@
-from multiprocessing.sharedctypes import Value
 from typing import List
-import numpy as np
 from collections import defaultdict
 import logging
 from random import randint, randrange, random, choice, seed, choices, sample, shuffle
-import numpy as np
 from timeit import default_timer as timer
 import math
 
@@ -797,25 +794,33 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 			new_sol = alter_solution_greedy_insert_remove_highest_cost(problem, inc_sol, helper_structure)
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
+
 		if feasiblity:
 			new_cost = cost_function(new_sol, problem)
 			delta_e = new_cost - inc_cost
+
 			if delta_e < 0:
 				inc_sol = new_sol
 				inc_cost = new_cost
 				if inc_cost < best_cost:
 					best_sol = inc_sol
 					best_cost = inc_cost
-			elif random() < 0.8:
-				inc_sol = new_sol
-				inc_cost = new_cost
+			else:
+				if random() < 0.8:
+					inc_sol = new_sol
+					inc_cost = new_cost
 				delta_w.append(delta_e)
 		w += 1
+		#print(best_sol) TODO later for neighbour analysis
 	
 	delta_avg = sum(delta_w)/len(delta_w)
+	print(f"delta_avg: {delta_avg}")
+	print(f"delta_w: {delta_w}")
 
 	t_0 = (-delta_avg)/math.log(0.8)
+	#print(f"t_0={t_0}, t_f={t_f}, num_it: {num_of_iterations}, w: {w}")
 	alpha = (t_f/t_0) ** (1/(num_of_iterations-w))
+	#print(f"Alpha: {alpha}")
 	t = t_0
 
 	for i in range(num_of_iterations-w):
@@ -839,7 +844,7 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 			new_sol = alter_solution_placeholder5(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 9:
 			new_sol = alter_solution_greedy_insert_remove_highest_cost(problem, inc_sol, helper_structure)
-
+		#print(best_sol) TODO later for neighbour analysis
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
 		if feasiblity:
@@ -856,6 +861,7 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 				inc_sol = new_sol
 				inc_cost = new_cost
 		
+		#print(f"t: {t}, alpha: {alpha}")
 		t = alpha * t
 
 	improvement = round(100*(orig_cost-best_cost)/orig_cost, 2)
