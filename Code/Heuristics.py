@@ -542,6 +542,8 @@ def alter_solution_greedy_insert(problem: dict(), current_solution: List[int], h
 
 	dummy_num = num_vehicles
 
+	original_sol = current_solution.copy()
+
 	best_cost = cost_function(current_solution, problem)
 
 	sol = split_a_list_at_zeros(current_solution)
@@ -583,11 +585,13 @@ def alter_solution_greedy_insert(problem: dict(), current_solution: List[int], h
 				current_solution = new_sol.copy()
 				best_cost = new_cost
 	
-	new = current_solution
-	if len(current_solution) == new:
-		return new
-	else:
+	if len(original_sol) == len(current_solution):
+		print(f"=========\nChanged by greedyremoverandom\nOld: {original_sol}\nNew: {current_solution}")
+		print(original_sol==current_solution)
 		return current_solution
+	else:
+		#print("return original")
+		return original_sol
 
 def alter_solution_greedy_insert_remove_highest_cost(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
 	""" greedy insertion"""
@@ -595,15 +599,19 @@ def alter_solution_greedy_insert_remove_highest_cost(problem: dict(), current_so
 	num_calls = problem["num_calls"]
 	vehicle_calls = problem["vehicle_calls"]
 
+	original_sol = current_solution.copy()
+
 	# Hyperparameters
 	bound_prob_vehicle_vehicle = 0.8 # probability that dummy doesnt get reinserted
 
 	logging.debug(f"Alter solution: greedy insert one vehicle, highest_cost_removal")
 
+	q = randint(1,3)
+
 	veh_to_remove, call_to_remove = remove_highest_cost(problem, current_solution)
 	
 	if veh_to_remove == -1:
-		return current_solution
+		return original_sol
 
 	sol = split_a_list_at_zeros(current_solution)
 	vehicles_to_insert = [veh_idx for veh_idx in range(len(sol)-1) if veh_idx in vehicle_calls[veh_idx+1] and veh_to_remove-1 != veh_idx]
@@ -624,12 +632,14 @@ def alter_solution_greedy_insert_remove_highest_cost(problem: dict(), current_so
 			if new_cost < best_cost:
 				current_solution = new_sol.copy()
 				best_cost = new_cost
-
-	new = current_solution
-	if len(current_solution) == new:
-		return new
-	else:
+ 
+	if len(original_sol) == len(current_solution):
+		#print(f"=========\nChanged by greedyremovehighestcost\nOld: {original_sol}\nNew: {current_solution}")
+		#print(original_sol==current_solution)
 		return current_solution
+	else:
+		#print("return original")
+		return original_sol
 
 
 def bla():
@@ -795,6 +805,7 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
 
+		changed = False
 		if feasiblity:
 			new_cost = cost_function(new_sol, problem)
 			delta_e = new_cost - inc_cost
@@ -805,17 +816,18 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 				if inc_cost < best_cost:
 					best_sol = inc_sol
 					best_cost = inc_cost
+					changed = True
 			else:
 				if random() < 0.8:
 					inc_sol = new_sol
 					inc_cost = new_cost
 				delta_w.append(delta_e)
 		w += 1
-		#print(best_sol) TODO later for neighbour analysis
+		#print(f"{best_sol}, nbfunc: {neighbourfunc_id}, {changed}")
 	
 	delta_avg = sum(delta_w)/len(delta_w)
-	print(f"delta_avg: {delta_avg}")
-	print(f"delta_w: {delta_w}")
+	#print(f"delta_avg: {delta_avg}")
+	#print(f"delta_w: {delta_w}")
 
 	t_0 = (-delta_avg)/math.log(0.8)
 	#print(f"t_0={t_0}, t_f={t_f}, num_it: {num_of_iterations}, w: {w}")
@@ -844,9 +856,9 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 			new_sol = alter_solution_placeholder5(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 9:
 			new_sol = alter_solution_greedy_insert_remove_highest_cost(problem, inc_sol, helper_structure)
-		#print(best_sol) TODO later for neighbour analysis
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
+		changed = False
 		if feasiblity:
 			new_cost = cost_function(new_sol, problem)
 			delta_e = new_cost - inc_cost
@@ -857,9 +869,11 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 				if inc_cost < best_cost:
 					best_sol = inc_sol
 					best_cost = inc_cost
+					changed = True
 			elif random() < (math.e ** (-delta_e/t)):
 				inc_sol = new_sol
 				inc_cost = new_cost
+		#print(f"{best_sol}, nbfunc: {neighbourfunc_id}, {changed}")
 		
 		#print(f"t: {t}, alpha: {alpha}")
 		t = alpha * t

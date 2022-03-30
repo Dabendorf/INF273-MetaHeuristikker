@@ -5,6 +5,7 @@ import logging
 import random
 from timeit import default_timer as timer
 from itertools import chain
+from random import random
 
 logger = logging.getLogger(__name__)
 
@@ -981,92 +982,10 @@ def remove_highest_cost(problem: dict(), sol):
 			new_diff = veh_cost_original-temp_veh_costs
 
 			if new_diff > biggest_diff:
-				veh_to_remove = veh_idx+1
-				call_to_remove = call_num
+				if random() < 0.8:
+					veh_to_remove = veh_idx+1
+					call_to_remove = call_num
 
 	return (veh_to_remove, call_to_remove)
 
 		
-
-
-def get_dist_diff(problem: dict(), callA, callB, callC):
-	logging.debug(f"Calculate distance difference between {callA}, {callB}, {callC}")
-
-
-def generate_dist_dict(problem: dict()):
-	""" This function generates a dictionary of distances ratios between nodes A->B and A->C->B
-		Distance based on cost, not on time """
-	logging.debug(f"Generate dist dict generator helping function")
-
-	num_vehicles = problem["num_vehicles"]
-	num_calls = problem["num_calls"]
-	vehicle_info = problem["vehicle_info"]
-	vehicle_calls = problem["vehicle_calls"]
-	call_info = problem["call_info"]
-	travel_cost_dict = problem["travel_time_cost"]
-
-	dist_diff_dict = dict()
-	#key: (vehicle, node_A, node_B, node_C) -> (dist_without_C, dist_with_C, ratio)
-	for veh_num in range(1, num_vehicles+1):
-		list_of_possible_calls = list(vehicle_calls[veh_num])
-		for call_num_A in list_of_possible_calls:
-			for call_num_A_appendix in ["a", "b"]:
-				for call_num_B in list_of_possible_calls:
-					for call_num_B_appendix in ["a", "b"]:
-						for call_num_C in list_of_possible_calls:
-							for call_num_C_appendix in ["a", "b"]:
-								node_A_str = f"{call_num_A}{call_num_A_appendix}"
-								node_B_str = f"{call_num_B}{call_num_B_appendix}"
-								node_C_str = f"{call_num_C}{call_num_C_appendix}"
-								if node_A_str != node_B_str and node_B_str != node_C_str and node_A_str != node_C_str:
-									call_A = call_info[call_num_A-1]
-									call_B = call_info[call_num_B-1]
-									call_C = call_info[call_num_C-1]
-
-									if call_num_A_appendix == "a":
-										node_A = call_A[1]
-									else:
-										node_A = call_A[2]
-									
-									if call_num_B_appendix == "a":
-										node_B = call_B[1]
-									else:
-										node_B = call_B[2]
-
-									if call_num_C_appendix == "a":
-										node_C = call_C[1]
-									else:
-										node_C = call_C[2]
-
-									dont_continue = False
-									if call_num_A == call_num_B:
-										if call_num_A_appendix == "b":
-											#print(f"{node_A_str} {node_B_str}")
-											dont_continue = True
-									if call_num_A == call_num_C:
-										if call_num_A_appendix == "b":
-											#print(f"{node_A_str} {node_C_str}")
-											dont_continue = True
-									if call_num_C == call_num_B:
-										if call_num_C_appendix == "b":
-											#print(f"{node_C_str} {node_B_str}")
-											dont_continue = True
-
-									if not dont_continue:
-										dist_A_B = travel_cost_dict[(veh_num, node_A, node_B)][1]
-										dist_A_C = travel_cost_dict[(veh_num, node_A, node_C)][1]
-										dist_C_B = travel_cost_dict[(veh_num, node_C, node_B)][1]
-
-										"""print(f"veh: {veh_num}, A: {node_A}, B: {node_B}, C: {node_C}")
-										print(f"{dist_A_B}")
-										print(f"{dist_A_C}")
-										print(f"{dist_C_B}")"""
-										dist_with_C = dist_A_C+dist_C_B
-										if dist_A_B == 0:
-											proportion = (dist_with_C)/0.01
-										else:
-											proportion = (dist_with_C)/dist_A_B
-
-										dist_diff_dict[(veh_num, node_A_str, node_B_str, node_C_str)] = (dist_with_C, dist_A_B, proportion)
-
-	return dist_diff_dict
