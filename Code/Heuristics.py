@@ -4,8 +4,11 @@ import logging
 from random import randint, randrange, random, choice, seed, choices, sample, shuffle
 from timeit import default_timer as timer
 import math
+import bisect
 
-from Utils import feasibility_helper, greedy_insert_into_array, merge_vehice_lists, problem_to_helper_structure, insert_call_into_array, remove_call_from_array, remove_highest_cost, split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
+from nbformat import current_nbformat
+
+from Utils import cost_helper, feasibility_helper, greedy_insert_into_array, merge_vehice_lists, problem_to_helper_structure, insert_call_into_array, remove_call_from_array, remove_highest_cost, split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
 
 logger = logging.getLogger(__name__)
 
@@ -411,52 +414,97 @@ def alter_solution_4kinsert(problem: dict(), current_solution: List[int], helper
 		#print(len(current_solution))
 		return current_solution
 
-def alter_solution_placeholder2(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
-	# TODO
+def alter_solution_regretk(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
+	""" Performs k-regret where one call gets inserted at another position """
 
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
 	vehicle_calls = problem["vehicle_calls"]
-	#print("Nr 5")
 
-	#print(f"5: {current_solution}")
+	k = 2
+	sol_split_by_vehicle = split_a_list_at_zeros(current_solution)
 
-	sol_temp = split_a_list_at_zeros(current_solution)
-	sol = sol_temp[:-1]
-	dummy = sol_temp[-1]
-	sol_spread = [len(k)//2 for k in sol]
-	list_with_many_calls = [idx for idx, l in enumerate(sol_spread) if l >= 2]
-	#print(sol_spread)
-	#print(list_with_many_calls)
-	#print(f"Current sol {current_solution}")
-	if len(list_with_many_calls) > 0:
-		rand_vehicle = choice(list_with_many_calls)
-		for i in range(len(sol[rand_vehicle])-3):
-			#print(f"Sol før: {sol}")
-			temp_sol = sol[rand_vehicle][0:i] + sorted(sol[rand_vehicle][i:i+4], key=lambda k: random())+ sol[rand_vehicle][i+4:]
-			#print(f"Sol etter: {sol}")
-			#print("Rand vehicle")
-			#print(rand_vehicle)
-			isFeasible, _ = feasibility_helper(temp_sol, problem, rand_vehicle+1)
-			#print(isFeasible)
-			if isFeasible:
-				sol[rand_vehicle] = temp_sol
-				sol.append(dummy)
-				#print("Nr 5 changed")
-				#print(temp_sol)
-				#print(sol)
-				merged = merge_vehice_lists(sol)
-				#print(merged)
-				#print(len(merged))
-				#exit(0)
-				return merged
-		#print("Nr 5 not changed")
-		#print(len(current_solution))
+	best_costs_for_call = defaultdict(lambda: [])
+	call_diff_lookup = dict()
+	for call_num in range(1, num_calls+1):
+		for veh_num in range(1, num_vehicles+1):
+			if call_num in vehicle_calls[veh_num]:
+				if call_num not in sol_split_by_vehicle[veh_num-1]:
+					veh_cost_original = cost_helper(sol_split_by_vehicle[veh_num-1], problem, veh_num)
+					for insert_idx_1 in range(len(sol_split_by_vehicle[veh_num-1])+1):
+						temp_call_list = sol_split_by_vehicle[veh_num-1].copy()
+						temp_call_list.insert(insert_idx_1, call_num)
+
+						is_feas, _ = feasibility_helper(temp_call_list, problem, veh_num)
+						if is_feas:
+							for insert_idx_2 in range(1, len(sol_split_by_vehicle[veh_num-1])+2):
+								temp_call_list_2 = temp_call_list.copy()
+								temp_call_list_2.insert(insert_idx_2, call_num)
+								is_feas, _ = feasibility_helper(temp_call_list_2, problem, veh_num)
+
+								if is_feas:
+									temp_cost = cost_helper(temp_call_list_2, problem, veh_num)
+									temp_diff = temp_cost-veh_cost_original
+									bisect.insort(best_costs_for_call[call_num], temp_diff)
+									best_costs_for_call[call_num] = best_costs_for_call[call_num][0:k]
+									call_diff_lookup[(call_num, temp_diff)] = (veh_num, temp_call_list_2)
+	print(best_costs_for_call)
+	best_diff = 0
+	best_diff_call = -1
+	v_0 = -1
+	for k, v in best_costs_for_call.items():
+		if len(v) > k-1:
+			temp_diff = v[k-1] - v[0]
+			if temp_diff > best_diff:
+				best_diff = temp_diff
+				best_diff_call = k
+				v_0 = v[0]
+	#print(best_diff_call)
+	#print(call_diff_lookup)
+	#print(call_diff_lookup[(best_diff_call, v_0)])
+	if best_diff_call == -1:
+		best_diff = float("inf")
+		for k, v in best_costs_for_call.items():
+			if v[0] < best_diff:
+				best_diff = v[0]
+				best_diff_call = k
+				v_0 = v[0]
+
+
+	if best_diff_call == -1:
 		return current_solution
+	
+	#_, new_sol = remove_call_from_array(problem, current_solution, call_to_remove, veh_to_remove)
+	print(f"Best_diff_call: {best_diff_call}")
+	print(f"Old solution: {current_solution}")
+	print(f"Current solution before removal: {current_solution}, to_remove: {best_diff_call}")
+	current_solution.remove(best_diff_call)
+	current_solution.remove(best_diff_call)
+	sol_split_by_vehicle = split_a_list_at_zeros(current_solution)
+	print(f"Regret: call: {best_diff_call}, vehicle: {call_diff_lookup[(best_diff_call, v_0)]}")
+
+	veh_to_insert, call_list = call_diff_lookup[(best_diff_call, v_0)]
+	sol_split_by_vehicle[veh_to_insert-1] = call_list
+
+	new_sol = merge_vehice_lists(sol_split_by_vehicle)
+	feas, reason = feasibility_check(new_sol, problem)
+	print(feas, reason)
+	print(len(new_sol), len(current_solution))
+	print(current_solution)
+	print(f"NEW SOLUTION: {new_sol}")
+	if feas and len(new_sol) == (len(current_solution)+2):
+		return new_sol
 	else:
-		#print("Nr 5 no big list")
-		#print(len(current_solution))
-		return current_solution
+		
+		print(new_sol)
+		print("ERROR")
+	"""successfull, new_sol = greedy_insert_into_array(problem, current_solution, best_diff_call, call_diff_lookup[(best_diff_call, v_0)][0])
+	print(new_sol)
+	if successfull:
+		print(new_sol)
+		return new_sol
+	else:
+		print("ERRROR")"""
 
 def alter_solution_greedy_insert_one_vehicle(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
 	""" greedy insertion"""
@@ -586,8 +634,8 @@ def alter_solution_greedy_insert(problem: dict(), current_solution: List[int], h
 				best_cost = new_cost
 	
 	if len(original_sol) == len(current_solution):
-		print(f"=========\nChanged by greedyremoverandom\nOld: {original_sol}\nNew: {current_solution}")
-		print(original_sol==current_solution)
+		#print(f"=========\nChanged by greedyremoverandom\nOld: {original_sol}\nNew: {current_solution}")
+		#print(original_sol==current_solution)
 		return current_solution
 	else:
 		#print("return original")
@@ -608,33 +656,40 @@ def alter_solution_greedy_insert_remove_highest_cost(problem: dict(), current_so
 
 	q = randint(1,3)
 
-	veh_to_remove, call_to_remove = remove_highest_cost(problem, current_solution)
-	
-	if veh_to_remove == -1:
-		return original_sol
-
-	sol = split_a_list_at_zeros(current_solution)
-	vehicles_to_insert = [veh_idx for veh_idx in range(len(sol)-1) if veh_idx in vehicle_calls[veh_idx+1] and veh_to_remove-1 != veh_idx]
-
+	# ========================================
 	best_cost = cost_function(current_solution, problem)
+	for _ in range(q):
+		veh_to_remove, call_to_remove = remove_highest_cost(problem, current_solution)
+		
+		if veh_to_remove == -1:
+			continue
 
-	if random() > bound_prob_vehicle_vehicle:
-		vehicles_to_insert.append(len(sol)-1)
-	
-	for veh_to_insert_into in vehicles_to_insert:
-		#print(f"veh_to_insert: {veh_to_insert_into}")
-		solution_copy = current_solution.copy()
-		_, new_sol = remove_call_from_array(problem, solution_copy, call_to_remove, veh_to_remove)
-		successfull, new_sol = greedy_insert_into_array(problem, new_sol, call_to_remove, veh_to_insert_into+1)
+		sol = split_a_list_at_zeros(current_solution)
+		vehicles_to_insert = [veh_idx for veh_idx in range(len(sol)-1) if veh_idx in vehicle_calls[veh_idx+1] and veh_to_remove-1 != veh_idx]
 
-		if successfull:
-			new_cost = cost_function(new_sol, problem)
-			if new_cost < best_cost:
-				current_solution = new_sol.copy()
-				best_cost = new_cost
+		if random() > bound_prob_vehicle_vehicle:
+			vehicles_to_insert.append(len(sol)-1)
+		
+		for veh_to_insert_into in vehicles_to_insert:
+			solution_copy = current_solution.copy()
+			#print("=============")
+			#print(f"Call: {call_to_remove}, veh: {veh_to_remove}->{veh_to_insert_into+1}")
+			#print(f"Old: {solution_copy}")
+			_, new_sol = remove_call_from_array(problem, solution_copy, call_to_remove, veh_to_remove)
+			successfull, new_sol = greedy_insert_into_array(problem, new_sol, call_to_remove, veh_to_insert_into+1)
+			#print(f"Success: {successfull}")
+			#print(f"New: {new_sol}")
+
+			if successfull:
+				feasibility, _ = feasibility_check(new_sol, problem)
+				new_cost = cost_function(new_sol, problem)
+				if new_cost < best_cost:
+					current_solution = new_sol.copy()
+					best_cost = new_cost
+	# ========================================
  
 	if len(original_sol) == len(current_solution):
-		#print(f"=========\nChanged by greedyremovehighestcost\nOld: {original_sol}\nNew: {current_solution}")
+		#print(f"=========\nq: {q}, Changed by greedyremovehighestcost\nOld: {original_sol}\nNew: {current_solution}")
 		#print(original_sol==current_solution)
 		return current_solution
 	else:
@@ -793,7 +848,7 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		elif neighbourfunc_id == 4:
 			new_sol = alter_solution_4kinsert(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 5:
-			new_sol = alter_solution_placeholder2(problem, inc_sol, helper_structure)
+			new_sol = alter_solution_regretk(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 6:
 			new_sol = alter_solution_greedy_insert(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 7:
@@ -815,11 +870,13 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 				inc_cost = new_cost
 				if inc_cost < best_cost:
 					best_sol = inc_sol
+					#print(f"Changed, cost: {best_cost}->{inc_cost}")
 					best_cost = inc_cost
 					changed = True
 			else:
 				if random() < 0.8:
 					inc_sol = new_sol
+					#print(f"legg til delta_w, cost: {inc_cost}->{new_cost}")
 					inc_cost = new_cost
 				delta_w.append(delta_e)
 		w += 1
@@ -847,7 +904,7 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		elif neighbourfunc_id == 4:
 			new_sol = alter_solution_4kinsert(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 5:
-			new_sol = alter_solution_placeholder2(problem, inc_sol, helper_structure)
+			new_sol = alter_solution_regretk(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 6:
 			new_sol = alter_solution_greedy_insert(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 7:
