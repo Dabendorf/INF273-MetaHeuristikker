@@ -25,7 +25,8 @@ def main():
 
 		#alter_solution_4kinsert(prob, init_sol, helper_structure)
 		#break
-		num_vehicles, num_calls, best_solution, best_cost, seeds = local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=[5, 6, 9], probabilities = [1, 1,1], method="isa")
+		neighbours = [5,6,9]
+		num_vehicles, num_calls, best_solution, best_cost, seeds = local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=neighbours, probabilities = [1]*len(neighbours), method="isa")
 		overall_best_solution = best_solution
 		overall_best_cost = best_cost
 		overall_seeds = seeds

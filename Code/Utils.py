@@ -678,10 +678,10 @@ def greedy_insert_into_array(problem: dict(), sol, call_num, vehicle_num):
 	output_sol = call_list_vehicle.copy()
 	len_call_list = len(call_list_vehicle)
 
-	print(f"All calls: {sol_split_by_vehicle}")
+	"""print(f"All calls: {sol_split_by_vehicle}")
 	print(f"Calls of this vehicle: {call_list_vehicle}")
 	print(f"Vehicle call split: {sol_split_by_vehicle}")
-	print(f"Vehicle to insert: {vehicle_num}")
+	print(f"Vehicle to insert: {vehicle_num}")"""
 
 	for insert_idx_1 in range(len_call_list+1):
 		temp_call_list = call_list_vehicle.copy()
@@ -701,8 +701,7 @@ def greedy_insert_into_array(problem: dict(), sol, call_num, vehicle_num):
 							temp_cost = new_cost
 							output_sol = temp_call_list_2
 							insertion_successful = True
-	print(f"Insertion successfull: {insertion_successful}")
-
+	#print(f"Insertion successfull: {insertion_successful}")
 	
 	# Remerge list and return the list and the helper structure
 	sol_split_by_vehicle[vehicle_num-1] = output_sol
@@ -993,7 +992,7 @@ def remove_highest_cost(problem: dict(), sol):
 					veh_to_remove = veh_idx+1
 					call_to_remove = call_num
 
-	print(veh_to_remove, call_to_remove)
+	#print(veh_to_remove, call_to_remove)
 	return (veh_to_remove, call_to_remove)
 
 		
