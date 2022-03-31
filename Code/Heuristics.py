@@ -6,16 +6,16 @@ from timeit import default_timer as timer
 import math
 import bisect
 
-from nbformat import current_nbformat
-
 from Utils import cost_helper, feasibility_helper, greedy_insert_into_array, merge_vehice_lists, problem_to_helper_structure, insert_call_into_array, remove_call_from_array, remove_highest_cost, split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
 
 logger = logging.getLogger(__name__)
 
 def alter_solution_1insert(problem: dict(), current_solution: List[int], bound_prob_vehicle_vehicle: float) -> List[int]:
-	""" 1insert takes a call from one vehicle (including dummy) and puts it into another one"""
+	""" 1insert takes a call from one vehicle (including dummy) and puts it into another one
+		:param problem: Problem dictionary
+		:param current_solution: Full solution list
+		:param bound_prob_vehicle_vehicle: Probability that there is no reinsert into the dummy"""
 	num_vehicles = problem["num_vehicles"]
-	num_calls = problem["num_calls"]
 	vehicle_calls = problem["vehicle_calls"]
 
 	logging.debug(f"Alter solution: 1-insert")
@@ -59,9 +59,9 @@ def alter_solution_1insert(problem: dict(), current_solution: List[int], bound_p
 			call_not_allowed = False
 		else:
 			count_call_iterations += 1
-			if count_call_iterations == 10:
-				logging.debug("Did not swap anything, nothing to get swapped found")
-				return current_solution
+			#if count_call_iterations == 10:
+				#logging.debug("Did not swap anything, nothing to get swapped found")
+				#return current_solution
 
 	sol[vehicle2].remove(call_to_move)
 	sol[vehicle2].remove(call_to_move)
@@ -84,14 +84,18 @@ def alter_solution_1insert(problem: dict(), current_solution: List[int], bound_p
 	return new_sol
 
 def alter_solution_2exchange(problem: dict(), current_solution: List[int]) -> List[int]:
-	""" 2exchange swaps one call from one vehicle with another call from another vehicle"""
+	""" 2exchange swaps one call from one vehicle with another call from another vehicle
+		:param problem: Problem dictionary
+		:param current_solution: Full solution list
+	"""
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
 	vehicle_calls = problem["vehicle_calls"]
 
 	logging.debug(f"Alter solution: 2-exchange")
-	# Select one call from one vehicle and one from another one and exchange them
+	log_message = ""
 
+	# Select one call from one vehicle and one from another one and exchange them
 	found_swap = False
 	sol = split_a_list_at_zeros(current_solution)
 
@@ -110,7 +114,15 @@ def alter_solution_2exchange(problem: dict(), current_solution: List[int]) -> Li
 		else:
 			counter_swaps += 1
 			if counter_swaps == 20:
-				logging.debug("Did not swap anything, nothing to get swapped found")
+				logging.debug("Did not find anything, swap two random calls")
+				call1 = randint(1, num_calls)
+				call2 = randint(1, num_calls)
+				indices1 = [i for i, x in enumerate(current_solution) if x == call1]
+				indices2 = [i for i, x in enumerate(current_solution) if x == call2]
+				current_solution[indices1[0]] = call2
+				current_solution[indices1[1]] = call2
+				current_solution[indices2[0]] = call1
+				current_solution[indices2[1]] = call1
 				return current_solution
 	
 	logging.debug(log_message)
@@ -129,7 +141,15 @@ def alter_solution_2exchange(problem: dict(), current_solution: List[int]) -> Li
 		else:
 			count_call_iterations += 1
 			if count_call_iterations == 10:
-				logging.debug("Did not swap anything, nothing to get swapped found")
+				logging.debug("Did not find anything, swap two random calls")
+				call1 = randint(1, num_calls)
+				call2 = randint(1, num_calls)
+				indices1 = [i for i, x in enumerate(current_solution) if x == call1]
+				indices2 = [i for i, x in enumerate(current_solution) if x == call2]
+				current_solution[indices1[0]] = call2
+				current_solution[indices1[1]] = call2
+				current_solution[indices2[0]] = call1
+				current_solution[indices2[1]] = call1
 				return current_solution
 
 	sol[vehicle2].remove(call_to_move2)
@@ -857,11 +877,13 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 			new_sol = alter_solution_greedy_insert_remove_highest_cost(problem, inc_sol.copy(), helper_structure)
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
+		#print(new_sol)
 		#print(f"Is_feasible: {feasiblity}, new_sol= {new_sol}")
 		changed = False
 		if feasiblity:
 			new_cost = cost_function(new_sol, problem)
 			delta_e = new_cost - inc_cost
+			print(f"Delta e: {delta_e}, new_cost: {new_cost}")
 
 			if delta_e < 0:
 				inc_sol = new_sol
@@ -878,16 +900,16 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 					inc_cost = new_cost
 				delta_w.append(delta_e)
 		w += 1
-		print(f"{best_sol}, nbfunc: {neighbourfunc_id}, {changed}")
-	
+		#print(f"{best_sol}, nbfunc: {neighbourfunc_id}, {changed}")
+	arr = dict()
 	delta_avg = sum(delta_w)/len(delta_w)
-	#print(f"delta_avg: {delta_avg}")
-	#print(f"delta_w: {delta_w}")
+	print(f"delta_avg: {delta_avg}")
+	print(f"delta_w: {delta_w}")
 
 	t_0 = (-delta_avg)/math.log(0.8)
-	#print(f"t_0={t_0}, t_f={t_f}, num_it: {num_of_iterations}, w: {w}")
+	print(f"t_0={t_0}, t_f={t_f}, num_it: {num_of_iterations}, w: {w}")
 	alpha = (t_f/t_0) ** (1/(num_of_iterations-w))
-	#print(f"Alpha: {alpha}")
+	print(f"Alpha: {alpha}")
 	t = t_0
 
 	for i in range(num_of_iterations-w):
@@ -925,14 +947,18 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 					best_sol = inc_sol
 					best_cost = inc_cost
 					changed = True
-			elif random() < (math.e ** (-delta_e/t)):
-				inc_sol = new_sol
-				inc_cost = new_cost
-		print(f"{best_sol}, nbfunc: {neighbourfunc_id}, {changed}")
-		
+			else:
+				p = math.e ** (-delta_e/t)
+				print(p, delta_e, t)
+				if random() < p:
+					inc_sol = new_sol
+					inc_cost = new_cost
+					arr[i] = (math.e ** (-delta_e/t))
+		#print(f"{best_sol}, nbfunc: {neighbourfunc_id}, {changed}")
 		#print(f"t: {t}, alpha: {alpha}")
 		t = alpha * t
 
+	print(arr)
 	improvement = round(100*(orig_cost-best_cost)/orig_cost, 2)
 	logging.debug(f"Original cost: {orig_cost}")
 	logging.debug(f"New cost: {best_cost}")
