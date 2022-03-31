@@ -180,7 +180,10 @@ def alter_solution_2exchange(problem: dict(), current_solution: List[int]) -> Li
 	return new_sol
 
 def alter_solution_3exchange(problem: dict(), current_solution: List[int]) -> List[int]:
-	""" 3exchange swaps one call each from three different vehicles with each other"""
+	""" 3exchange swaps one call each from three different vehicles with each other
+		:param problem: Problem dictionary
+		:param current_solution: Full solution list
+	"""
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
 	vehicle_calls = problem["vehicle_calls"]
@@ -209,7 +212,19 @@ def alter_solution_3exchange(problem: dict(), current_solution: List[int]) -> Li
 		else:
 			counter_swaps += 1
 			if counter_swaps == 20:
-				logging.debug("Did not swap anything, nothing to get swapped found")
+				logging.debug("Did not find anything, swap two random calls")
+				call1 = randint(1, num_calls)
+				call2 = randint(1, num_calls)
+				call3 = randint(1, num_calls)
+				indices1 = [i for i, x in enumerate(current_solution) if x == call1]
+				indices2 = [i for i, x in enumerate(current_solution) if x == call2]
+				indices3 = [i for i, x in enumerate(current_solution) if x == call2]
+				current_solution[indices1[0]] = call2
+				current_solution[indices1[1]] = call2
+				current_solution[indices2[0]] = call3
+				current_solution[indices2[1]] = call3
+				current_solution[indices3[0]] = call1
+				current_solution[indices3[1]] = call1
 				return current_solution
 	
 	logging.debug(log_message)
@@ -229,7 +244,19 @@ def alter_solution_3exchange(problem: dict(), current_solution: List[int]) -> Li
 		else:
 			count_call_iterations += 1
 			if count_call_iterations == 10:
-				logging.debug("Did not swap anything, nothing to get swapped found")
+				logging.debug("Did not find anything, swap two random calls")
+				call1 = randint(1, num_calls)
+				call2 = randint(1, num_calls)
+				call3 = randint(1, num_calls)
+				indices1 = [i for i, x in enumerate(current_solution) if x == call1]
+				indices2 = [i for i, x in enumerate(current_solution) if x == call2]
+				indices3 = [i for i, x in enumerate(current_solution) if x == call2]
+				current_solution[indices1[0]] = call2
+				current_solution[indices1[1]] = call2
+				current_solution[indices2[0]] = call3
+				current_solution[indices2[1]] = call3
+				current_solution[indices3[0]] = call1
+				current_solution[indices3[1]] = call1
 				return current_solution
 
 	sol[vehicle3].remove(call_to_move3)
@@ -267,7 +294,7 @@ def alter_solution_3exchange(problem: dict(), current_solution: List[int]) -> Li
 	return new_sol
 
 def alter_solution_4kinsert(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
-	""" """
+	""" **not working**"""
 	#print(current_solution)
 	#print("Nr 4")
 	#print(f"4: {current_solution}")
@@ -435,7 +462,8 @@ def alter_solution_4kinsert(problem: dict(), current_solution: List[int], helper
 		return current_solution
 
 def alter_solution_regretk(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
-	""" Performs k-regret where one call gets inserted at another position """
+	""" Performs k-regret where one call gets inserted at another position 
+		TODO: CHANGE THIS, remove is independent, choose some calls and check which one gets first turn"""
 
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
@@ -525,7 +553,7 @@ def alter_solution_regretk(problem: dict(), current_solution: List[int], helper_
 		print("ERROR")
 
 def alter_solution_greedy_insert_one_vehicle(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
-	""" greedy insertion"""
+	""" greedy insertion, **not working**"""
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
 	vehicle_calls = problem["vehicle_calls"]
@@ -660,7 +688,10 @@ def alter_solution_greedy_insert(problem: dict(), current_solution: List[int], h
 		return original_sol
 
 def alter_solution_greedy_insert_remove_highest_cost(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
-	""" greedy insertion"""
+	""" Greedy insertion of calls which got removed by being the highest cost in their position
+		:param problem: Problem dictionary
+		:param current_solution: Full solution list
+	"""
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
 	vehicle_calls = problem["vehicle_calls"]
@@ -670,54 +701,54 @@ def alter_solution_greedy_insert_remove_highest_cost(problem: dict(), current_so
 	# Hyperparameters
 	bound_prob_vehicle_vehicle = 0.8 # probability that dummy doesnt get reinserted
 
-	logging.debug(f"Alter solution: greedy insert one vehicle, highest_cost_removal")
+	logging.debug(f"Alter solution: greedy insert, highest_cost_removal")
 
-	q = randint(1,3)
+	q = 1# randint(1,3) # Number of calls # TODO change to random again
 
-	# ========================================
-	best_cost = cost_function(current_solution, problem)
+	best_cost = float("inf")
+	print(f"========================\nStart greedy with q={q}")
+	print(f"Original: {current_solution}")
 	for _ in range(q):
 		veh_to_remove, call_to_remove = remove_highest_cost(problem, current_solution)
-		
 		if veh_to_remove == -1:
+			print("nothing to remove")
+			successfull = False
 			continue
-
-		sol = split_a_list_at_zeros(current_solution)
-		vehicles_to_insert = [veh_idx for veh_idx in range(len(sol)-1) if veh_idx in vehicle_calls[veh_idx+1] and veh_to_remove-1 != veh_idx]
-
-		if random() > bound_prob_vehicle_vehicle:
-			vehicles_to_insert.append(len(sol)-1)
 		
+		sol = split_a_list_at_zeros(current_solution)
+		#vehicles_to_insert = [(veh_idx) for veh_idx in range(len(sol)-1) if (veh_idx+1) in vehicle_calls[veh_idx+1] and veh_to_remove-1 != (veh_idx+1)]
+		vehicles_to_insert = [(veh_idx+1) for veh_idx in range(len(sol)-1) if (call_to_remove) in vehicle_calls[veh_idx+1] and veh_to_remove != (veh_idx+1)]
+		print(vehicle_calls)
+		print(list(range(len(sol)-1)))
+
+		# if dummy is included
+		if random() > bound_prob_vehicle_vehicle:
+			vehicles_to_insert.append(len(sol))
+
+		print(f"veh_to_insert: {vehicles_to_insert}")
 		for veh_to_insert_into in vehicles_to_insert:
 			solution_copy = current_solution.copy()
-			#print("=============")
-			#print(f"Call: {call_to_remove}, veh: {veh_to_remove}->{veh_to_insert_into+1}")
-			#print(f"Old: {solution_copy}")
-			_, new_sol = remove_call_from_array(problem, solution_copy, call_to_remove, veh_to_remove)
-			successfull, new_sol = greedy_insert_into_array(problem, new_sol, call_to_remove, veh_to_insert_into+1)
-			#print(f"Success: {successfull}")
-			#print(f"New: {new_sol}")
 
+			_, new_sol = remove_call_from_array(problem, solution_copy, call_to_remove, veh_to_remove)
+			successfull, new_sol = greedy_insert_into_array(problem, new_sol, call_to_remove, veh_to_insert_into)
 			if successfull:
-				feasibility, _ = feasibility_check(new_sol, problem)
-				new_cost = cost_function(new_sol, problem)
-				if new_cost < best_cost:
-					current_solution = new_sol.copy()
-					best_cost = new_cost
-	# ========================================
+				current_solution = new_sol.copy() # TODO references of current_solution are overlapping
+	#print(f"Successfull: {successfull}")
+
  
 	if len(original_sol) == len(current_solution):
 		#print(f"=========\nq: {q}, Changed by greedyremovehighestcost\nOld: {original_sol}\nNew: {current_solution}")
-		#print(original_sol==current_solution)
+		print(f"Original is new solution: {original_sol==current_solution}")
+		print(f"New sol: {current_solution}")
 		return current_solution
 	else:
-		#print("return original")
+		print("ERROR")
+		print(f"Original_solution: {original_sol}")
+		print(f"New:               {current_solution}")
+		logging.error("Error – Alter greedy insert - highest cost removal")
+		print(current_solution)
 		return original_sol
 
-
-def bla():
-	# TODO regret insertion
-	return 0
 
 def alter_solution_placeholder5(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
 	# TODO first possible insertion

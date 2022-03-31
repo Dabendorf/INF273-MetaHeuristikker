@@ -722,10 +722,11 @@ def remove_call_from_array(problem: dict(), sol, call_num, vehicle_num):
 	logging.debug(f"Vehicle call split: {sol_split_by_vehicle}")
 
 	call_list_vehicle = [x for x in call_list_vehicle if x != call_num]
+	print(f"Actual removal: {call_list_vehicle}, call_to_remove={call_num}, vehicle_num: {vehicle_num}")
 
 	# Remerge list and return the list and the helper structure
 	sol_split_by_vehicle[vehicle_num-1] = call_list_vehicle
-
+	print(f"Sol after removal: {merge_vehice_lists(sol_split_by_vehicle)}")
 	return removal_successful, merge_vehice_lists(sol_split_by_vehicle)
 
 def merge_vehice_lists(splitted_solution: list()):
@@ -962,6 +963,7 @@ def remove_highest_cost(problem: dict(), sol):
 	""" This function removes the cargo with the highest cost from all
 	
 		Returns vehicle num, call and new sol_array"""
+
 	logging.debug(f"Remove highest cost")
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
@@ -970,7 +972,9 @@ def remove_highest_cost(problem: dict(), sol):
 	call_info = problem["call_info"]
 	travel_cost_dict = problem["travel_time_cost"]
 
-	sol_split_by_vehicle = split_a_list_at_zeros(sol)[:-1]
+	temp_split = split_a_list_at_zeros(sol)
+	sol_split_by_vehicle = temp_split[:-1]
+	dummy_vehicle = set(temp_split[-1])
 	
 	biggest_diff = 0
 	veh_to_remove = -1
@@ -992,7 +996,15 @@ def remove_highest_cost(problem: dict(), sol):
 					veh_to_remove = veh_idx+1
 					call_to_remove = call_num
 
-	#print(veh_to_remove, call_to_remove)
+	if random() > 0.5 or veh_to_remove == -1:
+		for call_num in dummy_vehicle:
+			not_transporting_cost = call_info[call_num-1][4]
+			if not_transporting_cost > biggest_diff:
+				if random() < 0.7:
+					veh_to_remove = num_vehicles+1
+					call_to_remove = call_num
+
+	print(f"Choose to remove: veh={veh_to_remove}, call={call_to_remove}")
 	return (veh_to_remove, call_to_remove)
 
 		
