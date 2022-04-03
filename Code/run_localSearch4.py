@@ -16,7 +16,7 @@ def main():
 	for tf in test_files:
 		prob = load_problem(tf)
 		init_sol = initial_solution(problem=prob)
-		#init_sol = [4 , 4 , 7 , 7 , 0 , 2 , 2 , 0 , 1 , 5 , 5 , 3 , 3 , 1 , 0 , 6 , 6]
+		best_sol = [4 , 4 , 7 , 7 , 0 , 2 , 2 , 0 , 1 , 5 , 5 , 3 , 3 , 1 , 0 , 6 , 6]
 
 		#print(remove_highest_cost(prob, init_sol))
 		#exit(0)
@@ -24,6 +24,8 @@ def main():
 		helper_structure = problem_to_helper_structure(prob, init_sol)
 
 		#alter_solution_4kinsert(prob, init_sol, helper_structure)
+		#successful, out = remove_call_from_array2(prob, best_sol, 6, 4)
+		#print(successful, out)
 		#break
 		neighbours = [9]
 		num_vehicles, num_calls, best_solution, best_cost, seeds = local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=1, allowed_neighbours=neighbours, probabilities = [1]*len(neighbours), method="isa")

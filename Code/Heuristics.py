@@ -6,7 +6,8 @@ from timeit import default_timer as timer
 import math
 import bisect
 
-from Utils import cost_helper, feasibility_helper, greedy_insert_into_array, merge_vehice_lists, problem_to_helper_structure, insert_call_into_array, remove_call_from_array, remove_highest_cost, split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
+#from Utils import cost_helper, feasibility_helper, greedy_insert_into_array, merge_vehice_lists, problem_to_helper_structure, insert_call_into_array, remove_call_from_array, remove_highest_cost, split_a_list_at_zeros, cost_function, feasibility_check, latex_add_line, latex_replace_line
+from Utils import *
 
 logger = logging.getLogger(__name__)
 
@@ -703,20 +704,18 @@ def alter_solution_greedy_insert_remove_highest_cost(problem: dict(), current_so
 
 	logging.debug(f"Alter solution: greedy insert, highest_cost_removal")
 
-	q = 1# randint(1,3) # Number of calls # TODO change to random again
+	q = randint(1,3) # Number of calls # TODO change to random again
 
-	best_cost = float("inf")
 	print(f"========================\nStart greedy with q={q}")
 	print(f"Original: {current_solution}")
 	for _ in range(q):
 		veh_to_remove, call_to_remove = remove_highest_cost(problem, current_solution)
 		if veh_to_remove == -1:
 			print("nothing to remove")
-			successfull = False
 			continue
 		
 		sol = split_a_list_at_zeros(current_solution)
-		#vehicles_to_insert = [(veh_idx) for veh_idx in range(len(sol)-1) if (veh_idx+1) in vehicle_calls[veh_idx+1] and veh_to_remove-1 != (veh_idx+1)]
+		
 		vehicles_to_insert = [(veh_idx+1) for veh_idx in range(len(sol)-1) if (call_to_remove) in vehicle_calls[veh_idx+1] and veh_to_remove != (veh_idx+1)]
 		print(vehicle_calls)
 		print(list(range(len(sol)-1)))
@@ -726,13 +725,26 @@ def alter_solution_greedy_insert_remove_highest_cost(problem: dict(), current_so
 			vehicles_to_insert.append(len(sol))
 
 		print(f"veh_to_insert: {vehicles_to_insert}")
+		new_copy = current_solution.copy()
+		cost = float("inf")
 		for veh_to_insert_into in vehicles_to_insert:
-			solution_copy = current_solution.copy()
+			print(f"To_remove: {call_to_remove} from {veh_to_remove}, current_sol: {new_copy}")
+			rem_successful, new_sol = remove_call_from_array2(problem, new_copy, call_to_remove, veh_to_remove)
+			print(f"New sol after removal: {new_sol}")
+			#print(f"new_sol: {new_sol}")
 
-			_, new_sol = remove_call_from_array(problem, solution_copy, call_to_remove, veh_to_remove)
-			successfull, new_sol = greedy_insert_into_array(problem, new_sol, call_to_remove, veh_to_insert_into)
-			if successfull:
-				current_solution = new_sol.copy() # TODO references of current_solution are overlapping
+			if rem_successful:
+				ins_successfull, new_sol = greedy_insert_into_array2(problem, new_sol, call_to_remove, veh_to_insert_into)
+
+				if ins_successfull:
+					print(f"NEW SOL: {new_sol}")
+					a = split_a_list_at_zeros(new_sol)
+					if veh_to_insert_into < num_vehicles:
+						temp_cost = cost_helper(a[veh_to_insert_into-1], problem, veh_to_insert_into)
+						if temp_cost < cost:
+							current_solution = new_sol.copy()
+					elif cost == float("inf"):
+						current_solution = new_sol.copy()
 	#print(f"Successfull: {successfull}")
 
  
@@ -905,6 +917,8 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		elif neighbourfunc_id == 8:
 			new_sol = alter_solution_placeholder5(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 9:
+			print("START GREEDY INSERT")
+			print(inc_sol)
 			new_sol = alter_solution_greedy_insert_remove_highest_cost(problem, inc_sol.copy(), helper_structure)
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
