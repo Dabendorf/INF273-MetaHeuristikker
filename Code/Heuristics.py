@@ -706,38 +706,28 @@ def alter_solution_greedy_insert_remove_highest_cost(problem: dict(), current_so
 
 	q = randint(1,3) # Number of calls # TODO change to random again
 
-	print(f"========================\nStart greedy with q={q}")
-	print(f"Original: {current_solution}")
 	for _ in range(q):
 		veh_to_remove, call_to_remove = remove_highest_cost(problem, current_solution)
 		if veh_to_remove == -1:
-			print("nothing to remove")
 			continue
 		
 		sol = split_a_list_at_zeros(current_solution)
 		
 		vehicles_to_insert = [(veh_idx+1) for veh_idx in range(len(sol)-1) if (call_to_remove) in vehicle_calls[veh_idx+1] and veh_to_remove != (veh_idx+1)]
-		print(vehicle_calls)
-		print(list(range(len(sol)-1)))
 
 		# if dummy is included
 		if random() > bound_prob_vehicle_vehicle:
 			vehicles_to_insert.append(len(sol))
 
-		print(f"veh_to_insert: {vehicles_to_insert}")
 		new_copy = current_solution.copy()
 		cost = float("inf")
 		for veh_to_insert_into in vehicles_to_insert:
-			print(f"To_remove: {call_to_remove} from {veh_to_remove}, current_sol: {new_copy}")
 			rem_successful, new_sol = remove_call_from_array2(problem, new_copy, call_to_remove, veh_to_remove)
-			print(f"New sol after removal: {new_sol}")
-			#print(f"new_sol: {new_sol}")
 
 			if rem_successful:
 				ins_successfull, new_sol = greedy_insert_into_array2(problem, new_sol, call_to_remove, veh_to_insert_into)
 
 				if ins_successfull:
-					print(f"NEW SOL: {new_sol}")
 					a = split_a_list_at_zeros(new_sol)
 					if veh_to_insert_into < num_vehicles:
 						temp_cost = cost_helper(a[veh_to_insert_into-1], problem, veh_to_insert_into)
@@ -745,22 +735,15 @@ def alter_solution_greedy_insert_remove_highest_cost(problem: dict(), current_so
 							current_solution = new_sol.copy()
 					elif cost == float("inf"):
 						current_solution = new_sol.copy()
-	#print(f"Successfull: {successfull}")
 
  
 	if len(original_sol) == len(current_solution):
-		#print(f"=========\nq: {q}, Changed by greedyremovehighestcost\nOld: {original_sol}\nNew: {current_solution}")
-		print(f"Original is new solution: {original_sol==current_solution}")
-		print(f"New sol: {current_solution}")
 		return current_solution
 	else:
-		print("ERROR")
-		print(f"Original_solution: {original_sol}")
-		print(f"New:               {current_solution}")
 		logging.error("Error – Alter greedy insert - highest cost removal")
-		print(current_solution)
+		logging.error(f"Original_solution: {original_sol}")
+		logging.error(f"New:               {current_solution}")
 		return original_sol
-
 
 def alter_solution_placeholder5(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
 	# TODO first possible insertion
@@ -917,18 +900,15 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		elif neighbourfunc_id == 8:
 			new_sol = alter_solution_placeholder5(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 9:
-			print("START GREEDY INSERT")
-			print(inc_sol)
 			new_sol = alter_solution_greedy_insert_remove_highest_cost(problem, inc_sol.copy(), helper_structure)
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
-		#print(new_sol)
-		#print(f"Is_feasible: {feasiblity}, new_sol= {new_sol}")
+		print(new_sol)
 		changed = False
 		if feasiblity:
 			new_cost = cost_function(new_sol, problem)
 			delta_e = new_cost - inc_cost
-			print(f"Delta e: {delta_e}, new_cost: {new_cost}")
+			#print(f"Delta e: {delta_e}, new_cost: {new_cost}")
 
 			if delta_e < 0:
 				inc_sol = new_sol
@@ -994,7 +974,7 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 					changed = True
 			else:
 				p = math.e ** (-delta_e/t)
-				print(p, delta_e, t)
+				#print(p, delta_e, t)
 				if random() < p:
 					inc_sol = new_sol
 					inc_cost = new_cost
