@@ -303,8 +303,6 @@ def local_search(problem: dict(), init_sol, num_of_iterations: int = 10000, allo
 	sol = init_sol
 	orig_cost = cost
 
-	helper_structure = problem_to_helper_structure(problem, init_sol)
-
 	for i in range(num_of_iterations):
 		neighbourfunc_id = choice(allowed_neighbours)
 		"""if neighbourfunc_id == 0:
@@ -428,8 +426,6 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 	orig_cost = cost
 
 	delta_w = list()
-
-	helper_structure = problem_to_helper_structure(problem, init_sol)
 
 	w = 0
 	while w < 100 or not delta_w:

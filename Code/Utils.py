@@ -600,27 +600,6 @@ def latex_replace_line(num_vehicles: int, num_calls: int, best_solution, seeds):
 		f.write(contents)
 	logging.debug("Finish to replace optimal solution in table")
 
-	"""  Function removes a call from a solution 
-		:param vehicle_num: Exact vehicle_num between [1, num_vehicles]"""
-
-	logging.debug(f"Removing call {call_num} from vehicle {vehicle_num}")
-
-	removal_successful = True
-
-	# Split the vehicles and get the specific vehicle to insert into
-	sol_split_by_vehicle = split_a_list_at_zeros(sol)
-
-	call_list_vehicle = sol_split_by_vehicle[vehicle_num-1]
-	logging.debug(f"Calls of this vehicle: {call_list_vehicle}")
-	logging.debug(f"Vehicle call split: {sol_split_by_vehicle}")
-
-	a = len(call_list_vehicle)
-	call_list_vehicle = [x for x in call_list_vehicle if x != call_num]
-
-	# Remerge list and return the list and the helper structure
-	sol_split_by_vehicle[vehicle_num-1] = call_list_vehicle
-	return removal_successful, merge_vehice_lists(sol_split_by_vehicle)
-
 def merge_vehice_lists(splitted_solution: list()):
 	overall_list = list()
 	for i in splitted_solution:
@@ -809,55 +788,3 @@ def cost_helper(solution: list(), problem: dict(), vehicle_num: int):
 	logging.debug(f"Total costs: {total_cost}")
 	return total_cost
 
-	""" This function inserts a call into a solution for one vehicle
-		It tries all possible positions and returns the best cost of a feasible one
-		This is only the insertion part, use the removal function otherwise
-		:param vehicle_num: Exact vehicle_num between [1, num_vehicles]
-	"""
-
-	logging.debug(f"Inserting call {call_num} into vehicle {vehicle_num} (greedy)")
-	num_vehicles = problem["num_vehicles"]
-
-	insertion_successful = False
-
-	# Dummy vehicle
-	if vehicle_num > num_vehicles:
-		sol.extend([call_num, call_num])
-		return True, sol
-
-	# Split the vehicles and get the specific vehicle to insert into
-	sol_split_by_vehicle = split_a_list_at_zeros(sol)
-	call_list_vehicle = sol_split_by_vehicle[vehicle_num-1]
-	logging.debug(f"All calls: {sol_split_by_vehicle}")
-	logging.debug(f"Calls of this vehicle: {call_list_vehicle}")
-	logging.debug(f"Vehicle call split: {sol_split_by_vehicle}")
-
-	temp_cost = float("inf")
-	output_sol = call_list_vehicle.copy()
-	len_call_list = len(call_list_vehicle)
-
-	for insert_idx_1 in range(len_call_list+1):
-		temp_call_list = call_list_vehicle.copy()
-		temp_call_list.insert(insert_idx_1, call_num)
-		is_feas, _ = feasibility_helper(temp_call_list, problem, vehicle_num)
-		if is_feas:
-			for insert_idx_2 in range(insert_idx_1, len_call_list+2):
-				temp_call_list_2 = temp_call_list.copy()
-				temp_call_list_2.insert(insert_idx_2, call_num)
-				is_feas, _ = feasibility_helper(temp_call_list_2, problem, vehicle_num)
-
-				if is_feas:
-					new_cost = cost_helper(temp_call_list_2, problem, vehicle_num)
-
-					if new_cost < temp_cost:
-						if random() < 0.4 or temp_cost == float("inf"):
-							temp_cost = new_cost
-							output_sol = temp_call_list_2.copy()
-							insertion_successful = True
-
-	sol_split_by_vehicle[vehicle_num-1] = output_sol
-
-	if not insertion_successful:
-		sol.extend([call_num, call_num])
-		return False, sol
-	return insertion_successful, merge_vehice_lists(sol_split_by_vehicle)
