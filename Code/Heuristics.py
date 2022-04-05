@@ -430,7 +430,6 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 	w = 0
 	while w < 100 or not delta_w:
 		neighbourfunc_id = choices(allowed_neighbours, probabilities, k=1)[0]
-		# Note: The original numbers have been changed from [0, 1, 2] to [1, 2, 3]
 		if neighbourfunc_id == 1:
 			new_sol = alter_solution_1insert(problem, inc_sol, 0.8)
 		elif neighbourfunc_id == 2:
@@ -439,44 +438,33 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 			new_sol = alter_solution_3exchange(problem, inc_sol)
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
-		print(new_sol)
-		changed = False
+
 		if feasiblity:
 			new_cost = cost_function(new_sol, problem)
 			delta_e = new_cost - inc_cost
-			#print(f"Delta e: {delta_e}, new_cost: {new_cost}")
 
 			if delta_e < 0:
 				inc_sol = new_sol
 				inc_cost = new_cost
 				if inc_cost < best_cost:
 					best_sol = inc_sol
-					#print(f"Changed, cost: {best_cost}->{inc_cost}")
 					best_cost = inc_cost
-					changed = True
 			else:
 				if random() < 0.8:
 					inc_sol = new_sol
-					#print(f"add to delta_w, cost: {inc_cost}->{new_cost}")
 					inc_cost = new_cost
 				delta_w.append(delta_e)
 		w += 1
-		#print(f"{best_sol}, nbfunc: {neighbourfunc_id}, {changed}")
+
 	arr = dict()
-	#delta_w = [val for val in delta_w if val != 0]
 	delta_avg = sum(delta_w)/len(delta_w)
-	#print(f"delta_avg: {delta_avg}")
-	#print(f"delta_w: {delta_w}")
 
 	t_0 = (-delta_avg)/math.log(0.8)
-	#print(f"t_0={t_0}, t_f={t_f}, num_it: {num_of_iterations}, w: {w}")
 	alpha = (t_f/t_0) ** (1/(num_of_iterations-w))
-	#print(f"Alpha: {alpha}")
 	t = t_0
 
 	for i in range(num_of_iterations-w):
 		neighbourfunc_id = choices(allowed_neighbours, probabilities, k=1)[0]
-		# Note: The original numbers have been changed from [0, 1, 2] to [1, 2, 3]
 		if neighbourfunc_id == 1:
 			new_sol = alter_solution_1insert(problem, inc_sol, 0.8)
 		elif neighbourfunc_id == 2:
@@ -503,8 +491,7 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 					inc_sol = new_sol
 					inc_cost = new_cost
 					arr[i] = p
-		#print(f"{best_sol}, nbfunc: {neighbourfunc_id}, {changed}")
-		#print(f"t: {t}, alpha: {alpha}")
+
 		t = alpha * t
 
 	#print(arr)
@@ -570,7 +557,6 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 		improvements.append(improvement)
 		average_objectives.append(cost)
 
-		print(f"Cost: {cost}")
 		if cost < best_cost:
 			best_cost = cost
 			best_solution = sol
