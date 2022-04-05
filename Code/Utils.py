@@ -152,7 +152,8 @@ def feasibility_check(solution: list(), problem: dict()):
 
 	# Checks three conditions
 	# (1) Check if calls and vehicles are compatible
-	sol_split_by_vehicle = split_a_list_at_zeros(solution)[0:num_vehicles]
+	#sol_split_by_vehicle = split_a_list_at_zeros(solution)[0:num_vehicles]
+	sol_split_by_vehicle = solution[0:num_vehicles]
 	logging.debug(f"Solution split by vehicle: {sol_split_by_vehicle}")
 
 	for veh_ind, l in enumerate(sol_split_by_vehicle):
@@ -288,17 +289,16 @@ def cost_function(solution: list(), problem: dict()):
 	sum_node_cost = 0
 
 	# Start calculate not transported costs
-	rev_sol = solution[::-1]
-	ind_last_null = rev_sol.index(0)
-	not_visited = set(rev_sol[:ind_last_null])
-	logging.debug(f"Ports not visited: {not_visited}")
+	dummy_list = set(solution[-1])
+	logging.debug(f"Ports not visited: {dummy_list}")
 
-	for not_vis in not_visited:
+	for not_vis in dummy_list:
 		not_transport_cost += call_info[not_vis-1][4]
 	# Finish calculate not transported costs
+	
 	logging.debug(f"Cost not transporting: {not_transport_cost}")
 
-	sol_split_by_vehicle = split_a_list_at_zeros(solution)[0:num_vehicles]
+	sol_split_by_vehicle = solution[0:num_vehicles]
 	logging.debug(f"Solution split by vehicle: {sol_split_by_vehicle}")
 
 	# Loop for costs of nodes and transport
@@ -374,7 +374,7 @@ def random_solution(problem: dict()):
 
 	return overall_list
 
-def initial_solution(problem: dict()) -> List[int]:
+def initial_solution_old(problem: dict()) -> List[int]:
 	""" This function generates an initial solution
 		where only calls are in the dummy vehicle"""
 	num_vehicles = problem["num_vehicles"]
@@ -385,6 +385,36 @@ def initial_solution(problem: dict()) -> List[int]:
 	logging.debug(f"Generate inital dummy solution: {sol}")
 
 	return sol
+
+def initial_solution(problem: dict()) -> List[int]:
+	""" This function generates an initial solution
+		where only calls are in the dummy vehicle
+		Format: One list per vehicle """
+	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
+
+	sol = list()
+	
+	for i in range(num_vehicles):
+		sol.append(list())
+
+	dummy = [[val for val in list(range(1,num_calls+1)) for _ in (0, 1)]]
+	sol.extend(dummy)
+	logging.debug(f"Generate inital dummy solution: {sol}")
+
+	return sol
+
+def solution_to_ahmed_output(sol: List[List[int]]) -> List[int]:
+	""" Takes understandable solution format in 2D list and
+		transforms it into inflexible output format in 1D list
+	"""
+	output = list()
+	for i in range(len(sol)-1):
+		output.extend(sol[i])
+		output.append(0)
+	
+	output.extend(sol[-1])
+	return output
 
 def blind_random_search(problem: dict(), num_of_iterations: int = 10000):
 	""" This method does a blind search which generates
@@ -741,50 +771,59 @@ def cost_helper(solution: list(), problem: dict(), vehicle_num: int):
 	travel_cost_dict = problem["travel_time_cost"]
 	node_cost_dict = problem["node_time_cost"]
 	vehicle_info = problem["vehicle_info"]
+	num_vehicles = problem["num_vehicles"]
 
 	sum_travel_cost = 0
 	sum_node_cost = 0
 
-	# Loop for costs of nodes and transport
-	veh_ind = vehicle_num-1
-	l = solution
+	if vehicle_num > num_vehicles:
+		not_transport_cost = 0
+		dummy_list = set(solution)
 
-	set_visited = list(set(l))
+		for not_vis in dummy_list:
+			not_transport_cost += call_info[not_vis-1][4]
+		return not_transport_cost
+	else:
+		# Loop for costs of nodes and transport
+		veh_ind = vehicle_num-1
+		l = solution
 
-	for call_ind in set_visited:
-		# Nodes
-		call_cost_list = node_cost_dict[(veh_ind+1, call_ind)]
-		sum_node_cost += (call_cost_list[1] + call_cost_list[3])
+		set_visited = list(set(l))
 
-	# Transport (edges)
-	length_list = len(l)
-	if length_list > 0:
-		calls_visited = set()
-		home_node = vehicle_info[veh_ind][1]
-		call_numb = l[0]-1
-		calls_visited.add(call_numb)
-		ci = call_info[call_numb]
-		start_node = ci[1]
+		for call_ind in set_visited:
+			# Nodes
+			call_cost_list = node_cost_dict[(veh_ind+1, call_ind)]
+			sum_node_cost += (call_cost_list[1] + call_cost_list[3])
 
-		sum_travel_cost += travel_cost_dict[(veh_ind+1, home_node, start_node)][1]
-		
-		for i in range(1, length_list):
-			call_numb = l[i]-1
-			if call_numb in calls_visited:
-				calls_visited.remove(call_numb)
-				ci = call_info[call_numb]
-				goal_node = ci[2]
-			else:
-				calls_visited.add(call_numb)
-				ci = call_info[call_numb]
-				goal_node = ci[1]
-			sum_travel_cost += travel_cost_dict[(veh_ind+1, start_node, goal_node)][1]
-			start_node = goal_node
+		# Transport (edges)
+		length_list = len(l)
+		if length_list > 0:
+			calls_visited = set()
+			home_node = vehicle_info[veh_ind][1]
+			call_numb = l[0]-1
+			calls_visited.add(call_numb)
+			ci = call_info[call_numb]
+			start_node = ci[1]
 
-	logging.debug(f"Cost of nodes: {sum_node_cost}")
-	logging.debug(f"Cost of travel: {sum_travel_cost}")
+			sum_travel_cost += travel_cost_dict[(veh_ind+1, home_node, start_node)][1]
+			
+			for i in range(1, length_list):
+				call_numb = l[i]-1
+				if call_numb in calls_visited:
+					calls_visited.remove(call_numb)
+					ci = call_info[call_numb]
+					goal_node = ci[2]
+				else:
+					calls_visited.add(call_numb)
+					ci = call_info[call_numb]
+					goal_node = ci[1]
+				sum_travel_cost += travel_cost_dict[(veh_ind+1, start_node, goal_node)][1]
+				start_node = goal_node
 
-	total_cost = sum_travel_cost + sum_node_cost
-	logging.debug(f"Total costs: {total_cost}")
-	return total_cost
+		logging.debug(f"Cost of nodes: {sum_node_cost}")
+		logging.debug(f"Cost of travel: {sum_travel_cost}")
+
+		total_cost = sum_travel_cost + sum_node_cost
+		logging.debug(f"Total costs: {total_cost}")
+		return total_cost
 
