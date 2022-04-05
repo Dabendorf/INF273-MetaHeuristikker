@@ -462,7 +462,7 @@ def alter_solution_4kinsert(problem: dict(), current_solution: List[int], helper
 		#print(len(current_solution))
 		return current_solution
 
-def alter_solution_regretk(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
+def alter_solution_regretk2(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
 	""" Performs k-regret where one call gets inserted at another position 
 		TODO: CHANGE THIS, remove is independent, choose some calls and check which one gets first turn"""
 
@@ -552,6 +552,92 @@ def alter_solution_regretk(problem: dict(), current_solution: List[int], helper_
 	else:
 		print(new_sol)
 		print("ERROR")
+
+def alter_solution_regretk(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
+	""" Performs k-regret where one call gets inserted at another position 
+		TODO: CHANGE THIS, remove is independent, choose some calls and check which one gets first turn"""
+
+	#print("=================")
+	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
+	vehicle_calls = problem["vehicle_calls"]
+	orig_sol = current_solution.copy()
+
+	k = 2
+	to_remove = list()
+	a = randint(1, num_calls)
+	b = a
+
+	while a == b:
+		b = randint(1, num_calls)
+
+	to_remove.append(a)
+	to_remove.append(b)
+
+	#print(f"To remove: {to_remove}")
+
+	current_solution = [x for x in current_solution if x not in to_remove]
+	sol_split_by_vehicle = split_a_list_at_zeros(current_solution)
+
+	best_costs_for_call = defaultdict(lambda: [])
+	call_diff_lookup = dict()
+	for call_num in to_remove:
+		for veh_num in range(1, num_vehicles+1):
+			if call_num in vehicle_calls[veh_num]:
+				if call_num not in sol_split_by_vehicle[veh_num-1]:
+					veh_cost_original = cost_helper(sol_split_by_vehicle[veh_num-1], problem, veh_num)
+					for insert_idx_1 in range(len(sol_split_by_vehicle[veh_num-1])+1):
+						temp_call_list = sol_split_by_vehicle[veh_num-1].copy()
+						temp_call_list.insert(insert_idx_1, call_num)
+
+						is_feas, _ = feasibility_helper(temp_call_list, problem, veh_num)
+						if is_feas:
+							for insert_idx_2 in range(1, len(sol_split_by_vehicle[veh_num-1])+2):
+								temp_call_list_2 = temp_call_list.copy()
+								temp_call_list_2.insert(insert_idx_2, call_num)
+								is_feas, _ = feasibility_helper(temp_call_list_2, problem, veh_num)
+
+								if is_feas:
+									temp_cost = cost_helper(temp_call_list_2, problem, veh_num)
+									temp_diff = temp_cost-veh_cost_original
+									bisect.insort(best_costs_for_call[call_num], temp_diff)
+									best_costs_for_call[call_num] = best_costs_for_call[call_num][0:k]
+									call_diff_lookup[(call_num, temp_diff)] = (veh_num, temp_call_list_2)
+
+	#print(f"Current solution: {current_solution}")
+	#print(f"Best_costs: {dict(best_costs_for_call)}")
+	#print(f"Call_diff_lookup: {call_diff_lookup}")
+
+	cost_diff = dict()
+	for key, val in best_costs_for_call.items():
+		if len(val) > 1:
+			cost_diff[key] = val[k-1] - val[0]
+		else:
+			cost_diff[key] = float("inf")
+	
+	insertion_order = sorted(cost_diff, key=cost_diff.get, reverse=True)
+	#print(f"Insertion order: {insertion_order}")
+	
+	#sol_split_by_vehicle = split_a_list_at_zeros(current_solution)
+	#print(f"New temp split: {sol_split_by_vehicle}")
+
+	new_sol = current_solution
+	for call in insertion_order:
+		veh_to_insert = call_diff_lookup[(call, best_costs_for_call[call][0])][0]
+		#print(f"Call {call} to insert into veh {veh_to_insert}")
+		#sol_split_by_vehicle[veh_to_insert-1] = call_list
+		_, new_sol = greedy_insert_into_array(problem, new_sol, call, veh_to_insert)
+		#print(f"Temp sol after insert {call}: {new_sol}")
+
+	#new_sol = merge_vehice_lists(sol_split_by_vehicle)
+	#feas, reason = feasibility_check(new_sol, problem)
+	
+	if len(new_sol) == len(orig_sol):
+		return new_sol
+	else:
+		#print(f"New_sol: {new_sol}")
+		#print("regret k doesnt work")
+		return orig_sol
 
 def alter_solution_greedy_insert_one_vehicle(problem: dict(), current_solution: List[int], helper_structure) -> List[int]:
 	""" greedy insertion, **not working**"""
