@@ -1051,7 +1051,7 @@ def greedy_insert_into_array2(problem: dict(), sol, call_num, vehicle_num):
 		temp_call_list.insert(insert_idx_1, call_num)
 		is_feas, _ = feasibility_helper(temp_call_list, problem, vehicle_num)
 		if is_feas:
-			for insert_idx_2 in range(1, len_call_list+2):
+			for insert_idx_2 in range(insert_idx_1, len_call_list+2):
 				temp_call_list_2 = temp_call_list.copy()
 				temp_call_list_2.insert(insert_idx_2, call_num)
 				is_feas, _ = feasibility_helper(temp_call_list_2, problem, vehicle_num)
@@ -1060,7 +1060,7 @@ def greedy_insert_into_array2(problem: dict(), sol, call_num, vehicle_num):
 					new_cost = cost_helper(temp_call_list_2, problem, vehicle_num)
 
 					if new_cost < temp_cost:
-						if random() < 0.8 or temp_cost == float("inf"):
+						if random() < 0.4 or temp_cost == float("inf"):
 							temp_cost = new_cost
 							output_sol = temp_call_list_2.copy()
 							insertion_successful = True

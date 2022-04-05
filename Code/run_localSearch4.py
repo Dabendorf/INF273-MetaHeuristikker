@@ -20,8 +20,8 @@ def main():
 
 		#helper_structure = problem_to_helper_structure(prob, init_sol)
 		
-		neighbours = [5]
-		num_vehicles, num_calls, best_solution, best_cost, seeds = local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=1, allowed_neighbours=neighbours, probabilities = [1]*len(neighbours), method="isa")
+		neighbours = [1,2,3]
+		num_vehicles, num_calls, best_solution, best_cost, seeds = local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=1, allowed_neighbours=neighbours, probabilities = [1]*len(neighbours), method="ls")
 		overall_best_solution = best_solution
 		overall_best_cost = best_cost
 		overall_seeds = seeds

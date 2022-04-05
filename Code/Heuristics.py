@@ -786,11 +786,11 @@ def alter_solution_greedy_insert_remove_highest_cost(problem: dict(), current_so
 	original_sol = current_solution.copy()
 
 	# Hyperparameters
-	bound_prob_vehicle_vehicle = 0.8 # probability that dummy doesnt get reinserted
+	bound_prob_vehicle_vehicle = 0.9 # probability that dummy doesnt get reinserted
 
 	logging.debug(f"Alter solution: greedy insert, highest_cost_removal")
 
-	q = randint(1,3) # Number of calls # TODO change to random again
+	q = randint(1,3) # Number of calls
 
 	for _ in range(q):
 		veh_to_remove, call_to_remove = remove_highest_cost(problem, current_solution)
@@ -845,14 +845,34 @@ def local_search(problem: dict(), init_sol, num_of_iterations: int = 10000, allo
 	sol = init_sol
 	orig_cost = cost
 
+	helper_structure = problem_to_helper_structure(problem, init_sol)
+
 	for i in range(num_of_iterations):
 		neighbourfunc_id = choice(allowed_neighbours)
-		if neighbourfunc_id == 0:
+		"""if neighbourfunc_id == 0:
 			new_sol = alter_solution_1insert(problem, sol, 0.8)
 		elif neighbourfunc_id == 1:
 			new_sol = alter_solution_2exchange(problem, sol)
 		else:
+			new_sol = alter_solution_3exchange(problem, sol)"""
+		if neighbourfunc_id == 1:
+			new_sol = alter_solution_1insert(problem, sol, 0.8)
+		elif neighbourfunc_id == 2:
+			new_sol = alter_solution_2exchange(problem, sol)
+		elif neighbourfunc_id == 3:
 			new_sol = alter_solution_3exchange(problem, sol)
+		elif neighbourfunc_id == 4:
+			new_sol = alter_solution_4kinsert(problem, sol, helper_structure)
+		elif neighbourfunc_id == 5:
+			new_sol = alter_solution_regretk(problem, sol.copy(), helper_structure)
+		elif neighbourfunc_id == 6:
+			new_sol = alter_solution_greedy_insert(problem, sol.copy(), helper_structure)
+		elif neighbourfunc_id == 7:
+			new_sol = alter_solution_greedy_insert_one_vehicle(problem, sol, helper_structure)
+		elif neighbourfunc_id == 8:
+			new_sol = alter_solution_placeholder5(problem, sol, helper_structure)
+		elif neighbourfunc_id == 9:
+			new_sol = alter_solution_greedy_insert_remove_highest_cost(problem, sol.copy(), helper_structure)
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
 		if feasiblity:
@@ -1013,14 +1033,15 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		w += 1
 		#print(f"{best_sol}, nbfunc: {neighbourfunc_id}, {changed}")
 	arr = dict()
+	#delta_w = [val for val in delta_w if val != 0]
 	delta_avg = sum(delta_w)/len(delta_w)
-	print(f"delta_avg: {delta_avg}")
-	print(f"delta_w: {delta_w}")
+	#print(f"delta_avg: {delta_avg}")
+	#print(f"delta_w: {delta_w}")
 
 	t_0 = (-delta_avg)/math.log(0.8)
-	print(f"t_0={t_0}, t_f={t_f}, num_it: {num_of_iterations}, w: {w}")
+	#print(f"t_0={t_0}, t_f={t_f}, num_it: {num_of_iterations}, w: {w}")
 	alpha = (t_f/t_0) ** (1/(num_of_iterations-w))
-	print(f"Alpha: {alpha}")
+	#print(f"Alpha: {alpha}")
 	t = t_0
 
 	for i in range(num_of_iterations-w):
@@ -1044,9 +1065,9 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 			new_sol = alter_solution_placeholder5(problem, inc_sol, helper_structure)
 		elif neighbourfunc_id == 9:
 			new_sol = alter_solution_greedy_insert_remove_highest_cost(problem, inc_sol.copy(), helper_structure)
-
+		print(new_sol)
 		feasiblity, _ = feasibility_check(new_sol, problem)
-		changed = False
+
 		if feasiblity:
 			new_cost = cost_function(new_sol, problem)
 			delta_e = new_cost - inc_cost
@@ -1057,19 +1078,18 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 				if inc_cost < best_cost:
 					best_sol = inc_sol
 					best_cost = inc_cost
-					changed = True
+
 			else:
 				p = math.e ** (-delta_e/t)
-				#print(p, delta_e, t)
 				if random() < p:
 					inc_sol = new_sol
 					inc_cost = new_cost
-					arr[i] = (math.e ** (-delta_e/t))
+					arr[i] = p
 		#print(f"{best_sol}, nbfunc: {neighbourfunc_id}, {changed}")
 		#print(f"t: {t}, alpha: {alpha}")
 		t = alpha * t
 
-	print(arr)
+	#print(arr)
 	improvement = round(100*(orig_cost-best_cost)/orig_cost, 2)
 	logging.debug(f"Original cost: {orig_cost}")
 	logging.debug(f"New cost: {best_cost}")
