@@ -827,3 +827,17 @@ def cost_helper(solution: list(), problem: dict(), vehicle_num: int):
 		logging.debug(f"Total costs: {total_cost}")
 		return total_cost
 
+def remove_random_call(solution: list(), problem: dict()):
+	pass
+
+def remove_highest_cost_call(solution: list(), problem: dict()):
+	pass
+
+def remove_dummy_call(solution: list(), problem: dict()):
+	pass
+
+def insert_regretk(solution: list(), problem: dict()):
+	pass
+
+def insert_greedy(solution: list(), problem: dict()):
+	pass

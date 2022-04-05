@@ -293,6 +293,12 @@ def alter_solution_3exchange(problem: dict(), current_solution: List[int]) -> Li
 	
 	return new_sol
 
+def alter_solution_4placeholdername(problem: dict(), current_solution: List[int]) -> List[int]:
+	pass
+
+def alter_solution_5placeholdername(problem: dict(), current_solution: List[int]) -> List[int]:
+	pass
+
 def local_search(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [1,2,3]):
 	""" Local loops n-times over the neighbours of the currently best solution
 		If the randomly chosen neighbour is better than the current one, and its feasible,
@@ -436,6 +442,10 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 			new_sol = alter_solution_2exchange(problem, inc_sol)
 		elif neighbourfunc_id == 3:
 			new_sol = alter_solution_3exchange(problem, inc_sol)
+		elif neighbourfunc_id == 4:
+			new_sol = alter_solution_4placeholdername(problem, inc_sol)
+		elif neighbourfunc_id == 5:
+			new_sol = alter_solution_5placeholdername(problem, inc_sol)
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
 
@@ -471,6 +481,10 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 			new_sol = alter_solution_2exchange(problem, inc_sol)
 		elif neighbourfunc_id == 3:
 			new_sol = alter_solution_3exchange(problem, inc_sol)
+		elif neighbourfunc_id == 4:
+			new_sol = alter_solution_4placeholdername(problem, inc_sol)
+		elif neighbourfunc_id == 5:
+			new_sol = alter_solution_5placeholdername(problem, inc_sol)
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
 
