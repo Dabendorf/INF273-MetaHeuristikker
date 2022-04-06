@@ -19,11 +19,15 @@ def main():
 		sol_a = [[], [6,7,7,6], [1,2,3,2,3,1], [], [4,4,5,5]]
 		sol_b = [[4, 4, 7, 7], [2, 2] , [1, 5, 5, 3, 3, 1], [6, 6]]
 
-		print(remove_random_call(init_sol, prob, 2))
+		"""print(remove_random_call(init_sol, prob, 2))
 		print(remove_dummy_call(init_sol, prob, 2))
 		print(remove_random_call(sol_a, prob, 2))
 		print(remove_dummy_call(sol_a, prob, 2))
 		print(remove_random_call(sol_b, prob, 2))
-		print(remove_dummy_call(sol_b, prob, 2))
+		print(remove_dummy_call(sol_b, prob, 2))"""
+
+		print(remove_highest_cost_call(init_sol, prob, 2))
+		print(remove_highest_cost_call(sol_a, prob, 2))
+		print(remove_highest_cost_call(sol_b, prob, 2))
 if __name__ == "__main__":
 	main()

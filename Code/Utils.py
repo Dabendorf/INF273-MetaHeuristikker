@@ -837,10 +837,44 @@ def remove_random_call(solution: list(), problem: dict(), number_to_remove: int)
 
 	new_solution = [[x for x in inner if x not in to_remove] for inner in solution]
 
+	logging.debug(f"new solution: {new_solution}, removed: {to_remove}; Remove {number_to_remove} random calls")
 	return new_solution, to_remove
 
-def remove_highest_cost_call(solution: list(), problem: dict()):
-	pass
+def remove_highest_cost_call(solution: list(), problem: dict(), number_to_remove: int):
+	""" Removes the n highest cost calls (not from dummy)
+		Its not always taking out the highest cost, but giving those a higher probability (diversification)
+		Returns: (new solution, list of removed calls) """
+	
+	cost_of_removal_dict = dict()
+	lookup_which_vehicle = dict()
+
+	all_but_dummy = solution[:-1]
+
+	for veh_idx, veh in enumerate(all_but_dummy):
+		if len(veh) > 0:
+			init_cost = cost_helper(veh, problem, veh_idx+1)
+			calls_in_vehicle = set(veh)
+			
+			for call in calls_in_vehicle:
+				cost_without_call = cost_helper([x for x in veh if x != call], problem, veh_idx+1)
+				cost_of_removal_dict[call] = init_cost-cost_without_call
+				lookup_which_vehicle[call] = veh_idx+1
+	
+	highest_cost_calls = sorted(cost_of_removal_dict, key=cost_of_removal_dict.get, reverse=True)
+	len_calls = len(highest_cost_calls)
+
+	if len_calls > 0:
+		number_to_remove = min(len_calls, number_to_remove)
+
+		probs = [0.5**(x+1) for x in range(len_calls)]
+		to_remove = set(choices(highest_cost_calls,k=number_to_remove,weights=probs))
+
+		new_solution = [[x for x in inner if x not in to_remove] for inner in solution]
+
+		logging.debug(f"new solution: {new_solution}, removed: {to_remove}; Remove {number_to_remove} random calls")
+		return new_solution, to_remove
+	else:
+		return remove_dummy_call(solution, problem, number_to_remove)
 
 def remove_dummy_call(solution: list(), problem: dict(), number_to_remove: int):
 	""" Removes n calls from the call list, but only from the dummy
@@ -854,10 +888,11 @@ def remove_dummy_call(solution: list(), problem: dict(), number_to_remove: int):
 
 	solution[-1] = [x for x in solution[-1] if x not in to_remove]
 
+	logging.debug(f"new solution: {solution}, removed: {to_remove}; Remove {number_to_remove} dummy calls")
 	return solution, to_remove
 
-def insert_regretk(solution: list(), problem: dict()):
+def insert_regretk(solution: list(), problem: dict(), calls_to_insert: List[int]):
 	pass
 
-def insert_greedy(solution: list(), problem: dict()):
+def insert_greedy(solution: list(), problem: dict(), calls_to_insert: List[int]):
 	pass
