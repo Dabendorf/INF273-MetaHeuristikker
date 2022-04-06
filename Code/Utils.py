@@ -5,7 +5,7 @@ import logging
 import random
 from timeit import default_timer as timer
 from itertools import chain
-from random import random
+from random import random, sample, choices
 
 logger = logging.getLogger(__name__)
 
@@ -827,14 +827,34 @@ def cost_helper(solution: list(), problem: dict(), vehicle_num: int):
 		logging.debug(f"Total costs: {total_cost}")
 		return total_cost
 
-def remove_random_call(solution: list(), problem: dict()):
-	pass
+def remove_random_call(solution: list(), problem: dict(), number_to_remove: int):
+	""" Removes n calls from the call list
+		Returns: (new solution, list of removed calls) """
+
+	num_calls = problem["num_calls"]
+
+	to_remove = set(sample(range(1, num_calls), number_to_remove))
+
+	new_solution = [[x for x in inner if x not in to_remove] for inner in solution]
+
+	return new_solution, to_remove
 
 def remove_highest_cost_call(solution: list(), problem: dict()):
 	pass
 
-def remove_dummy_call(solution: list(), problem: dict()):
-	pass
+def remove_dummy_call(solution: list(), problem: dict(), number_to_remove: int):
+	""" Removes n calls from the call list, but only from the dummy
+		Returns: (new solution, list of removed calls) """
+
+	calls_in_dummy = set(solution[-1])
+	num_calls_in_dummy = len(calls_in_dummy)
+	number_to_remove = min(num_calls_in_dummy, number_to_remove)
+
+	to_remove = set(sample(calls_in_dummy, number_to_remove))
+
+	solution[-1] = [x for x in solution[-1] if x not in to_remove]
+
+	return solution, to_remove
 
 def insert_regretk(solution: list(), problem: dict()):
 	pass
