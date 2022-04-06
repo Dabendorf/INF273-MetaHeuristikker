@@ -6,6 +6,7 @@ import random
 from timeit import default_timer as timer
 from itertools import chain
 from random import random, sample, choices
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -115,6 +116,10 @@ def load_problem(filename: str):
 	# call_info			2D-List with [idx, origin_node, dest_node, size, cost_of_not_transporting, earliest_pickup_time, latest_pickup_time, earliest_delivery_time, latest_delivery_time]	Call information
 	# vehicle_calls		dict[idx] = set(call_numbers)	Dictionary of set of calls per vehicle
 
+	# Random probabilities
+	lam = 0.2
+	probabilities =  [math.e**(-lam*(x))-math.e**(-lam*(x+1)) for x in range(num_calls)]
+
 	logger.debug(f"Converting input data: Finish")
 	# return output as a dictionary
 	output = {
@@ -126,6 +131,7 @@ def load_problem(filename: str):
 		"vehicle_info": vehicle_info,
 		"call_info": call_info,
 		"vehicle_calls": vehicle_calls,
+		"prob": probabilities,
 	}
 
 	return output
@@ -845,6 +851,8 @@ def remove_highest_cost_call(solution: list(), problem: dict(), number_to_remove
 		Its not always taking out the highest cost, but giving those a higher probability (diversification)
 		Returns: (new solution, list of removed calls) """
 	
+	probs = problem["prob"]
+
 	cost_of_removal_dict = dict()
 	lookup_which_vehicle = dict()
 
@@ -866,8 +874,10 @@ def remove_highest_cost_call(solution: list(), problem: dict(), number_to_remove
 	if len_calls > 0:
 		number_to_remove = min(len_calls, number_to_remove)
 
-		probs = [0.5**(x+1) for x in range(len_calls)]
-		to_remove = set(choices(highest_cost_calls,k=number_to_remove,weights=probs))
+		probs = probs[:len_calls]
+		weights = [w/sum(probs) for w in probs]
+
+		to_remove = set(np.random.choice(highest_cost_calls, size=number_to_remove, replace=False, p=weights))
 
 		new_solution = [[x for x in inner if x not in to_remove] for inner in solution]
 
