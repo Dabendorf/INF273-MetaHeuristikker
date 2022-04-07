@@ -1015,7 +1015,7 @@ def insert_greedy(solution: list(), problem: dict(), calls_to_insert: List[int])
 	output_sol = solution.copy()
 	for call_num in calls_to_insert:
 		call_solution = output_sol.copy()
-		print(f"New call to insert: {call_num}, current solution: {call_solution}")
+		#print(f"New call to insert: {call_num}, current solution: {call_solution}")
 		# Search for all vehicles which can take that call
 		#  and veh_to_remove != (veh_idx+1)
 		vehicles_insertable = [(veh_idx+1) for veh_idx in range(num_vehicles) if (call_num) in vehicle_calls[veh_idx+1]]
@@ -1027,7 +1027,7 @@ def insert_greedy(solution: list(), problem: dict(), calls_to_insert: List[int])
 		for veh_num in vehicles_insertable:
 			orig_sol_one_veh = call_solution[veh_num-1]
 			temp_sol_one_veh, successful = greedy_insert_one_call_one_vehicle(orig_sol_one_veh, problem, call_num, veh_num)
-			print(f"Try insert {call_num} in {veh_num}: {temp_sol_one_veh}, {successful}")
+			#print(f"Try insert {call_num} in {veh_num}: {temp_sol_one_veh}, {successful}")
 
 			if orig_sol_one_veh != temp_sol_one_veh and successful:
 				success_once = True
@@ -1067,7 +1067,7 @@ def greedy_insert_one_call_one_vehicle(vehicle_solution: List[List[int]], proble
 		vehicle_solution.insert(call_to_insert)
 		vehicle_solution.insert(call_to_insert)
 	else:
-		print(f"Start greedy one insert call {call_to_insert}, vehicle: {vehicle_to_insert}")
+		#print(f"Start greedy one insert call {call_to_insert}, vehicle: {vehicle_to_insert}")
 		# Each call must be placed to times, so there are for loops for both of them
 		continue_outer_search = True
 		for insert_idx_1 in range(len_call_list+1):
@@ -1078,14 +1078,14 @@ def greedy_insert_one_call_one_vehicle(vehicle_solution: List[List[int]], proble
 			temp_call_list_1.insert(insert_idx_1, call_to_insert)
 			is_feas_1, reason_not_feas_1 = feasibility_helper(temp_call_list_1, problem, vehicle_to_insert, call_num_to_check=call_to_insert)
 
-			print(f"ind1: {insert_idx_1}, success: {is_feas_1}, {reason_not_feas_1}")
-			if is_feas_1:
+			#print(f"ind1: {insert_idx_1}, success: {is_feas_1}, {reason_not_feas_1}, {temp_call_list_1}")
+			if is_feas_1 or reason_not_feas_1 == ReasonNotFeasible.vehicle_overloaded:
 				for insert_idx_2 in range(insert_idx_1, len_call_list+2):
 					temp_call_list_2 = temp_call_list_1.copy()
 					temp_call_list_2.insert(insert_idx_2, call_to_insert)
 
 					is_feas_2, reason_not_feas_2 = feasibility_helper(temp_call_list_2, problem, vehicle_to_insert, call_num_to_check=call_to_insert)
-					print(f"ind2: {insert_idx_2}, success: {is_feas_2}, {reason_not_feas_2}, {temp_call_list_2}")
+					#print(f"ind2: {insert_idx_2}, success: {is_feas_2}, {reason_not_feas_2}, {temp_call_list_2}")
 					if is_feas_2:
 						new_cost = cost_helper_transport_only(temp_call_list_2, problem, vehicle_to_insert)
 
