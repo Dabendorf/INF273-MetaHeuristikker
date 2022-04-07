@@ -999,9 +999,46 @@ def insert_regretk(solution: List[List[int]], problem: dict(), calls_to_insert: 
 	logging.debug(f"Start regret {k}")
 
 	num_vehicles = problem["num_vehicles"]
-	vehicle_calls = problem["vehicle_calls"]
 
-	pass
+	dict_best_positions = defaultdict(lambda: [])
+
+	for call_num in calls_to_insert:
+		for veh_idx in range(num_vehicles):
+			extend_list = helper_regretk_insert_one_call_one_vehicle(solution[veh_idx], problem, call_num, veh_idx+1)
+			dict_best_positions[call_num].extend(extend_list[call_num])
+
+	print(dict(dict_best_positions))
+
+	regret_values = dict()
+	where_to_insert = dict()
+	for key, val in dict_best_positions.items():
+		sorted_values = sorted(val)
+
+		#print(sorted_values)
+		if len(sorted_values) > 0:
+			if len(sorted_values) < k:
+				# k value does not exist
+				regret_values[key] = float("inf")
+			else:
+				regret_values[key] = sorted_values[k-1][0] - sorted_values[0][0]
+				# k value exists
+			where_to_insert[key] = sorted_values[0][1]
+
+	print(regret_values)
+	insertion_order = sorted(regret_values, key=regret_values.get, reverse=True)
+	print(insertion_order)
+	print(where_to_insert)
+	
+	for call_num in insertion_order:
+		veh_num = where_to_insert[call_num]
+		call_list_for_one_veh, successful = greedy_insert_one_call_one_vehicle(solution[veh_num-1], problem, call_num, veh_num)
+		if not successful:
+			solution[-1].append(call_num)
+			solution[-1].append(call_num)
+		else:
+			solution[veh_num-1] = call_list_for_one_veh
+
+	return solution
 
 def insert_greedy(solution: List[List[int]], problem: dict(), calls_to_insert: List[int]):
 	""" It takes n calls and inserts each of them greedy
@@ -1016,7 +1053,6 @@ def insert_greedy(solution: List[List[int]], problem: dict(), calls_to_insert: L
 
 	num_vehicles = problem["num_vehicles"]
 	vehicle_calls = problem["vehicle_calls"]
-
 	
 	output_sol = solution.copy()
 	for call_num in calls_to_insert:
@@ -1106,6 +1142,55 @@ def greedy_insert_one_call_one_vehicle(vehicle_solution: List[List[int]], proble
 				continue_outer_search = False
 
 	return output_sol, True if best_cost != float("inf") else False
+
+def helper_regretk_insert_one_call_one_vehicle(vehicle_solution: List[List[int]], problem: dict(), call_to_insert: List[int], vehicle_to_insert: List[int]):
+	""" It takes one call and one vehicle and returns the cost differences for each valid position
+		It is similar to the greedy-insert_helper
+
+		:param vehicle_solution: The original solution of that vehicle
+		:param problem: The problem representation
+		:param call_to_insert: The call num to insert [1, num_calls]
+		:param vehicle_to_insert: The vehicle num to insert [1, num_vehicles]
+
+		return: The new solution
+	"""
+
+	logging.debug(f"Start insert greedy for one vehicle")
+	
+	len_call_list = len(vehicle_solution)
+
+	dict_best_positions = defaultdict(lambda: [])
+	orig_cost = cost_helper_transport_only(vehicle_solution, problem, vehicle_to_insert)
+
+	continue_outer_search = True
+	for insert_idx_1 in range(len_call_list+1):
+		if not continue_outer_search:
+			break
+
+		temp_call_list_1 = vehicle_solution.copy()
+		temp_call_list_1.insert(insert_idx_1, call_to_insert)
+		is_feas_1, reason_not_feas_1 = feasibility_helper(temp_call_list_1, problem, vehicle_to_insert, call_num_to_check=call_to_insert)
+
+		#print(f"ind1: {insert_idx_1}, success: {is_feas_1}, {reason_not_feas_1}, {temp_call_list_1}")
+		if is_feas_1 or reason_not_feas_1 == ReasonNotFeasible.vehicle_overloaded:
+			for insert_idx_2 in range(insert_idx_1+1, len_call_list+2):
+				temp_call_list_2 = temp_call_list_1.copy()
+				temp_call_list_2.insert(insert_idx_2, call_to_insert)
+
+				is_feas_2, reason_not_feas_2 = feasibility_helper(temp_call_list_2, problem, vehicle_to_insert, call_num_to_check=call_to_insert)
+				#print(f"ind2: {insert_idx_2}, success: {is_feas_2}, {reason_not_feas_2}, {temp_call_list_2}")
+				if is_feas_2:
+					new_cost = cost_helper_transport_only(temp_call_list_2, problem, vehicle_to_insert)
+
+					dict_best_positions[call_to_insert].append((new_cost-orig_cost, vehicle_to_insert))
+					#print(call_to_insert, vehicle_to_insert, new_cost-orig_cost, temp_call_list_2)
+				elif reason_not_feas_2 == ReasonNotFeasible.time_window_wrong_specific:
+					break
+
+		elif reason_not_feas_1 == ReasonNotFeasible.time_window_wrong_specific:
+			continue_outer_search = False
+
+	return dict_best_positions
 
 def insert_back_to_dummy(solution: List[List[int]], problem: dict(), calls_to_insert: List[int]):
 	""" It takes n calls back into the dummy

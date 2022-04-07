@@ -27,20 +27,30 @@ def main():
 		print(remove_random_call(sol_b, prob, 2))
 		print(remove_dummy_call(sol_b, prob, 2))"""
 
-		print(f"===============\nOriginal:\n{init_sol}")
+		"""print(f"===============\nOriginal:\n{init_sol}")
 		new_sol, calls_removed = remove_highest_cost_call(init_sol, prob, 2)
 		output_sol = insert_greedy(new_sol, prob, calls_removed)
-		print(output_sol, len(solution_to_ahmed_output(output_sol)), calls_removed)
+		print(output_sol, len(solution_to_ahmed_output(output_sol)), calls_removed)"""
 
 		"""print(f"===============\nOriginal:\n{sol_a}")
 		new_sol, calls_removed = remove_highest_cost_call(sol_a, prob, 2)
 		output_sol = insert_greedy(new_sol, prob, calls_removed)
 		print(output_sol, len(solution_to_ahmed_output(output_sol)))"""
 
-		print(f"===============\nOriginal:\n{sol_b}")
+		"""print(f"===============\nOriginal:\n{sol_b}")
 		new_sol, calls_removed = remove_highest_cost_call(sol_b, prob, 2)
 		output_sol = insert_greedy(new_sol, prob, calls_removed)
-		print(output_sol, len(solution_to_ahmed_output(output_sol)), calls_removed)
+		print(output_sol, len(solution_to_ahmed_output(output_sol)), calls_removed)"""
+
+		print(f"===============\nOriginal:\n{init_sol}")
+		new_sol, calls_removed = remove_highest_cost_call(init_sol, prob, 2)
+		output_sol = insert_regretk(new_sol, prob, calls_removed, 2)
+		print(output_sol, calls_removed)
+
+		print(f"===============\nOriginal:\n{sol_b}")
+		new_sol, calls_removed = remove_highest_cost_call(sol_b, prob, 2)
+		output_sol = insert_regretk(new_sol, prob, calls_removed, 2)
+		print(output_sol, calls_removed)
 		
 if __name__ == "__main__":
 	main()
