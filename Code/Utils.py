@@ -12,6 +12,7 @@ class ReasonNotFeasible(Enum):
 	call_in_vehicle_not_allowed = 1
 	vehicle_overloaded = 2
 	time_window_wrong = 3
+	time_window_wrong_specific = 4
 
 logger = logging.getLogger(__name__)
 
@@ -649,13 +650,14 @@ def merge_vehice_lists(splitted_solution: list()):
 	
 	return overall_list[:-1]
 
-def feasibility_helper(solution: list(), problem: dict(), vehicle_num: int):
+def feasibility_helper(solution: list(), problem: dict(), vehicle_num: int, call_num_to_check=None):
 	""" This is a helper function which checks if the solution for one specific vehicle is feasible or not
 	It is a shorter version of the long feasibility function
 
 	:param solution: The input solution of order of calls for one vehicle
 	:param problem: The pickup and delivery problem dictionary
 	:param vehicle_num: Exact vehicle_num between [1, num_vehicles]
+	:param call_num_to_check: Optional, if set, checks if this specific call is reason for wrong time window
 	:return: whether the solution is feasible and the reason for probable infeasibility
 	"""
 	logging.debug(f"Start helper feasibility function")
@@ -735,6 +737,10 @@ def feasibility_helper(solution: list(), problem: dict(), vehicle_num: int):
 				if curr_time > upper_del:
 					logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} came too late")
 					reason_not_feasible = ReasonNotFeasible.time_window_wrong
+					if call_num_to_check != None:
+						if veh_ind+1 == call_num_to_check:
+							reason_not_feasible = ReasonNotFeasible.time_window_wrong_specific
+
 					curr_time -= next_travel_time
 					return (True if reason_not_feasible == "" else False), reason_not_feasible
 				if curr_time < lower_del:
@@ -752,6 +758,10 @@ def feasibility_helper(solution: list(), problem: dict(), vehicle_num: int):
 				if curr_time > upper_pickup:
 					logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} came too late")
 					reason_not_feasible = ReasonNotFeasible.time_window_wrong
+					if call_num_to_check != None:
+						if veh_ind+1 == call_num_to_check:
+							reason_not_feasible = ReasonNotFeasible.time_window_wrong_specific
+
 					curr_time -= next_travel_time
 					return (True if reason_not_feasible == "" else False), reason_not_feasible
 				if curr_time < lower_pickup:
@@ -992,53 +1002,101 @@ def insert_greedy(solution: list(), problem: dict(), calls_to_insert: List[int])
 		:param solution: The original full solution array
 		:param problem: The problem representation
 		:param calls_to_insert: A set of all calls to be inserted
-		:param k: The regret value
 
 		return: The new solution
 	"""
-	pass
+
+	logging.debug(f"Start insert greedy")
+
+	num_vehicles = problem["num_vehicles"]
+	vehicle_calls = problem["vehicle_calls"]
+
+	
+	output_sol = solution.copy()
+	for call_num in calls_to_insert:
+		call_solution = output_sol.copy()
+		print(f"New call to insert: {call_num}, current solution: {call_solution}")
+		# Search for all vehicles which can take that call
+		#  and veh_to_remove != (veh_idx+1)
+		vehicles_insertable = [(veh_idx+1) for veh_idx in range(num_vehicles) if (call_num) in vehicle_calls[veh_idx+1]]
+		#print(f"call_num: {call_num}, allowed_veh: {vehicles_insertable}")
+
+		best_cost = float("inf")
+		success_once = False
+
+		for veh_num in vehicles_insertable:
+			orig_sol_one_veh = call_solution[veh_num-1]
+			temp_sol_one_veh, successful = greedy_insert_one_call_one_vehicle(orig_sol_one_veh, problem, call_num, veh_num)
+			print(f"Try insert {call_num} in {veh_num}: {temp_sol_one_veh}, {successful}")
+
+			if orig_sol_one_veh != temp_sol_one_veh and successful:
+				success_once = True
+				temp_sol = call_solution.copy()
+				temp_sol[veh_num-1] = temp_sol_one_veh
+				temp_cost = cost_function(temp_sol, problem)
+				if temp_cost < best_cost:
+					call_solution = temp_sol.copy()
+					best_cost = temp_cost
+		output_sol = call_solution
+		if not success_once:
+			output_sol[-1].insert(0, call_num)
+			output_sol[-1].insert(0, call_num)
+	
+	return output_sol
 
 def greedy_insert_one_call_one_vehicle(vehicle_solution: List[List[int]], problem: dict(), call_to_insert: List[int], vehicle_to_insert: List[int]):
 	""" It takes one call and one vehicle and inserts it greedily
 		:param vehicle_solution: The original solution of that vehicle
 		:param problem: The problem representation
-		:param call_to_insert:  The call num to insert [1, num_calls]
+		:param call_to_insert: The call num to insert [1, num_calls]
 		:param vehicle_to_insert: The vehicle num to insert [1, num_vehicles]
 
 		return: The new solution
 	"""
+
+	logging.debug(f"Start insert greedy for one vehicle")
+
+	num_vehicles = problem["num_vehicles"]
 	
 	len_call_list = len(vehicle_solution)
 	best_cost = float("inf")
 	output_sol = vehicle_solution.copy()
 
-	continue_outer_search = True
-	for insert_idx_1 in range(len_call_list+1):
-		if not continue_outer_search:
-			break
+	# if dummy, just insert it
+	if vehicle_to_insert > num_vehicles:
+		vehicle_solution.insert(call_to_insert)
+		vehicle_solution.insert(call_to_insert)
+	else:
+		print(f"Start greedy one insert call {call_to_insert}, vehicle: {vehicle_to_insert}")
+		# Each call must be placed to times, so there are for loops for both of them
+		continue_outer_search = True
+		for insert_idx_1 in range(len_call_list+1):
+			if not continue_outer_search:
+				break
 
-		temp_call_list_1 = vehicle_solution.copy()
-		temp_call_list_1.insert(insert_idx_1, call_to_insert)
-		is_feas_1, reason_not_feas_1 = feasibility_helper(temp_call_list_1, problem, vehicle_to_insert)
+			temp_call_list_1 = vehicle_solution.copy()
+			temp_call_list_1.insert(insert_idx_1, call_to_insert)
+			is_feas_1, reason_not_feas_1 = feasibility_helper(temp_call_list_1, problem, vehicle_to_insert, call_num_to_check=call_to_insert)
 
-		if is_feas_1:
-			for insert_idx_2 in range(insert_idx_1, len_call_list+2):
-				temp_call_list_2 = temp_call_list_1.copy()
-				temp_call_list_2.insert(insert_idx_2, call_to_insert)
+			print(f"ind1: {insert_idx_1}, success: {is_feas_1}, {reason_not_feas_1}")
+			if is_feas_1:
+				for insert_idx_2 in range(insert_idx_1, len_call_list+2):
+					temp_call_list_2 = temp_call_list_1.copy()
+					temp_call_list_2.insert(insert_idx_2, call_to_insert)
 
-				is_feas_2, reason_not_feas_2 = feasibility_helper(temp_call_list_2, problem, vehicle_to_insert)
+					is_feas_2, reason_not_feas_2 = feasibility_helper(temp_call_list_2, problem, vehicle_to_insert, call_num_to_check=call_to_insert)
+					print(f"ind2: {insert_idx_2}, success: {is_feas_2}, {reason_not_feas_2}, {temp_call_list_2}")
+					if is_feas_2:
+						new_cost = cost_helper_transport_only(temp_call_list_2, problem, vehicle_to_insert)
 
-				if is_feas_2:
-					new_cost = cost_helper_transport_only(temp_call_list_2, problem, vehicle_to_insert)
+						if new_cost < best_cost:
+							if random() < 0.8 or best_cost == float("inf"):
+								best_cost = new_cost
+								output_sol = temp_call_list_2
+					elif reason_not_feas_2 == ReasonNotFeasible.time_window_wrong_specific:
+						break
 
-					if new_cost < best_cost:
-						if random() < 0.8 or best_cost == float("inf"):
-							best_cost = new_cost
-							output_sol = temp_call_list_2
-				elif reason_not_feas_2 == ReasonNotFeasible.time_window_wrong:
-					break
+			elif reason_not_feas_1 == ReasonNotFeasible.time_window_wrong_specific:
+				continue_outer_search = False
 
-		elif reason_not_feas_1 == ReasonNotFeasible.time_window_wrong:
-			continue_outer_search = False
-
-	return output_sol
+	return output_sol, True if best_cost != float("inf") else False

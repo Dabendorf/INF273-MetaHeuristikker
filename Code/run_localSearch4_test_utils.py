@@ -17,7 +17,7 @@ def main():
 	for tf in test_files:
 		prob = load_problem(tf)
 		init_sol = initial_solution(problem=prob)
-		sol_a = [[], [6,7,7,6], [1,2,3,2,3,1], [], [4,4,5,5]]
+		#sol_a = [[], [6,7,7,6], [1,2,3,2,3,1], [4,4,5,5]]
 		sol_b = [[4, 4, 7, 7], [2, 2] , [1, 5, 5, 3, 3, 1], [6, 6]]
 
 		"""print(remove_random_call(init_sol, prob, 2))
@@ -27,8 +27,20 @@ def main():
 		print(remove_random_call(sol_b, prob, 2))
 		print(remove_dummy_call(sol_b, prob, 2))"""
 
-		print(remove_highest_cost_call(init_sol, prob, 2))
-		print(remove_highest_cost_call(sol_a, prob, 2))
-		print(remove_highest_cost_call(sol_b, prob, 2))
+		print(f"===============\nOriginal:\n{init_sol}")
+		new_sol, calls_removed = remove_highest_cost_call(init_sol, prob, 2)
+		output_sol = insert_greedy(new_sol, prob, calls_removed)
+		print(output_sol, len(solution_to_ahmed_output(output_sol)), calls_removed)
+
+		"""print(f"===============\nOriginal:\n{sol_a}")
+		new_sol, calls_removed = remove_highest_cost_call(sol_a, prob, 2)
+		output_sol = insert_greedy(new_sol, prob, calls_removed)
+		print(output_sol, len(solution_to_ahmed_output(output_sol)))"""
+
+		print(f"===============\nOriginal:\n{sol_b}")
+		new_sol, calls_removed = remove_highest_cost_call(sol_b, prob, 2)
+		output_sol = insert_greedy(new_sol, prob, calls_removed)
+		print(output_sol, len(solution_to_ahmed_output(output_sol)), calls_removed)
+		
 if __name__ == "__main__":
 	main()
