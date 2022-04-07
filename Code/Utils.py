@@ -4,7 +4,6 @@ from collections import defaultdict
 import logging
 import random
 from timeit import default_timer as timer
-from itertools import chain
 from random import random, sample, choices
 import math
 
@@ -769,7 +768,7 @@ def cost_helper(solution: list(), problem: dict(), vehicle_num: int):
 	:param vehicle_num: Exact vehicle_num between [1, num_vehicles]
 	:return: Integer with costs
 	"""
-	logging.debug(f"Start cost functionh helper for vehicle {vehicle_num}")
+	logging.debug(f"Start cost function helper for vehicle {vehicle_num}")
 	logging.debug(f"Solution: {solution}")
 	logging.debug(f"Problem keys: {problem.keys()}")
 
@@ -833,6 +832,69 @@ def cost_helper(solution: list(), problem: dict(), vehicle_num: int):
 		logging.debug(f"Total costs: {total_cost}")
 		return total_cost
 
+def cost_helper_transport_only(solution: list(), problem: dict(), vehicle_num: int):
+	"""
+	Function calculates the transport cost (not to confuse with time) of a vehicle
+	It ignores node and "not transport" cost
+
+	:param solution: the proposed solution for the order of calls in one vehicle
+	:param problem: dictionary of problem data
+	:param vehicle_num: Exact vehicle_num between [1, num_vehicles]
+	:return: Integer with costs
+	"""
+	logging.debug(f"Start cost function helper for vehicle {vehicle_num}")
+	logging.debug(f"Solution: {solution}")
+
+	call_info = problem["call_info"]
+	travel_cost_dict = problem["travel_time_cost"]
+	node_cost_dict = problem["node_time_cost"]
+	vehicle_info = problem["vehicle_info"]
+	num_vehicles = problem["num_vehicles"]
+
+	sum_travel_cost = 0
+
+	if vehicle_num > num_vehicles:
+		not_transport_cost = 0
+		dummy_list = set(solution)
+
+		for not_vis in dummy_list:
+			not_transport_cost += call_info[not_vis-1][4]
+		return not_transport_cost
+	else:
+		# Loop for costs of nodes and transport
+		veh_ind = vehicle_num-1
+		l = solution
+
+		# Transport (edges)
+		length_list = len(l)
+		if length_list > 0:
+			calls_visited = set()
+			home_node = vehicle_info[veh_ind][1]
+			call_numb = l[0]-1
+			calls_visited.add(call_numb)
+			ci = call_info[call_numb]
+			start_node = ci[1]
+
+			sum_travel_cost += travel_cost_dict[(veh_ind+1, home_node, start_node)][1]
+			
+			for i in range(1, length_list):
+				call_numb = l[i]-1
+				if call_numb in calls_visited:
+					calls_visited.remove(call_numb)
+					ci = call_info[call_numb]
+					goal_node = ci[2]
+				else:
+					calls_visited.add(call_numb)
+					ci = call_info[call_numb]
+					goal_node = ci[1]
+				sum_travel_cost += travel_cost_dict[(veh_ind+1, start_node, goal_node)][1]
+				start_node = goal_node
+
+		logging.debug(f"Cost of travel: {sum_travel_cost}")
+
+		logging.debug(f"Total costs: {sum_travel_cost}")
+		return sum_travel_cost
+
 def remove_random_call(solution: list(), problem: dict(), number_to_remove: int):
 	""" Removes n calls from the call list
 		Returns: (new solution, list of removed calls) """
@@ -856,13 +918,16 @@ def remove_highest_cost_call(solution: list(), problem: dict(), number_to_remove
 	cost_of_removal_dict = dict()
 	lookup_which_vehicle = dict()
 
+	# Remove dummy
 	all_but_dummy = solution[:-1]
 
+	# Go through all vehicles having calls
 	for veh_idx, veh in enumerate(all_but_dummy):
 		if len(veh) > 0:
 			init_cost = cost_helper(veh, problem, veh_idx+1)
 			calls_in_vehicle = set(veh)
 			
+			# Go through all calls and find difference between vehicle with and without that call
 			for call in calls_in_vehicle:
 				cost_without_call = cost_helper([x for x in veh if x != call], problem, veh_idx+1)
 				cost_of_removal_dict[call] = init_cost-cost_without_call
@@ -875,8 +940,10 @@ def remove_highest_cost_call(solution: list(), problem: dict(), number_to_remove
 		number_to_remove = min(len_calls, number_to_remove)
 
 		probs = probs[:len_calls]
+		# Normalise the weights to sum to 1
 		weights = [w/sum(probs) for w in probs]
 
+		# Random choice based on exponential probability
 		to_remove = set(np.random.choice(highest_cost_calls, size=number_to_remove, replace=False, p=weights))
 
 		new_solution = [[x for x in inner if x not in to_remove] for inner in solution]
@@ -884,6 +951,7 @@ def remove_highest_cost_call(solution: list(), problem: dict(), number_to_remove
 		logging.debug(f"new solution: {new_solution}, removed: {to_remove}; Remove {number_to_remove} random calls")
 		return new_solution, to_remove
 	else:
+		# Return dummy if there are no calls (only initial solution)
 		return remove_dummy_call(solution, problem, number_to_remove)
 
 def remove_dummy_call(solution: list(), problem: dict(), number_to_remove: int):

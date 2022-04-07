@@ -1,6 +1,5 @@
 from Heuristics import *
 from Utils import *
-import numpy as np
 
 import logging
 
