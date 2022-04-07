@@ -969,8 +969,37 @@ def remove_dummy_call(solution: list(), problem: dict(), number_to_remove: int):
 	logging.debug(f"new solution: {solution}, removed: {to_remove}; Remove {number_to_remove} dummy calls")
 	return solution, to_remove
 
-def insert_regretk(solution: list(), problem: dict(), calls_to_insert: List[int]):
+def insert_regretk(solution: List[List[int]], problem: dict(), calls_to_insert: List[int], k: int) -> List[List[int]]:
+	""" It takes n calls and looks for its best k insertion positions
+		It then puts in those first who have the higher regret value
+		:param solution: The original full solution array
+		:param problem: The problem representation
+		:param calls_to_insert: A set of all calls to be inserted
+		:param k: The regret value
+
+		return: The new solution
+	"""
 	pass
 
 def insert_greedy(solution: list(), problem: dict(), calls_to_insert: List[int]):
+	""" It takes n calls and inserts each of them greedy
+		:param solution: The original full solution array
+		:param problem: The problem representation
+		:param calls_to_insert: A set of all calls to be inserted
+		:param k: The regret value
+
+		return: The new solution
+	"""
+	pass
+
+def greedy_insert_one_call_one_vehicle(vehicle_solution: list(), problem: dict(), call_to_insert: List[int], vehicle_to_insert: List[int]):
+	""" It takes one call and one vehicle and inserts it greedily
+		:param vehicle_solution: The original solution of that vehicle
+		:param problem: The problem representation
+		:param call_to_insert:  The call num to insert [1, num_calls]
+		:param vehicle_to_insert: The vehicle num to insert [1, num_vehicles]
+
+		return: The new solution
+	"""
+	
 	pass
