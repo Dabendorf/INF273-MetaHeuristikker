@@ -911,7 +911,7 @@ def cost_helper_transport_only(solution: list(), problem: dict(), vehicle_num: i
 		logging.debug(f"Total costs: {sum_travel_cost}")
 		return sum_travel_cost
 
-def remove_random_call(solution: list(), problem: dict(), number_to_remove: int):
+def remove_random_call(solution: List[List[int]], problem: dict(), number_to_remove: int):
 	""" Removes n calls from the call list
 		Returns: (new solution, list of removed calls) """
 
@@ -924,7 +924,7 @@ def remove_random_call(solution: list(), problem: dict(), number_to_remove: int)
 	logging.debug(f"new solution: {new_solution}, removed: {to_remove}; Remove {number_to_remove} random calls")
 	return new_solution, to_remove
 
-def remove_highest_cost_call(solution: list(), problem: dict(), number_to_remove: int):
+def remove_highest_cost_call(solution: List[List[int]], problem: dict(), number_to_remove: int):
 	""" Removes the n highest cost calls (not from dummy)
 		Its not always taking out the highest cost, but giving those a higher probability (diversification)
 		Returns: (new solution, list of removed calls) """
@@ -970,7 +970,7 @@ def remove_highest_cost_call(solution: list(), problem: dict(), number_to_remove
 		# Return dummy if there are no calls (only initial solution)
 		return remove_dummy_call(solution, problem, number_to_remove)
 
-def remove_dummy_call(solution: list(), problem: dict(), number_to_remove: int):
+def remove_dummy_call(solution: List[List[int]], problem: dict(), number_to_remove: int):
 	""" Removes n calls from the call list, but only from the dummy
 		Returns: (new solution, list of removed calls) """
 
@@ -995,9 +995,15 @@ def insert_regretk(solution: List[List[int]], problem: dict(), calls_to_insert: 
 
 		return: The new solution
 	"""
+	
+	logging.debug(f"Start regret {k}")
+
+	num_vehicles = problem["num_vehicles"]
+	vehicle_calls = problem["vehicle_calls"]
+
 	pass
 
-def insert_greedy(solution: list(), problem: dict(), calls_to_insert: List[int]):
+def insert_greedy(solution: List[List[int]], problem: dict(), calls_to_insert: List[int]):
 	""" It takes n calls and inserts each of them greedy
 		:param solution: The original full solution array
 		:param problem: The problem representation
@@ -1100,3 +1106,20 @@ def greedy_insert_one_call_one_vehicle(vehicle_solution: List[List[int]], proble
 				continue_outer_search = False
 
 	return output_sol, True if best_cost != float("inf") else False
+
+def insert_back_to_dummy(solution: List[List[int]], problem: dict(), calls_to_insert: List[int]):
+	""" It takes n calls back into the dummy
+		:param solution: The original full solution array
+		:param problem: The problem representation
+		:param calls_to_insert: A set of all calls to be inserted
+
+		return: The new solution
+	"""
+
+	logging.debug(f"Start insert back to dummy")
+
+	for call in calls_to_insert:
+		solution[-1].append(call)
+		solution[-1].append(call)
+	
+	return solution
