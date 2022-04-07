@@ -7,6 +7,12 @@ from timeit import default_timer as timer
 from random import random, sample, choices
 import math
 
+from enum import Enum
+class ReasonNotFeasible(Enum):
+	call_in_vehicle_not_allowed = 1
+	vehicle_overloaded = 2
+	time_window_wrong = 3
+
 logger = logging.getLogger(__name__)
 
 def load_problem(filename: str):
@@ -169,7 +175,7 @@ def feasibility_check(solution: list(), problem: dict()):
 		# if not, the length > 1 and an illegal call was served
 		if len(set_visited-set_allowed_to_visit) > 0:
 			logging.debug(f"Solution not feasible - Vehicle served call without permission")
-			reason_not_feasible = "Incompatible call and vehicle"
+			reason_not_feasible = ReasonNotFeasible.call_in_vehicle_not_allowed
 			return (True if reason_not_feasible == "" else False), reason_not_feasible
 
 	# (2) Capacity of the vehicle
@@ -186,7 +192,7 @@ def feasibility_check(solution: list(), problem: dict()):
 				size_available -= call_info[call-1][3]
 				if size_available < 0:
 					logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} got overloaded")
-					reason_not_feasible = "Vehicle got overloaded"
+					reason_not_feasible = ReasonNotFeasible.vehicle_overloaded
 					return (True if reason_not_feasible == "" else False), reason_not_feasible
 
 	# (3) Time windows at both nodes
@@ -237,7 +243,7 @@ def feasibility_check(solution: list(), problem: dict()):
 
 					if curr_time > upper_del:
 						logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} came too late")
-						reason_not_feasible = "Vehicle came too late"
+						reason_not_feasible = ReasonNotFeasible.time_window_wrong
 						curr_time -= next_travel_time
 						return (True if reason_not_feasible == "" else False), reason_not_feasible
 					if curr_time < lower_del:
@@ -254,7 +260,7 @@ def feasibility_check(solution: list(), problem: dict()):
 
 					if curr_time > upper_pickup:
 						logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} came too late")
-						reason_not_feasible = "Vehicle came too late"
+						reason_not_feasible = ReasonNotFeasible.time_window_wrong
 						curr_time -= next_travel_time
 						return (True if reason_not_feasible == "" else False), reason_not_feasible
 					if curr_time < lower_pickup:
@@ -647,7 +653,7 @@ def feasibility_helper(solution: list(), problem: dict(), vehicle_num: int):
 	""" This is a helper function which checks if the solution for one specific vehicle is feasible or not
 	It is a shorter version of the long feasibility function
 
-	:param solution: The input solution of order of calls for each vehicle to the problem
+	:param solution: The input solution of order of calls for one vehicle
 	:param problem: The pickup and delivery problem dictionary
 	:param vehicle_num: Exact vehicle_num between [1, num_vehicles]
 	:return: whether the solution is feasible and the reason for probable infeasibility
@@ -679,7 +685,7 @@ def feasibility_helper(solution: list(), problem: dict(), vehicle_num: int):
 			size_available -= call_info[call-1][3]
 			if size_available < 0:
 				logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} got overloaded")
-				reason_not_feasible = "Vehicle got overloaded"
+				reason_not_feasible = ReasonNotFeasible.vehicle_overloaded
 				return (True if reason_not_feasible == "" else False), reason_not_feasible
 
 	# (3) Time windows at both nodes
@@ -728,7 +734,7 @@ def feasibility_helper(solution: list(), problem: dict(), vehicle_num: int):
 
 				if curr_time > upper_del:
 					logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} came too late")
-					reason_not_feasible = "Vehicle came too late"
+					reason_not_feasible = ReasonNotFeasible.time_window_wrong
 					curr_time -= next_travel_time
 					return (True if reason_not_feasible == "" else False), reason_not_feasible
 				if curr_time < lower_del:
@@ -745,7 +751,7 @@ def feasibility_helper(solution: list(), problem: dict(), vehicle_num: int):
 
 				if curr_time > upper_pickup:
 					logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} came too late")
-					reason_not_feasible = "Vehicle came too late"
+					reason_not_feasible = ReasonNotFeasible.time_window_wrong
 					curr_time -= next_travel_time
 					return (True if reason_not_feasible == "" else False), reason_not_feasible
 				if curr_time < lower_pickup:
@@ -992,7 +998,7 @@ def insert_greedy(solution: list(), problem: dict(), calls_to_insert: List[int])
 	"""
 	pass
 
-def greedy_insert_one_call_one_vehicle(vehicle_solution: list(), problem: dict(), call_to_insert: List[int], vehicle_to_insert: List[int]):
+def greedy_insert_one_call_one_vehicle(vehicle_solution: List[List[int]], problem: dict(), call_to_insert: List[int], vehicle_to_insert: List[int]):
 	""" It takes one call and one vehicle and inserts it greedily
 		:param vehicle_solution: The original solution of that vehicle
 		:param problem: The problem representation
@@ -1002,4 +1008,37 @@ def greedy_insert_one_call_one_vehicle(vehicle_solution: list(), problem: dict()
 		return: The new solution
 	"""
 	
-	pass
+	len_call_list = len(vehicle_solution)
+	best_cost = float("inf")
+	output_sol = vehicle_solution.copy()
+
+	continue_outer_search = True
+	for insert_idx_1 in range(len_call_list+1):
+		if not continue_outer_search:
+			break
+
+		temp_call_list_1 = vehicle_solution.copy()
+		temp_call_list_1.insert(insert_idx_1, call_to_insert)
+		is_feas_1, reason_not_feas_1 = feasibility_helper(temp_call_list_1, problem, vehicle_to_insert)
+
+		if is_feas_1:
+			for insert_idx_2 in range(insert_idx_1, len_call_list+2):
+				temp_call_list_2 = temp_call_list_1.copy()
+				temp_call_list_2.insert(insert_idx_2, call_to_insert)
+
+				is_feas_2, reason_not_feas_2 = feasibility_helper(temp_call_list_2, problem, vehicle_to_insert)
+
+				if is_feas_2:
+					new_cost = cost_helper_transport_only(temp_call_list_2, problem, vehicle_to_insert)
+
+					if new_cost < best_cost:
+						if random() < 0.8 or best_cost == float("inf"):
+							best_cost = new_cost
+							output_sol = temp_call_list_2
+				elif reason_not_feas_2 == ReasonNotFeasible.time_window_wrong:
+					break
+
+		elif reason_not_feas_1 == ReasonNotFeasible.time_window_wrong:
+			continue_outer_search = False
+
+	return output_sol
