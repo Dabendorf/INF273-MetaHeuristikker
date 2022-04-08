@@ -485,7 +485,7 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 					inc_cost = new_cost
 				delta_w.append(delta_e)
 		w += 1
-		print(new_sol, neighbourfunc_id)
+		#print(new_sol, neighbourfunc_id)
 
 	arr = dict()
 	delta_avg = sum(delta_w)/len(delta_w)
@@ -530,7 +530,7 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 					arr[i] = p
 
 		t = alpha * t
-		print(new_sol, neighbourfunc_id)
+		#print(new_sol, neighbourfunc_id)
 
 	#print(arr)
 	improvement = round(100*(orig_cost-best_cost)/orig_cost, 2)
