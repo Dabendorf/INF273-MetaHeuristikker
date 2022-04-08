@@ -1007,7 +1007,7 @@ def insert_regretk(solution: List[List[int]], problem: dict(), calls_to_insert: 
 			extend_list = helper_regretk_insert_one_call_one_vehicle(solution[veh_idx], problem, call_num, veh_idx+1)
 			dict_best_positions[call_num].extend(extend_list[call_num])
 
-	print(dict(dict_best_positions))
+	#print(dict(dict_best_positions))
 
 	regret_values = dict()
 	where_to_insert = dict()
@@ -1024,10 +1024,10 @@ def insert_regretk(solution: List[List[int]], problem: dict(), calls_to_insert: 
 				# k value exists
 			where_to_insert[key] = sorted_values[0][1]
 
-	print(regret_values)
+	#print(regret_values)
 	insertion_order = sorted(regret_values, key=regret_values.get, reverse=True)
-	print(insertion_order)
-	print(where_to_insert)
+	#print(insertion_order)
+	#print(where_to_insert)
 	
 	for call_num in insertion_order:
 		veh_num = where_to_insert[call_num]

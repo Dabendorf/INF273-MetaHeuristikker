@@ -296,7 +296,19 @@ def alter_solution_3exchange(problem: dict(), current_solution: List[int]) -> Li
 def alter_solution_4placeholdername(problem: dict(), current_solution: List[int]) -> List[int]:
 	pass
 
+	# Stuff to choose from
+	"""
+	removed_solution, to_remove = remove_random_call(current_solution, problem, number_to_remove)
+	removed_solution, to_remove = remove_highest_cost_call(current_solution, problem, number_to_remove)
+	removed_solution, to_remove = remove_dummy_call(current_solution, problem, number_to_remove)
+	solution = insert_regretk(current_solution, problem, to_remove, 2)
+	solution = insert_greedy(current_solution, problem, to_remove)
+	solution = insert_back_to_dummy(current_solution, problem, to_remove)"""
+
 def alter_solution_5placeholdername(problem: dict(), current_solution: List[int]) -> List[int]:
+	pass
+
+def alter_solution_6placeholdername(problem: dict(), current_solution: List[int]) -> List[int]:
 	pass
 
 def local_search(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [1,2,3]):
@@ -446,7 +458,9 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 			new_sol = alter_solution_4placeholdername(problem, inc_sol)
 		elif neighbourfunc_id == 5:
 			new_sol = alter_solution_5placeholdername(problem, inc_sol)
-
+		elif neighbourfunc_id == 6:
+			new_sol = alter_solution_6placeholdername(problem, inc_sol)	
+		
 		feasiblity, _ = feasibility_check(new_sol, problem)
 
 		if feasiblity:
@@ -485,6 +499,8 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 			new_sol = alter_solution_4placeholdername(problem, inc_sol)
 		elif neighbourfunc_id == 5:
 			new_sol = alter_solution_5placeholdername(problem, inc_sol)
+		elif neighbourfunc_id == 6:
+			new_sol = alter_solution_6placeholdername(problem, inc_sol)
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
 
