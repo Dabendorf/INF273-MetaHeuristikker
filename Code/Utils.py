@@ -997,6 +997,7 @@ def insert_regretk(solution: List[List[int]], problem: dict(), calls_to_insert: 
 	"""
 	
 	logging.debug(f"Start regret {k}")
+	print(f"Start regret {k} with calls {calls_to_insert}")
 
 	num_vehicles = problem["num_vehicles"]
 
@@ -1024,20 +1025,28 @@ def insert_regretk(solution: List[List[int]], problem: dict(), calls_to_insert: 
 				# k value exists
 			where_to_insert[key] = sorted_values[0][1]
 
-	#print(regret_values)
+	print(regret_values)
 	insertion_order = sorted(regret_values, key=regret_values.get, reverse=True)
-	#print(insertion_order)
-	#print(where_to_insert)
+	print(insertion_order)
+	print(where_to_insert)
 	
 	for call_num in insertion_order:
+		print(f"Callnum: {call_num}")
 		veh_num = where_to_insert[call_num]
 		call_list_for_one_veh, successful = greedy_insert_one_call_one_vehicle(solution[veh_num-1], problem, call_num, veh_num)
+		print(f"Success: {successful}, After insert: {call_list_for_one_veh}")
 		if not successful:
 			solution[-1].append(call_num)
 			solution[-1].append(call_num)
 		else:
 			solution[veh_num-1] = call_list_for_one_veh
 
+	# if something not inserted
+	for call_num in calls_to_insert.difference(where_to_insert.keys()):
+		solution[-1].append(call_num)
+		solution[-1].append(call_num)
+
+	print(f"Output regret k: {solution}")
 	return solution
 
 def insert_greedy(solution: List[List[int]], problem: dict(), calls_to_insert: List[int]):

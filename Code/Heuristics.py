@@ -294,22 +294,28 @@ def alter_solution_3exchange(problem: dict(), current_solution: List[int]) -> Li
 	return new_sol
 
 def alter_solution_4placeholdername(problem: dict(), current_solution: List[int]) -> List[int]:
-	pass
-
 	# Stuff to choose from
 	"""
 	removed_solution, to_remove = remove_random_call(current_solution, problem, number_to_remove)
 	removed_solution, to_remove = remove_highest_cost_call(current_solution, problem, number_to_remove)
 	removed_solution, to_remove = remove_dummy_call(current_solution, problem, number_to_remove)
-	solution = insert_regretk(current_solution, problem, to_remove, 2)
-	solution = insert_greedy(current_solution, problem, to_remove)
-	solution = insert_back_to_dummy(current_solution, problem, to_remove)"""
+	solution = insert_regretk(removed_solution, problem, to_remove, 2)
+	solution = insert_greedy(removed_solution, problem, to_remove)
+	solution = insert_back_to_dummy(removed_solution, problem, to_remove)"""
+	removed_solution, to_remove = remove_random_call(current_solution, problem, 2)
+	solution = insert_greedy(removed_solution, problem, to_remove)
+	return solution
 
 def alter_solution_5placeholdername(problem: dict(), current_solution: List[int]) -> List[int]:
-	pass
+	removed_solution, to_remove = remove_highest_cost_call(current_solution, problem, 2)
+	solution = insert_regretk(removed_solution, problem, to_remove, 2)
+	#solution = insert_back_to_dummy(removed_solution, problem, to_remove)
+	return solution
 
 def alter_solution_6placeholdername(problem: dict(), current_solution: List[int]) -> List[int]:
-	pass
+	removed_solution, to_remove = remove_dummy_call(current_solution, problem, 2)
+	solution = insert_greedy(removed_solution, problem, to_remove)
+	return solution
 
 def local_search(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [1,2,3]):
 	""" Local loops n-times over the neighbours of the currently best solution
@@ -479,6 +485,7 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 					inc_cost = new_cost
 				delta_w.append(delta_e)
 		w += 1
+		print(new_sol, neighbourfunc_id)
 
 	arr = dict()
 	delta_avg = sum(delta_w)/len(delta_w)
@@ -523,6 +530,7 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 					arr[i] = p
 
 		t = alpha * t
+		print(new_sol, neighbourfunc_id)
 
 	#print(arr)
 	improvement = round(100*(orig_cost-best_cost)/orig_cost, 2)
@@ -590,6 +598,7 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 		if cost < best_cost:
 			best_cost = cost
 			best_solution = sol
+		print(cost)
 
 	average_objective = round(sum(average_objectives) / len(average_objectives), 2)
 	improvement = max(improvements)
