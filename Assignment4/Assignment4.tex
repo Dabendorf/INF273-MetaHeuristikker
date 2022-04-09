@@ -131,13 +131,32 @@ Currently, I am maintaining the following helper functions in my Utils file.\foo
 \item latex\_add\_line: Adds a new result line into an results table of this file.
 \item latex\_replace\_line: Change the optimal solution and its seed in that file.
 
-\item \textcolor{ForestGreen}{problem\_to\_helper\_structure: }
-\item \textcolor{ForestGreen}{insert\_call\_into\_array: }
-\item \textcolor{ForestGreen}{remove\_call\_from\_array: }
-\item \textcolor{ForestGreen}{merge\_vehice\_lists: }
+\item \textcolor{ForestGreen}{feasibility\_helper: }A function which works similar to the feasibility helper but calculates the feasibility only for one vehicle.
+\item \textcolor{ForestGreen}{cost\_helper: }A function which calculates the cost only for one vehicle.
+\item \textcolor{ForestGreen}{cost\_helper\_transport\_only: }A function which calculates the cost only for one vehicle, but also only the transporting cost. This is perfect for adding a call at different positions and calculating the cost.
+\item \textcolor{ForestGreen}{greedy\_insert\_one\_call\_one\_vehicle: }A helper function which greedily finds the best insertion position for a call for one vehicle.
+\item \textcolor{ForestGreen}{helper\_regretk\_insert\_one\_call\_vehicle: }A helper function which calculates the regret-k values for all valid insertion positions of a call into a vehicle.
 
-If there are any questions or nice recommendations to get a better structure, just send me a message.
+The following six functions three removal and insertion heuristics which then are combined to my full neighbouring functions.
+\item \textcolor{ForestGreen}{remove\_random\_call: }Removes $n$ random calls from it's current position.
+\item \textcolor{ForestGreen}{remove\_highest\_cost\_call: } Removes the $n$ calls with the highest cost from its current position. This function has a random choice function based on the exponential probability distribution which chooses calls randomly, but weighted by how costly they are.
+\item \textcolor{ForestGreen}{remove\_dummy\_call: } Removes $n$ calls from the dummy vehicle.
+\item \textcolor{ForestGreen}{insert\_regretk: }This function performs regret-k and inserts $n$ calls into it. This function does not yet have a random functionality, which probability will be added.
+\item \textcolor{ForestGreen}{insert\_greedy: }Performs greedy insert for $n$ calls. This function does not yet have a random functionality, which probability will be added.
+\item \textcolor{ForestGreen}{insert\_back\_to\_dummy: }It takes $n$ calls and puts them back into the dummy vehicle.
+\end{itemize}\medskip
+
+\textbf{Background information: }I have been working on these neighbouring functions for eight weeks but absolutely nothing was working. After a long debugging process with Morten, I have decided to delete my entire code and rewrite it. This was a stressful but great decision and finally, these functions above are working. There are in fact the first working functions. I am planning in making them better and maybe adding one or two, but for now, this is my solution. Also, the running time is terrible and must be improved. The reported times are actually times from the high-performance university server in Berlin and not from my ancient notebook, so there might be a bigger scaling factor existing. For assignment 5, I will be reporting the correct times.\footnote{I guess}\medskip
+
+My three neighbouring functions are the following three, combining pairs of the above removal and insertion functions.
+\begin{itemize}
+\item Steven: Removing $n$ random calls and inserting those greedily.
+\item Jackie: Removing $n$ highest cost calls and inserting them with regretk.
+\item Sebastian: Removing $n$ dummy calls and inserting them greedily.
 \end{itemize}
+
+\medskip
+If there are any questions or nice recommendations to get a better structure, just send me a message.
 
 \clearpage
 Moreover, there is a new file for Heuristics where I collect all of the important algorithms and their helper functions.

@@ -293,9 +293,9 @@ def alter_solution_3exchange(problem: dict(), current_solution: List[int]) -> Li
 	
 	return new_sol
 
-def alter_solution_4placeholdername(problem: dict(), current_solution: List[int]) -> List[int]:
-	# Stuff to choose from
-	"""
+def alter_solution_4steven(problem: dict(), current_solution: List[int]) -> List[int]:
+	""" A combination of removing n random calls and inserting those greedily"""
+	""" Functions to choose from
 	removed_solution, to_remove = remove_random_call(current_solution, problem, number_to_remove)
 	removed_solution, to_remove = remove_highest_cost_call(current_solution, problem, number_to_remove)
 	removed_solution, to_remove = remove_dummy_call(current_solution, problem, number_to_remove)
@@ -306,13 +306,17 @@ def alter_solution_4placeholdername(problem: dict(), current_solution: List[int]
 	solution = insert_greedy(removed_solution, problem, to_remove)
 	return solution
 
-def alter_solution_5placeholdername(problem: dict(), current_solution: List[int]) -> List[int]:
+def alter_solution_5jackie(problem: dict(), current_solution: List[int]) -> List[int]:
+	""" A combination of removing n highest cost calls and inserting them with regretk"""
+
 	removed_solution, to_remove = remove_highest_cost_call(current_solution, problem, 2)
 	solution = insert_regretk(removed_solution, problem, to_remove, 2)
 	#solution = insert_back_to_dummy(removed_solution, problem, to_remove)
 	return solution
 
-def alter_solution_6placeholdername(problem: dict(), current_solution: List[int]) -> List[int]:
+def alter_solution_6sebastian(problem: dict(), current_solution: List[int]) -> List[int]:
+	""" A combination of removing n dummy calls and inserting them greedily"""
+
 	removed_solution, to_remove = remove_dummy_call(current_solution, problem, 2)
 	solution = insert_greedy(removed_solution, problem, to_remove)
 	return solution
@@ -461,11 +465,11 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		elif neighbourfunc_id == 3:
 			new_sol = alter_solution_3exchange(problem, inc_sol)
 		elif neighbourfunc_id == 4:
-			new_sol = alter_solution_4placeholdername(problem, inc_sol)
+			new_sol = alter_solution_4steven(problem, inc_sol)
 		elif neighbourfunc_id == 5:
-			new_sol = alter_solution_5placeholdername(problem, inc_sol)
+			new_sol = alter_solution_5jackie(problem, inc_sol)
 		elif neighbourfunc_id == 6:
-			new_sol = alter_solution_6placeholdername(problem, inc_sol)	
+			new_sol = alter_solution_6sebastian(problem, inc_sol)	
 		
 		feasiblity, _ = feasibility_check(new_sol, problem)
 
@@ -508,11 +512,11 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		elif neighbourfunc_id == 3:
 			new_sol = alter_solution_3exchange(problem, inc_sol)
 		elif neighbourfunc_id == 4:
-			new_sol = alter_solution_4placeholdername(problem, inc_sol)
+			new_sol = alter_solution_4steven(problem, inc_sol)
 		elif neighbourfunc_id == 5:
-			new_sol = alter_solution_5placeholdername(problem, inc_sol)
+			new_sol = alter_solution_5jackie(problem, inc_sol)
 		elif neighbourfunc_id == 6:
-			new_sol = alter_solution_6placeholdername(problem, inc_sol)
+			new_sol = alter_solution_6sebastian(problem, inc_sol)
 
 		feasiblity, _ = feasibility_check(new_sol, problem)
 
