@@ -487,6 +487,8 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		w += 1
 		#print(new_sol, neighbourfunc_id)
 
+	logging.info(f"Finished warmup")
+
 	arr = dict()
 	delta_avg = sum(delta_w)/len(delta_w)
 
@@ -495,6 +497,9 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 	t = t_0
 
 	for i in range(num_of_iterations-w):
+		if i%1000==0:
+			logging.info(f"Iteration num: {i}")
+
 		neighbourfunc_id = choices(allowed_neighbours, probabilities, k=1)[0]
 		if neighbourfunc_id == 1:
 			new_sol = alter_solution_1insert(problem, inc_sol, 0.8)
@@ -564,6 +569,7 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 	average_objectives = []
 
 	for round_nr in range(num_of_rounds):
+		logging.info(f"Round number: {round_nr}")
 		start_time = timer()
 		new_seed = randint(0, 10**9)
 		seed(new_seed)
@@ -598,7 +604,7 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 		if cost < best_cost:
 			best_cost = cost
 			best_solution = sol
-		print(cost)
+		#print(cost)
 
 	average_objective = round(sum(average_objectives) / len(average_objectives), 2)
 	improvement = max(improvements)
