@@ -1000,6 +1000,7 @@ def insert_regretk(solution: List[List[int]], problem: dict(), calls_to_insert: 
 	#print(f"Start regret {k} with calls {calls_to_insert}")
 
 	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
 
 	dict_best_positions = defaultdict(lambda: [])
 
@@ -1046,6 +1047,18 @@ def insert_regretk(solution: List[List[int]], problem: dict(), calls_to_insert: 
 		solution[-1].append(call_num)
 		solution[-1].append(call_num)
 
+	# if still something missing (TODO: should not be the case, but is a bug)
+	# sometimes, things keep missing, I need to fix this
+	# until know, this just puts missing stuff back into the dummy
+	possible_calls_list = set(range(1,num_calls+1))
+	calls_existing = set([item for sublist in solution for item in sublist])
+	difference_calls = possible_calls_list.difference(calls_existing)
+	#print(f"{possible_calls_list}, {calls_existing}, {difference_calls}")
+
+	for call_num in difference_calls:
+		solution[-1].append(call_num)
+		solution[-1].append(call_num)
+
 	#print(f"Output regret k: {solution}")
 	return solution
 
@@ -1061,7 +1074,10 @@ def insert_greedy(solution: List[List[int]], problem: dict(), calls_to_insert: L
 	logging.debug(f"Start insert greedy")
 
 	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
 	vehicle_calls = problem["vehicle_calls"]
+
+	#print(f"Greedy to insert: {calls_to_insert}")
 	
 	output_sol = solution.copy()
 	for call_num in calls_to_insert:
@@ -1092,7 +1108,20 @@ def insert_greedy(solution: List[List[int]], problem: dict(), calls_to_insert: L
 		if not success_once:
 			output_sol[-1].insert(0, call_num)
 			output_sol[-1].insert(0, call_num)
+
+	# if still something missing (TODO: should not be the case, but is a bug)
+	# sometimes, things keep missing, I need to fix this
+	# until know, this just puts missing stuff back into the dummy
+	possible_calls_list = set(range(1,num_calls+1))
+	calls_existing = set([item for sublist in output_sol for item in sublist])
+	difference_calls = possible_calls_list.difference(calls_existing)
+	#print(f"{possible_calls_list}, {calls_existing}, {difference_calls}")
+
+	for call_num in difference_calls:
+		output_sol[-1].append(call_num)
+		output_sol[-1].append(call_num)
 	
+	#print(f"Output sol: {output_sol}")
 	return output_sol
 
 def greedy_insert_one_call_one_vehicle(vehicle_solution: List[List[int]], problem: dict(), call_to_insert: List[int], vehicle_to_insert: List[int]):

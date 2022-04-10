@@ -474,6 +474,10 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		elif neighbourfunc_id == 6:
 			new_sol = alter_solution_6sebastian(problem, inc_sol)	
 		
+		"""print(f"New sol: {new_sol}, neighbour {neighbourfunc_id}")
+		if len(solution_to_ahmed_output(new_sol))!=17:
+			print("ERROR")
+			print(len(solution_to_ahmed_output(new_sol)))"""
 		feasiblity, _ = feasibility_check(new_sol, problem)
 
 		if feasiblity:
@@ -521,6 +525,10 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		elif neighbourfunc_id == 6:
 			new_sol = alter_solution_6sebastian(problem, inc_sol)
 
+		"""print(f"New sol: {new_sol}, neighbour {neighbourfunc_id}")
+		if len(solution_to_ahmed_output(new_sol))!=17:
+			print("ERROR2")
+			print(len(solution_to_ahmed_output(new_sol)))"""
 		feasiblity, _ = feasibility_check(new_sol, problem)
 
 		if feasiblity:
