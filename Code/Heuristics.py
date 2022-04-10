@@ -437,6 +437,9 @@ def simulated_annealing(problem: dict(), init_sol, num_of_iterations: int = 1000
 	logging.debug(f"Original cost: {orig_cost}")
 	logging.debug(f"New cost: {best_cost}")
 	logging.debug(f"Improvement: {improvement}%")
+	logging.info("Finished this run")
+	logging.info(f"Best cost: {best_cost}")
+	logging.info(f"Best sol: {best_sol}")
 
 	return best_sol, best_cost, improvement
 
@@ -595,7 +598,7 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 		elif allowed_neighbours == [0,1,2]:
 			method_str += "-3-exchange"
 		elif allowed_neighbours == [4,5,6]:
-			if probabilities == [1/3, 1/3, 1/3]:
+			if len(set(probabilities)) == 1:
 				method_str += "SA-new operators (equal weights)"
 			else:
 				method_str += "SA-new operators (tuned weights)"
@@ -609,6 +612,9 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 			best_cost = cost
 			best_solution = sol
 		#print(cost)
+		logging.info("Finished this run")
+		logging.info(f"Best cost: {cost}")
+		logging.info(f"Best sol: {sol}")
 
 	average_objective = round(sum(average_objectives) / len(average_objectives), 2)
 	improvement = max(improvements)
