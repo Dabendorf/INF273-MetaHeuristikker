@@ -597,19 +597,17 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 			method_str = "Simulated Annealing"
 			sol, cost, improvement = simulated_annealing(problem, init_sol, num_of_iterations, allowed_neighbours)
 		elif method == "isa":
-			method_str = "Simulated Annealing"
 			sol, cost, improvement = improved_simulated_annealing(problem, init_sol, num_of_iterations, allowed_neighbours, probabilities)
+			if len(set(probabilities)) == 1:
+				method_str = "SA-new operators (equal weights)"
+			else:
+				method_str = "SA-new operators (tuned weights)"
 		if allowed_neighbours == [0]:
 			method_str += "-1-insert"
 		elif allowed_neighbours == [0,1]:
 			method_str += "-2-exchange"
 		elif allowed_neighbours == [0,1,2]:
 			method_str += "-3-exchange"
-		elif allowed_neighbours == [4,5,6]:
-			if len(set(probabilities)) == 1:
-				method_str += "SA-new operators (equal weights)"
-			else:
-				method_str += "SA-new operators (tuned weights)"
 
 		finish_time = timer()
 		average_times.append(finish_time-start_time)
