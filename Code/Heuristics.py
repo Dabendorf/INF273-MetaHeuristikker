@@ -559,7 +559,113 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 	logging.debug(f"Improvement: {improvement}%")
 
 	return best_sol, best_cost, improvement
+
+def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [4, 5, 6]):
+	""" Adaptive algorithm inspired from simulated annealing and Ahmeds slides 12-20"""
+	logging.info(f"Start adaptive algorithm with neighbour(s) {allowed_neighbours}")
+
+	t_f = 0.1 # final temperature
+	cost = cost_function(init_sol, problem)
 	
+	best_sol = init_sol
+	inc_sol = init_sol
+	best_cost = cost
+	inc_cost = cost
+	orig_cost = cost
+
+	delta_w = list()
+
+	w = 0
+	while w < 100 or not delta_w:
+		neighbourfunc_id = choices(allowed_neighbours, probabilities, k=1)[0]
+		if neighbourfunc_id == 1:
+			new_sol = alter_solution_1insert(problem, inc_sol, 0.8)
+		elif neighbourfunc_id == 2:
+			new_sol = alter_solution_2exchange(problem, inc_sol)
+		elif neighbourfunc_id == 3:
+			new_sol = alter_solution_3exchange(problem, inc_sol)
+		elif neighbourfunc_id == 4:
+			new_sol = alter_solution_4steven(problem, inc_sol)
+		elif neighbourfunc_id == 5:
+			new_sol = alter_solution_5jackie(problem, inc_sol)
+		elif neighbourfunc_id == 6:
+			new_sol = alter_solution_6sebastian(problem, inc_sol)	
+		
+		feasiblity, _ = feasibility_check(new_sol, problem)
+
+		if feasiblity:
+			new_cost = cost_function(new_sol, problem)
+			delta_e = new_cost - inc_cost
+
+			if delta_e < 0:
+				inc_sol = new_sol
+				inc_cost = new_cost
+				if inc_cost < best_cost:
+					best_sol = inc_sol
+					best_cost = inc_cost
+			else:
+				if random() < 0.8:
+					inc_sol = new_sol
+					inc_cost = new_cost
+				delta_w.append(delta_e)
+		w += 1
+
+	logging.info(f"Finished warmup")
+
+	arr = dict()
+	delta_avg = sum(delta_w)/len(delta_w)
+
+	t_0 = (-delta_avg)/math.log(0.8)
+	alpha = (t_f/t_0) ** (1/(num_of_iterations-w))
+	t = t_0
+
+	for i in range(num_of_iterations-w):
+		if i%1000==0:
+			logging.info(f"Iteration num: {i}")
+
+		neighbourfunc_id = choices(allowed_neighbours, probabilities, k=1)[0]
+		if neighbourfunc_id == 1:
+			new_sol = alter_solution_1insert(problem, inc_sol, 0.8)
+		elif neighbourfunc_id == 2:
+			new_sol = alter_solution_2exchange(problem, inc_sol)
+		elif neighbourfunc_id == 3:
+			new_sol = alter_solution_3exchange(problem, inc_sol)
+		elif neighbourfunc_id == 4:
+			new_sol = alter_solution_4steven(problem, inc_sol)
+		elif neighbourfunc_id == 5:
+			new_sol = alter_solution_5jackie(problem, inc_sol)
+		elif neighbourfunc_id == 6:
+			new_sol = alter_solution_6sebastian(problem, inc_sol)
+
+		feasiblity, _ = feasibility_check(new_sol, problem)
+
+		if feasiblity:
+			new_cost = cost_function(new_sol, problem)
+			delta_e = new_cost - inc_cost
+
+			if delta_e < 0:
+				inc_sol = new_sol
+				inc_cost = new_cost
+				if inc_cost < best_cost:
+					best_sol = inc_sol
+					best_cost = inc_cost
+
+			else:
+				p = math.e ** (-delta_e/t)
+				if random() < p:
+					inc_sol = new_sol
+					inc_cost = new_cost
+					arr[i] = p
+
+		t = alpha * t
+
+	improvement = round(100*(orig_cost-best_cost)/orig_cost, 2)
+	logging.debug(f"Original cost: {orig_cost}")
+	logging.debug(f"New cost: {best_cost}")
+	logging.debug(f"Improvement: {improvement}%")
+
+	return best_sol, best_cost, improvement
+
 def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_iterations: int = 10000, num_of_rounds: int = 10, allowed_neighbours: list = [1,2,3], probabilities: list = [1/3, 1/3, 1/3], method:str = "ls"):
 	""" Performs any sort of heuristic on a number of neighbours
 		It runs n times and takes the average of all of it, also returning the time consumption
@@ -572,6 +678,8 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 		logging.debug("Start simulated annealing \LaTeX")
 	elif method == "isa":
 		logging.debug("Start improved simulated annealing \LaTeX")
+	elif method == "aa":
+		logging.debug("Start adaptive algorithm \LaTeX")
 	
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
@@ -602,6 +710,9 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 				method_str = "SA-new operators (equal weights)"
 			else:
 				method_str = "SA-new operators (tuned weights)"
+		elif method == "aa":
+			method_str = "Adaptive Algorithm"
+			sol, cost, improvement = adaptive_algorithm(problem, init_sol, num_of_iterations, allowed_neighbours)
 		if allowed_neighbours == [0]:
 			method_str += "-1-insert"
 		elif allowed_neighbours == [0,1]:
