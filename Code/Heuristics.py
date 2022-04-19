@@ -563,120 +563,18 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 
 	return best_sol, best_cost, improvement
 
-def adaptive_algorithm_template_todelete(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [4, 5, 6]):
-	""" Adaptive algorithm inspired from simulated annealing and Ahmeds slides 12-20"""
-	logging.info(f"Start adaptive algorithm with neighbour(s) {allowed_neighbours}")
-
-	t_f = 0.1 # final temperature
-	cost = cost_function(init_sol, problem)
-	
-	best_sol = init_sol
-	inc_sol = init_sol
-	best_cost = cost
-	inc_cost = cost
-	orig_cost = cost
-
-	delta_w = list()
-
-	w = 0
-	while w < 100 or not delta_w:
-		neighbourfunc_id = choices(allowed_neighbours, probabilities, k=1)[0]
-		if neighbourfunc_id == 1:
-			new_sol = alter_solution_1insert(problem, inc_sol, 0.8)
-		elif neighbourfunc_id == 2:
-			new_sol = alter_solution_2exchange(problem, inc_sol)
-		elif neighbourfunc_id == 3:
-			new_sol = alter_solution_3exchange(problem, inc_sol)
-		elif neighbourfunc_id == 4:
-			new_sol = alter_solution_4steven(problem, inc_sol)
-		elif neighbourfunc_id == 5:
-			new_sol = alter_solution_5jackie(problem, inc_sol)
-		elif neighbourfunc_id == 6:
-			new_sol = alter_solution_6sebastian(problem, inc_sol)	
-		
-		feasiblity, _ = feasibility_check(new_sol, problem)
-
-		if feasiblity:
-			new_cost = cost_function(new_sol, problem)
-			delta_e = new_cost - inc_cost
-
-			if delta_e < 0:
-				inc_sol = new_sol
-				inc_cost = new_cost
-				if inc_cost < best_cost:
-					best_sol = inc_sol
-					best_cost = inc_cost
-			else:
-				if random() < 0.8:
-					inc_sol = new_sol
-					inc_cost = new_cost
-				delta_w.append(delta_e)
-		w += 1
-
-	logging.info(f"Finished warmup")
-
-	arr = dict()
-	delta_avg = sum(delta_w)/len(delta_w)
-
-	t_0 = (-delta_avg)/math.log(0.8)
-	alpha = (t_f/t_0) ** (1/(num_of_iterations-w))
-	t = t_0
-
-	for i in range(num_of_iterations-w):
-		if i%1000==0:
-			logging.info(f"Iteration num: {i}")
-
-		neighbourfunc_id = choices(allowed_neighbours, probabilities, k=1)[0]
-		if neighbourfunc_id == 1:
-			new_sol = alter_solution_1insert(problem, inc_sol, 0.8)
-		elif neighbourfunc_id == 2:
-			new_sol = alter_solution_2exchange(problem, inc_sol)
-		elif neighbourfunc_id == 3:
-			new_sol = alter_solution_3exchange(problem, inc_sol)
-		elif neighbourfunc_id == 4:
-			new_sol = alter_solution_4steven(problem, inc_sol)
-		elif neighbourfunc_id == 5:
-			new_sol = alter_solution_5jackie(problem, inc_sol)
-		elif neighbourfunc_id == 6:
-			new_sol = alter_solution_6sebastian(problem, inc_sol)
-
-		feasiblity, _ = feasibility_check(new_sol, problem)
-
-		if feasiblity:
-			new_cost = cost_function(new_sol, problem)
-			delta_e = new_cost - inc_cost
-
-			if delta_e < 0:
-				inc_sol = new_sol
-				inc_cost = new_cost
-				if inc_cost < best_cost:
-					best_sol = inc_sol
-					best_cost = inc_cost
-
-			else:
-				p = math.e ** (-delta_e/t)
-				if random() < p:
-					inc_sol = new_sol
-					inc_cost = new_cost
-					arr[i] = p
-
-		t = alpha * t
-
-	improvement = round(100*(orig_cost-best_cost)/orig_cost, 2)
-	logging.debug(f"Original cost: {orig_cost}")
-	logging.debug(f"New cost: {best_cost}")
-	logging.debug(f"Improvement: {improvement}%")
-
-	return best_sol, best_cost, improvement
-
 def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [4, 5, 6]):
 	""" Adaptive algorithm inspired from simulated annealing and Ahmeds slides 12-20"""
 	logging.info(f"Start adaptive algorithm with neighbour(s) {allowed_neighbours}")
 
 	# Best solution (starts as initial)
 	best_sol = init_sol
+	s = init_sol.copy()
+	
+
 	cost = cost_function(init_sol, problem)
 	best_cost = cost
+	cost_s = cost
 	iterations_since_best_found = 0
 
 	# Save original cost
@@ -687,8 +585,13 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 
 	w = 0
 	while w < num_of_iterations:
-		if iterations_since_best_found > escape_condition:
-			pass # escape algorithm to s ? 
+		if w%1000 == 0:
+			logging.info(f"Iteration num: {w}")
+
+		if iterations_since_best_found > 100:
+			s = escape_algorithm(problem, s, allowed_neighbours) # alternate operator
+			# update best solution TODO 
+			iterations_since_best_found = 0
 		
 		s2 = s.copy()
 
@@ -697,31 +600,38 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 
 		# Apply neighbouring function
 		if neighbourfunc_id == 1:
-			new_sol = alter_solution_1insert(problem, s2, 0.8)
+			s2 = alter_solution_1insert(problem, s2, 0.8)
 		elif neighbourfunc_id == 2:
-			new_sol = alter_solution_2exchange(problem, s2)
+			s2 = alter_solution_2exchange(problem, s2)
 		elif neighbourfunc_id == 3:
-			new_sol = alter_solution_3exchange(problem, s2)
+			s2 = alter_solution_3exchange(problem, s2)
 		elif neighbourfunc_id == 4:
-			new_sol = alter_solution_4steven(problem, s2)
+			s2 = alter_solution_4steven(problem, s2)
 		elif neighbourfunc_id == 5:
-			new_sol = alter_solution_5jackie(problem, s2)
+			s2 = alter_solution_5jackie(problem, s2)
 		elif neighbourfunc_id == 6:
-			new_sol = alter_solution_6sebastian(problem, s2)
+			s2 = alter_solution_6sebastian(problem, s2)
 
-		feasiblity, _ = feasibility_check(new_sol, problem)
+		feasiblity, _ = feasibility_check(s2, problem)
 
 		updated_value = False
 		if feasiblity:
-			new_cost = cost_function(new_sol, problem)
+			new_cost = cost_function(s2, problem)
 
 			if new_cost < best_cost:
-				best_sol = new_sol
+				best_sol = s2
 				best_cost = new_cost
 				updated_value = True
-			
-			if accept(s2, s):
 				s = s2.copy()
+				cost_s = new_cost
+			
+			elif new_cost < cost_s:
+				s = s2.copy()
+				cost_s = new_cost
+			
+			elif random() < 0.2:
+				s = s2.copy()
+				cost_s = new_cost
 
 		if updated_value:
 			iterations_since_best_found = 0
@@ -729,6 +639,8 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 			iterations_since_best_found += 1
 		
 		w += 1
+		if w%200 == 0:
+			update_parameters()
 
 	improvement = round(100*(orig_cost-best_cost)/orig_cost, 2)
 	logging.debug(f"Original cost: {orig_cost}")
@@ -736,6 +648,12 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 	logging.debug(f"Improvement: {improvement}%")
 
 	return best_sol, best_cost, improvement
+
+def escape_algorithm(problem: dict(), current_solution, allowed_neighbours):
+	""" This is the escape algorithm to get out of a local minimum"""
+
+
+	return current_solution
 
 def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_iterations: int = 10000, num_of_rounds: int = 10, allowed_neighbours: list = [1,2,3], probabilities: list = [1/3, 1/3, 1/3], method:str = "ls"):
 	""" Performs any sort of heuristic on a number of neighbours
