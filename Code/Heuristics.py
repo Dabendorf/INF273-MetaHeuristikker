@@ -1,3 +1,4 @@
+from re import S
 from typing import List
 from collections import defaultdict
 import logging
@@ -5,6 +6,8 @@ from random import randint, randrange, random, choice, seed, choices, sample, sh
 from timeit import default_timer as timer
 import math
 import bisect
+
+from pyrsistent import s
 
 from Utils import *
 
@@ -560,7 +563,7 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 
 	return best_sol, best_cost, improvement
 
-def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [4, 5, 6]):
+def adaptive_algorithm_template_todelete(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [4, 5, 6]):
 	""" Adaptive algorithm inspired from simulated annealing and Ahmeds slides 12-20"""
 	logging.info(f"Start adaptive algorithm with neighbour(s) {allowed_neighbours}")
 
@@ -658,6 +661,74 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 					arr[i] = p
 
 		t = alpha * t
+
+	improvement = round(100*(orig_cost-best_cost)/orig_cost, 2)
+	logging.debug(f"Original cost: {orig_cost}")
+	logging.debug(f"New cost: {best_cost}")
+	logging.debug(f"Improvement: {improvement}%")
+
+	return best_sol, best_cost, improvement
+
+def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [4, 5, 6]):
+	""" Adaptive algorithm inspired from simulated annealing and Ahmeds slides 12-20"""
+	logging.info(f"Start adaptive algorithm with neighbour(s) {allowed_neighbours}")
+
+	# Best solution (starts as initial)
+	best_sol = init_sol
+	cost = cost_function(init_sol, problem)
+	best_cost = cost
+	iterations_since_best_found = 0
+
+	# Save original cost
+	orig_cost = cost
+
+	# Original probabilities
+	probabilities = [1/len(allowed_neighbours)] * len(allowed_neighbours)
+
+	w = 0
+	while w < num_of_iterations:
+		if iterations_since_best_found > escape_condition:
+			pass # escape algorithm to s ? 
+		
+		s2 = s.copy()
+
+		# Choose a neighbour function
+		neighbourfunc_id = choices(allowed_neighbours, probabilities, k=1)[0]
+
+		# Apply neighbouring function
+		if neighbourfunc_id == 1:
+			new_sol = alter_solution_1insert(problem, s2, 0.8)
+		elif neighbourfunc_id == 2:
+			new_sol = alter_solution_2exchange(problem, s2)
+		elif neighbourfunc_id == 3:
+			new_sol = alter_solution_3exchange(problem, s2)
+		elif neighbourfunc_id == 4:
+			new_sol = alter_solution_4steven(problem, s2)
+		elif neighbourfunc_id == 5:
+			new_sol = alter_solution_5jackie(problem, s2)
+		elif neighbourfunc_id == 6:
+			new_sol = alter_solution_6sebastian(problem, s2)
+
+		feasiblity, _ = feasibility_check(new_sol, problem)
+
+		updated_value = False
+		if feasiblity:
+			new_cost = cost_function(new_sol, problem)
+
+			if new_cost < best_cost:
+				best_sol = new_sol
+				best_cost = new_cost
+				updated_value = True
+			
+			if accept(s2, s):
+				s = s2.copy()
+
+		if updated_value:
+			iterations_since_best_found = 0
+		else:
+			iterations_since_best_found += 1
+		
+		w += 1
 
 	improvement = round(100*(orig_cost-best_cost)/orig_cost, 2)
 	logging.debug(f"Original cost: {orig_cost}")
