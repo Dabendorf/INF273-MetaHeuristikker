@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import numpy as np
 from collections import defaultdict
 import logging
@@ -126,6 +126,12 @@ def load_problem(filename: str):
 	lam = 0.2
 	probabilities =  [math.e**(-lam*(x))-math.e**(-lam*(x+1)) for x in range(num_calls)]
 
+	# Dictionary with already calculated feasibility and cost values
+	helper_feasibility_full = dict()
+	helper_feasibility_partly = dict()
+	helper_cost_full = dict()
+	helper_cost_partly = dict()
+
 	logger.debug(f"Converting input data: Finish")
 	# return output as a dictionary
 	output = {
@@ -138,6 +144,10 @@ def load_problem(filename: str):
 		"call_info": call_info,
 		"vehicle_calls": vehicle_calls,
 		"prob": probabilities,
+		"helper_feasibility_full": helper_feasibility_full,
+		"helper_feasibility_partly": helper_feasibility_partly,
+		"helper_cost_full": helper_cost_full,
+		"helper_cost_partly": helper_cost_partly,
 	}
 
 	return output
@@ -159,6 +169,13 @@ def feasibility_check(solution: list(), problem: dict()):
 	call_info = problem["call_info"]
 	travel_cost_dict = problem["travel_time_cost"]
 	node_cost_dict = problem["node_time_cost"]
+	helper_feasibility_full = problem["helper_feasibility_full"]
+
+	# Check if already calculated feasibility
+	solution_tuple = solution_to_hashable_tuple_2d(solution)
+
+	if solution_tuple in helper_feasibility_full:
+		return helper_feasibility_full[solution_tuple]
 
 	reason_not_feasible = ""
 
@@ -177,6 +194,7 @@ def feasibility_check(solution: list(), problem: dict()):
 		if len(set_visited-set_allowed_to_visit) > 0:
 			logging.debug(f"Solution not feasible - Vehicle served call without permission")
 			reason_not_feasible = ReasonNotFeasible.call_in_vehicle_not_allowed
+			helper_feasibility_full[solution_tuple] = (True if reason_not_feasible == "" else False), reason_not_feasible
 			return (True if reason_not_feasible == "" else False), reason_not_feasible
 
 	# (2) Capacity of the vehicle
@@ -194,6 +212,7 @@ def feasibility_check(solution: list(), problem: dict()):
 				if size_available < 0:
 					logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} got overloaded")
 					reason_not_feasible = ReasonNotFeasible.vehicle_overloaded
+					helper_feasibility_full[solution_tuple] = (True if reason_not_feasible == "" else False), reason_not_feasible
 					return (True if reason_not_feasible == "" else False), reason_not_feasible
 
 	# (3) Time windows at both nodes
@@ -246,6 +265,7 @@ def feasibility_check(solution: list(), problem: dict()):
 						logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} came too late")
 						reason_not_feasible = ReasonNotFeasible.time_window_wrong
 						curr_time -= next_travel_time
+						helper_feasibility_full[solution_tuple] = (True if reason_not_feasible == "" else False), reason_not_feasible
 						return (True if reason_not_feasible == "" else False), reason_not_feasible
 					if curr_time < lower_del:
 						curr_time = lower_del
@@ -263,6 +283,7 @@ def feasibility_check(solution: list(), problem: dict()):
 						logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} came too late")
 						reason_not_feasible = ReasonNotFeasible.time_window_wrong
 						curr_time -= next_travel_time
+						helper_feasibility_full[solution_tuple] = (True if reason_not_feasible == "" else False), reason_not_feasible
 						return (True if reason_not_feasible == "" else False), reason_not_feasible
 					if curr_time < lower_pickup:
 						curr_time = lower_pickup
@@ -275,6 +296,7 @@ def feasibility_check(solution: list(), problem: dict()):
 		veh_times.append(curr_time)
 	
 	logging.debug(f"Feasible: {(True if reason_not_feasible == '' else False)}, Reason: {reason_not_feasible}")
+	helper_feasibility_full[solution_tuple] = (True if reason_not_feasible == "" else False), reason_not_feasible
 	return (True if reason_not_feasible == "" else False), reason_not_feasible
 
 def cost_function(solution: list(), problem: dict()):
@@ -295,6 +317,14 @@ def cost_function(solution: list(), problem: dict()):
 	travel_cost_dict = problem["travel_time_cost"]
 	node_cost_dict = problem["node_time_cost"]
 	vehicle_info = problem["vehicle_info"]
+
+	helper_cost_full = problem["helper_cost_full"]
+
+	# Check if already calculated cost
+	solution_tuple = solution_to_hashable_tuple_2d(solution)
+
+	if solution_tuple in helper_cost_full:
+		return helper_cost_full[solution_tuple]
 
 	not_transport_cost = 0
 	sum_travel_cost = 0
@@ -351,6 +381,8 @@ def cost_function(solution: list(), problem: dict()):
 
 	total_cost = not_transport_cost + sum_travel_cost + sum_node_cost
 	logging.debug(f"Total costs: {total_cost}")
+
+	helper_cost_full[solution_tuple] = total_cost
 	return total_cost
 
 def split_a_list_at_zeros(k: list()):
@@ -666,9 +698,16 @@ def feasibility_helper(solution: list(), problem: dict(), vehicle_num: int, call
 	travel_cost_dict = problem["travel_time_cost"]
 	node_cost_dict = problem["node_time_cost"]
 	num_vehicles = problem["num_vehicles"]
+	helper_feasibility_partly = problem["helper_feasibility_partly"]
 
 	if vehicle_num > num_vehicles:
 		return True, ""
+
+	# Check if already calculated feasibility
+	solution_tuple = solution_to_hashable_tuple_1d(solution)
+
+	if (solution_tuple, vehicle_num) in helper_feasibility_partly:
+		return helper_feasibility_partly[(solution_tuple, vehicle_num)]
 
 	reason_not_feasible = ""
 
@@ -688,6 +727,7 @@ def feasibility_helper(solution: list(), problem: dict(), vehicle_num: int, call
 			if size_available < 0:
 				logging.debug(f"Solution not feasible - Vehicle {veh_ind+1} got overloaded")
 				reason_not_feasible = ReasonNotFeasible.vehicle_overloaded
+				helper_feasibility_partly[(solution_tuple, vehicle_num)] = (True if reason_not_feasible == "" else False), reason_not_feasible
 				return (True if reason_not_feasible == "" else False), reason_not_feasible
 
 	# (3) Time windows at both nodes
@@ -742,6 +782,7 @@ def feasibility_helper(solution: list(), problem: dict(), vehicle_num: int, call
 							reason_not_feasible = ReasonNotFeasible.time_window_wrong_specific
 
 					curr_time -= next_travel_time
+					helper_feasibility_partly[(solution_tuple, vehicle_num)] = (True if reason_not_feasible == "" else False), reason_not_feasible
 					return (True if reason_not_feasible == "" else False), reason_not_feasible
 				if curr_time < lower_del:
 					curr_time = lower_del
@@ -763,6 +804,7 @@ def feasibility_helper(solution: list(), problem: dict(), vehicle_num: int, call
 							reason_not_feasible = ReasonNotFeasible.time_window_wrong_specific
 
 					curr_time -= next_travel_time
+					helper_feasibility_partly[(solution_tuple, vehicle_num)] = (True if reason_not_feasible == "" else False), reason_not_feasible
 					return (True if reason_not_feasible == "" else False), reason_not_feasible
 				if curr_time < lower_pickup:
 					curr_time = lower_pickup
@@ -772,6 +814,7 @@ def feasibility_helper(solution: list(), problem: dict(), vehicle_num: int, call
 
 	
 	logging.debug(f"Feasible: {(True if reason_not_feasible == '' else False)}, Reason: {reason_not_feasible}")
+	helper_feasibility_partly[(solution_tuple, vehicle_num)] = (True if reason_not_feasible == "" else False), reason_not_feasible
 	return (True if reason_not_feasible == "" else False), reason_not_feasible
 
 def cost_helper(solution: list(), problem: dict(), vehicle_num: int):
@@ -793,6 +836,13 @@ def cost_helper(solution: list(), problem: dict(), vehicle_num: int):
 	node_cost_dict = problem["node_time_cost"]
 	vehicle_info = problem["vehicle_info"]
 	num_vehicles = problem["num_vehicles"]
+	helper_cost_partly = problem["helper_cost_partly"]
+
+	# Check if already calculated cost
+	solution_tuple = solution_to_hashable_tuple_1d(solution)
+
+	if (solution_tuple, vehicle_num) in helper_cost_partly:
+		return helper_cost_partly[(solution_tuple, vehicle_num)]
 
 	sum_travel_cost = 0
 	sum_node_cost = 0
@@ -803,6 +853,7 @@ def cost_helper(solution: list(), problem: dict(), vehicle_num: int):
 
 		for not_vis in dummy_list:
 			not_transport_cost += call_info[not_vis-1][4]
+		helper_cost_partly[(solution_tuple, vehicle_num)] = not_transport_cost
 		return not_transport_cost
 	else:
 		# Loop for costs of nodes and transport
@@ -846,6 +897,8 @@ def cost_helper(solution: list(), problem: dict(), vehicle_num: int):
 
 		total_cost = sum_travel_cost + sum_node_cost
 		logging.debug(f"Total costs: {total_cost}")
+
+		helper_cost_partly[(solution_tuple, vehicle_num)] = total_cost
 		return total_cost
 
 def cost_helper_transport_only(solution: list(), problem: dict(), vehicle_num: int):
@@ -866,6 +919,13 @@ def cost_helper_transport_only(solution: list(), problem: dict(), vehicle_num: i
 	node_cost_dict = problem["node_time_cost"]
 	vehicle_info = problem["vehicle_info"]
 	num_vehicles = problem["num_vehicles"]
+	helper_cost_partly = problem["helper_cost_partly"]
+
+	# Check if already calculated cost
+	solution_tuple = solution_to_hashable_tuple_1d(solution)
+
+	if (solution_tuple, vehicle_num) in helper_cost_partly:
+		return helper_cost_partly[(solution_tuple, vehicle_num)]
 
 	sum_travel_cost = 0
 
@@ -875,6 +935,8 @@ def cost_helper_transport_only(solution: list(), problem: dict(), vehicle_num: i
 
 		for not_vis in dummy_list:
 			not_transport_cost += call_info[not_vis-1][4]
+		
+		helper_cost_partly[(solution_tuple, vehicle_num)] = not_transport_cost
 		return not_transport_cost
 	else:
 		# Loop for costs of nodes and transport
@@ -909,6 +971,8 @@ def cost_helper_transport_only(solution: list(), problem: dict(), vehicle_num: i
 		logging.debug(f"Cost of travel: {sum_travel_cost}")
 
 		logging.debug(f"Total costs: {sum_travel_cost}")
+
+		helper_cost_partly[(solution_tuple, vehicle_num)] = sum_travel_cost
 		return sum_travel_cost
 
 def remove_random_call(solution: List[List[int]], problem: dict(), number_to_remove: int):
@@ -1246,3 +1310,15 @@ def insert_back_to_dummy(solution: List[List[int]], problem: dict(), calls_to_in
 		solution[-1].append(call)
 	
 	return solution
+
+def solution_to_hashable_tuple_2d(solution: List[List[int]]) -> Tuple[Tuple[int]]:
+	"""Takes a solution and converts it to the same format but with tuples instead of lists
+		such that it can be hashed into dictionarys"""
+	
+	return tuple(map(tuple, solution))
+
+def solution_to_hashable_tuple_1d(solution: List[List[int]]) -> Tuple[Tuple[int]]:
+	"""Takes a solution and converts it to the same format but with tuples instead of lists
+		such that it can be hashed into dictionarys"""
+	
+	return tuple(solution)
