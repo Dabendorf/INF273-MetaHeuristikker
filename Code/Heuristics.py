@@ -641,6 +641,11 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 		w += 1
 		if w%200 == 0:
 			update_parameters()
+			"""p_i = score operator, 
+			O_i = antall brukt
+			w_i_s = weight operator i in segment s
+			r = magic number how much the old value should account into new one
+			r = 0.2"""
 
 	improvement = round(100*(orig_cost-best_cost)/orig_cost, 2)
 	logging.debug(f"Original cost: {orig_cost}")

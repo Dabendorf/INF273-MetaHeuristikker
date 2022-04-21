@@ -9,7 +9,7 @@ class ReadProblem(TestCase):
 	pytest.problem_file = load_problem(pytest.path_testfile)
 
 	def test_length_problem_dict(self):
-		assert len(pytest.problem_file) == 9
+		assert len(pytest.problem_file) == 14
 
 	def test_length_information_in_dict(self):
 		counter = 0

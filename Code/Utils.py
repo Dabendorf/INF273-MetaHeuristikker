@@ -131,6 +131,7 @@ def load_problem(filename: str):
 	helper_feasibility_partly = dict()
 	helper_cost_full = dict()
 	helper_cost_partly = dict()
+	helper_cost_partly_transport_only = dict()
 
 	logger.debug(f"Converting input data: Finish")
 	# return output as a dictionary
@@ -148,6 +149,7 @@ def load_problem(filename: str):
 		"helper_feasibility_partly": helper_feasibility_partly,
 		"helper_cost_full": helper_cost_full,
 		"helper_cost_partly": helper_cost_partly,
+		"helper_cost_partly_transport_only": helper_cost_partly_transport_only,
 	}
 
 	return output
@@ -919,7 +921,7 @@ def cost_helper_transport_only(solution: list(), problem: dict(), vehicle_num: i
 	node_cost_dict = problem["node_time_cost"]
 	vehicle_info = problem["vehicle_info"]
 	num_vehicles = problem["num_vehicles"]
-	helper_cost_partly = problem["helper_cost_partly"]
+	helper_cost_partly = problem["helper_cost_partly_transport_only"]
 
 	# Check if already calculated cost
 	solution_tuple = solution_to_hashable_tuple_1d(solution)
