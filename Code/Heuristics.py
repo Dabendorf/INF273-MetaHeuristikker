@@ -570,7 +570,6 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 	# Best solution (starts as initial)
 	best_sol = init_sol
 	s = init_sol.copy()
-	
 
 	cost = cost_function(init_sol, problem)
 	best_cost = cost
@@ -580,13 +579,30 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 	# Save original cost
 	orig_cost = cost
 
-	# Original probabilities
-	probabilities = [1/len(allowed_neighbours)] * len(allowed_neighbours)
+	# Dictionary of weights
+	weights = dict()
+	probabilities = list()
+	for neighbour in allowed_neighbours:
+		weight_val = 1/len(allowed_neighbours)  # TODO change this value to something meaningful
+		weights[neighbour] = weight_val
+		probabilities.append(weight_val)
+	score_sums = defaultdict(lambda: 0)
+	neighbour_used_counter = defaultdict(lambda: 0)
+	## Original probabilities
+	# probabilities = [1/len(allowed_neighbours)] * len(allowed_neighbours)
+
+	# Found solutions
+	found_sol = set()
 
 	w = 0
 	while w < num_of_iterations:
 		if w%1000 == 0:
 			logging.info(f"Iteration num: {w}")
+
+		new_score_val = 0
+		# +1 found a new solution not explored yet
+		# +2 found better than current
+		# +4 found new best
 
 		if iterations_since_best_found > 100:
 			s = escape_algorithm(problem, s, allowed_neighbours) # alternate operator
@@ -597,6 +613,7 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 
 		# Choose a neighbour function
 		neighbourfunc_id = choices(allowed_neighbours, probabilities, k=1)[0]
+		neighbour_used_counter[neighbourfunc_id] += 1
 
 		# Apply neighbouring function
 		if neighbourfunc_id == 1:
@@ -619,6 +636,7 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 			new_cost = cost_function(s2, problem)
 
 			if new_cost < best_cost:
+				new_score_val = 4
 				best_sol = s2
 				best_cost = new_cost
 				updated_value = True
@@ -626,12 +644,18 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 				cost_s = new_cost
 			
 			elif new_cost < cost_s:
+				new_score_val = 2
 				s = s2.copy()
 				cost_s = new_cost
 			
 			elif random() < 0.2:
 				s = s2.copy()
 				cost_s = new_cost
+			
+			hashed_sol = solution_to_hashable_tuple_2d(s2)
+			if hashed_sol not in found_sol:
+				new_score_val = 1
+				found_sol.add(hashed_sol)
 
 		if updated_value:
 			iterations_since_best_found = 0
@@ -639,13 +663,28 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 			iterations_since_best_found += 1
 		
 		w += 1
+		# Update scores
+		score_sums[neighbourfunc_id] += new_score_val
 		if w%200 == 0:
-			update_parameters()
+			# update_parameters
+			probabilities = []
+			for neighbour in allowed_neighbours:
+				r = 0.2
+				new_weight = weights[neighbour] * (1-r) + r * (score_sums[neighbour]/neighbour_used_counter[neighbour])
+				weights[neighbour] = new_weight
+				score_sums[neighbour] = 0
+				neighbour_used_counter[neighbour] = 0
+				probabilities.append(weight_val)
+			
+			sum_prob = sum(probabilities)
+			for idx, el in enumerate(probabilities):
+				probabilities[idx] = el/sum_prob
 			"""p_i = score operator, 
 			O_i = antall brukt
 			w_i_s = weight operator i in segment s
 			r = magic number how much the old value should account into new one
 			r = 0.2"""
+			logging.debug(f"New weights: {probabilities}")
 
 	improvement = round(100*(orig_cost-best_cost)/orig_cost, 2)
 	logging.debug(f"Original cost: {orig_cost}")
