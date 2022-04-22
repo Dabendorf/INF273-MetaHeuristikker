@@ -304,7 +304,7 @@ def alter_solution_4steven(problem: dict(), current_solution: List[int]) -> List
 	removed_solution, to_remove = remove_dummy_call(current_solution, problem, number_to_remove)
 	solution = insert_regretk(removed_solution, problem, to_remove, 2)
 	solution = insert_greedy(removed_solution, problem, to_remove)
-	solution = insert_back_to_dummy(removed_solution, problem, to_remove)"""
+	# solution = insert_back_to_dummy(removed_solution, problem, to_remove)"""
 	removed_solution, to_remove = remove_random_call(current_solution, problem, 2)
 	solution = insert_greedy(removed_solution, problem, to_remove)
 	return solution
@@ -322,6 +322,27 @@ def alter_solution_6sebastian(problem: dict(), current_solution: List[int]) -> L
 
 	removed_solution, to_remove = remove_dummy_call(current_solution, problem, 2)
 	solution = insert_greedy(removed_solution, problem, to_remove)
+	return solution
+
+def alter_solution_7steinar(problem: dict(), current_solution: List[int]) -> List[int]:
+	""" A combination of removing n random calls and inserting them with regretk"""
+
+	removed_solution, to_remove = remove_random_call(current_solution, problem, 2)
+	solution = insert_regretk(removed_solution, problem, to_remove, 2)
+	return solution
+
+def alter_solution_8stian(problem: dict(), current_solution: List[int]) -> List[int]:
+	""" A combination of removing n highest cost calls and inserting them greedily"""
+
+	removed_solution, to_remove = remove_highest_cost_call(current_solution, problem, 2)
+	solution = insert_greedy(removed_solution, problem, to_remove)
+	return solution
+
+def alter_solution_9karina(problem: dict(), current_solution: List[int]) -> List[int]:
+	""" A combination of removing n dummy calls and inserting them with regretk"""
+
+	removed_solution, to_remove = remove_dummy_call(current_solution, problem, 2)
+	solution = insert_regretk(removed_solution, problem, to_remove, 2)
 	return solution
 
 def local_search(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [1,2,3]):
@@ -475,7 +496,13 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 		elif neighbourfunc_id == 5:
 			new_sol = alter_solution_5jackie(problem, inc_sol)
 		elif neighbourfunc_id == 6:
-			new_sol = alter_solution_6sebastian(problem, inc_sol)	
+			new_sol = alter_solution_6sebastian(problem, inc_sol)
+		elif neighbourfunc_id == 7:
+			new_sol = alter_solution_7steinar(problem, inc_sol)
+		elif neighbourfunc_id == 8:
+			new_sol = alter_solution_8stian(problem, inc_sol)
+		elif neighbourfunc_id == 9:
+			new_sol = alter_solution_9karina(problem, inc_sol)	
 		
 		"""print(f"New sol: {new_sol}, neighbour {neighbourfunc_id}")
 		if len(solution_to_ahmed_output(new_sol))!=17:
@@ -527,6 +554,12 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 			new_sol = alter_solution_5jackie(problem, inc_sol)
 		elif neighbourfunc_id == 6:
 			new_sol = alter_solution_6sebastian(problem, inc_sol)
+		elif neighbourfunc_id == 7:
+			new_sol = alter_solution_7steinar(problem, inc_sol)
+		elif neighbourfunc_id == 8:
+			new_sol = alter_solution_8stian(problem, inc_sol)
+		elif neighbourfunc_id == 9:
+			new_sol = alter_solution_9karina(problem, inc_sol)
 
 		"""print(f"New sol: {new_sol}, neighbour {neighbourfunc_id}")
 		if len(solution_to_ahmed_output(new_sol))!=17:
@@ -605,7 +638,7 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 		# +4 found new best
 
 		if iterations_since_best_found > 100:
-			s = escape_algorithm(problem, s, allowed_neighbours) # alternate operator
+			s = escape_algorithm(problem, s, allowed_neighbours, best_sol_cost=best_cost, cost_s=cost_s) # alternate operator
 			# update best solution TODO 
 			iterations_since_best_found = 0
 		
@@ -628,6 +661,12 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 			s2 = alter_solution_5jackie(problem, s2)
 		elif neighbourfunc_id == 6:
 			s2 = alter_solution_6sebastian(problem, s2)
+		elif neighbourfunc_id == 7:
+			s2 = alter_solution_7steinar(problem, s2)
+		elif neighbourfunc_id == 8:
+			s2 = alter_solution_8stian(problem, s2)
+		elif neighbourfunc_id == 9:
+			s2 = alter_solution_9karina(problem, s2)
 
 		feasiblity, _ = feasibility_check(s2, problem)
 
@@ -693,7 +732,7 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 
 	return best_sol, best_cost, improvement
 
-def escape_algorithm(problem: dict(), current_solution, allowed_neighbours):
+def escape_algorithm(problem: dict(), current_solution, allowed_neighbours, best_sol_cost, cost_s):
 	""" This is the escape algorithm to get out of a local minimum"""
 
 

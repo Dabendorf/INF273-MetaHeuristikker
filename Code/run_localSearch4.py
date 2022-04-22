@@ -18,7 +18,7 @@ def main():
 		prob = load_problem(tf)
 		init_sol = initial_solution(problem=prob)
 
-		neighbours = [4, 5, 6]
+		neighbours = [4, 5, 6, 7, 8, 9]
 		num_vehicles, num_calls, best_solution, best_cost, seeds = local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=neighbours, probabilities = [1]*len(neighbours), method="isa")
 		overall_best_solution = best_solution
 		overall_best_cost = best_cost
@@ -37,7 +37,7 @@ def main():
 		#print(overall_best_cost)
 		#print(overall_best_solution)
 		
-		#latex_replace_line(num_vehicles = num_vehicles, num_calls = num_calls, best_solution = overall_best_solution, seeds = overall_seeds)
+		latex_replace_line(num_vehicles = num_vehicles, num_calls = num_calls, best_solution = overall_best_solution, seeds = overall_seeds)
 
 if __name__ == "__main__":
 	main()

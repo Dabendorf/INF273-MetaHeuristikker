@@ -4,7 +4,7 @@ from collections import defaultdict
 import logging
 import random
 from timeit import default_timer as timer
-from random import random, sample, choices
+from random import random, sample, choices, shuffle
 import math
 
 from enum import Enum
@@ -1070,7 +1070,9 @@ def insert_regretk(solution: List[List[int]], problem: dict(), calls_to_insert: 
 
 	dict_best_positions = defaultdict(lambda: [])
 
-	for call_num in calls_to_insert:
+	calls_to_insert_list = list(calls_to_insert)
+	shuffle(calls_to_insert_list)
+	for call_num in calls_to_insert_list:
 		for veh_idx in range(num_vehicles):
 			extend_list = helper_regretk_insert_one_call_one_vehicle(solution[veh_idx], problem, call_num, veh_idx+1)
 			dict_best_positions[call_num].extend(extend_list[call_num])
@@ -1146,6 +1148,8 @@ def insert_greedy(solution: List[List[int]], problem: dict(), calls_to_insert: L
 	#print(f"Greedy to insert: {calls_to_insert}")
 	
 	output_sol = solution.copy()
+	calls_to_insert = list(calls_to_insert)
+	shuffle(calls_to_insert)
 	for call_num in calls_to_insert:
 		call_solution = output_sol.copy()
 		#print(f"New call to insert: {call_num}, current solution: {call_solution}")
