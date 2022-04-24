@@ -1,13 +1,10 @@
-from re import S
 from typing import List
 from collections import defaultdict
 import logging
 from random import randint, randrange, random, choice, seed, choices, sample, shuffle
 from timeit import default_timer as timer
 import math
-import bisect
-
-from pyrsistent import s
+from copy import deepcopy
 
 from Utils import *
 
@@ -305,14 +302,14 @@ def alter_solution_4steven(problem: dict(), current_solution: List[int]) -> List
 	solution = insert_regretk(removed_solution, problem, to_remove, 2)
 	solution = insert_greedy(removed_solution, problem, to_remove)
 	# solution = insert_back_to_dummy(removed_solution, problem, to_remove)"""
-	removed_solution, to_remove = remove_random_call(current_solution, problem, 2)
+	removed_solution, to_remove = remove_random_call(current_solution, problem, randint(1,3))
 	solution = insert_greedy(removed_solution, problem, to_remove)
 	return solution
 
 def alter_solution_5jackie(problem: dict(), current_solution: List[int]) -> List[int]:
 	""" A combination of removing n highest cost calls and inserting them with regretk"""
 
-	removed_solution, to_remove = remove_highest_cost_call(current_solution, problem, 2)
+	removed_solution, to_remove = remove_highest_cost_call(current_solution, problem, randint(1,3))
 	solution = insert_regretk(removed_solution, problem, to_remove, 2)
 	#solution = insert_back_to_dummy(removed_solution, problem, to_remove)
 	return solution
@@ -320,28 +317,28 @@ def alter_solution_5jackie(problem: dict(), current_solution: List[int]) -> List
 def alter_solution_6sebastian(problem: dict(), current_solution: List[int]) -> List[int]:
 	""" A combination of removing n dummy calls and inserting them greedily"""
 
-	removed_solution, to_remove = remove_dummy_call(current_solution, problem, 2)
+	removed_solution, to_remove = remove_dummy_call(current_solution, problem, randint(1,3))
 	solution = insert_greedy(removed_solution, problem, to_remove)
 	return solution
 
 def alter_solution_7steinar(problem: dict(), current_solution: List[int]) -> List[int]:
 	""" A combination of removing n random calls and inserting them with regretk"""
 
-	removed_solution, to_remove = remove_random_call(current_solution, problem, 2)
+	removed_solution, to_remove = remove_random_call(current_solution, problem, randint(1,3))
 	solution = insert_regretk(removed_solution, problem, to_remove, 2)
 	return solution
 
 def alter_solution_8stian(problem: dict(), current_solution: List[int]) -> List[int]:
 	""" A combination of removing n highest cost calls and inserting them greedily"""
 
-	removed_solution, to_remove = remove_highest_cost_call(current_solution, problem, 2)
+	removed_solution, to_remove = remove_highest_cost_call(current_solution, problem, randint(1,3))
 	solution = insert_greedy(removed_solution, problem, to_remove)
 	return solution
 
 def alter_solution_9karina(problem: dict(), current_solution: List[int]) -> List[int]:
 	""" A combination of removing n dummy calls and inserting them with regretk"""
 
-	removed_solution, to_remove = remove_dummy_call(current_solution, problem, 2)
+	removed_solution, to_remove = remove_dummy_call(current_solution, problem, randint(1,3))
 	solution = insert_regretk(removed_solution, problem, to_remove, 2)
 	return solution
 
@@ -596,7 +593,7 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 
 	return best_sol, best_cost, improvement
 
-def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [4, 5, 6]):
+def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [4, 5, 6, 7, 8, 9]):
 	""" Adaptive algorithm inspired from simulated annealing and Ahmeds slides 12-20"""
 	logging.info(f"Start adaptive algorithm with neighbour(s) {allowed_neighbours}")
 
@@ -638,11 +635,24 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 		# +4 found new best
 
 		if iterations_since_best_found > 100:
-			s = escape_algorithm(problem, s, allowed_neighbours, best_sol_cost=best_cost, cost_s=cost_s) # alternate operator
+			s, cost_s, is_new_best = escape_algorithm(problem=problem, current_solution=s, allowed_neighbours=[4, 7], best_sol_cost=best_cost, cost_s=cost_s) # alternate operator
 			# update best solution TODO 
+			# current_solution, new_cost, False
+
+			if is_new_best:
+				best_sol = deepcopy(s)
+				best_cost = cost_s
+
+			"""
+			best_sol = 
+			best_cost = 
+
+			s = 
+			cost_s = 
+			"""
 			iterations_since_best_found = 0
 		
-		s2 = s.copy()
+		s2 = deepcopy(s)
 
 		# Choose a neighbour function
 		neighbourfunc_id = choices(allowed_neighbours, probabilities, k=1)[0]
@@ -679,16 +689,16 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 				best_sol = s2
 				best_cost = new_cost
 				updated_value = True
-				s = s2.copy()
+				s = deepcopy(s2)
 				cost_s = new_cost
 			
 			elif new_cost < cost_s:
 				new_score_val = 2
-				s = s2.copy()
+				s = deepcopy(s2)
 				cost_s = new_cost
 			
 			elif random() < 0.2:
-				s = s2.copy()
+				s = deepcopy(s2)
 				cost_s = new_cost
 			
 			hashed_sol = solution_to_hashable_tuple_2d(s2)
@@ -732,11 +742,49 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 
 	return best_sol, best_cost, improvement
 
-def escape_algorithm(problem: dict(), current_solution, allowed_neighbours, best_sol_cost, cost_s):
+def escape_algorithm(problem: dict(), current_solution, allowed_neighbours, best_sol_cost, cost_s, num_iterations=20):
 	""" This is the escape algorithm to get out of a local minimum"""
+	found_new_feasible_solution = False
+	iteration_num = 0
+	probabilities = [1] * len(allowed_neighbours)
+	
+	while iteration_num < num_iterations or not found_new_feasible_solution:
+		iteration_num += 1
 
+		# Choose a neighbour function
+		neighbourfunc_id = choices(allowed_neighbours, probabilities, k=1)[0]
 
-	return current_solution
+		# Apply neighbouring function
+		if neighbourfunc_id == 1:
+			s2 = alter_solution_1insert(problem, current_solution, 0.8)
+		elif neighbourfunc_id == 2:
+			s2 = alter_solution_2exchange(problem, current_solution)
+		elif neighbourfunc_id == 3:
+			s2 = alter_solution_3exchange(problem, current_solution)
+		elif neighbourfunc_id == 4:
+			s2 = alter_solution_4steven(problem, current_solution)
+		elif neighbourfunc_id == 5:
+			s2 = alter_solution_5jackie(problem, current_solution)
+		elif neighbourfunc_id == 6:
+			s2 = alter_solution_6sebastian(problem, current_solution)
+		elif neighbourfunc_id == 7:
+			s2 = alter_solution_7steinar(problem, current_solution)
+		elif neighbourfunc_id == 8:
+			s2 = alter_solution_8stian(problem, current_solution)
+		elif neighbourfunc_id == 9:
+			s2 = alter_solution_9karina(problem, current_solution)
+
+		feasiblity, _ = feasibility_check(s2, problem)
+
+		if feasiblity:
+			new_cost = cost_function(s2, problem)
+			current_solution = s2
+			found_new_feasible_solution = True
+
+			if new_cost < best_sol_cost:
+				return current_solution, new_cost, True
+
+	return current_solution, new_cost, False
 
 def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_iterations: int = 10000, num_of_rounds: int = 10, allowed_neighbours: list = [1,2,3], probabilities: list = [1/3, 1/3, 1/3], method:str = "ls"):
 	""" Performs any sort of heuristic on a number of neighbours
