@@ -613,7 +613,7 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 	weights = dict()
 	probabilities = list()
 	for neighbour in allowed_neighbours:
-		weight_val = 1/len(allowed_neighbours)  # TODO change this value to something meaningful
+		weight_val = 1/len(allowed_neighbours)
 		weights[neighbour] = weight_val
 		probabilities.append(weight_val)
 	score_sums = defaultdict(lambda: 0)
@@ -643,13 +643,6 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 				best_sol = deepcopy(s)
 				best_cost = cost_s
 
-			"""
-			best_sol = 
-			best_cost = 
-
-			s = 
-			cost_s = 
-			"""
 			iterations_since_best_found = 0
 		
 		s2 = deepcopy(s)
@@ -717,17 +710,23 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 		if w%200 == 0:
 			# update_parameters
 			probabilities = []
+			#print(f"Scores: {score_sums}")
+			#print(f"Used: {neighbour_used_counter}")
 			for neighbour in allowed_neighbours:
 				r = 0.2
+				if neighbour_used_counter[neighbour] == 0:
+					neighbour_used_counter[neighbour] += 1
 				new_weight = weights[neighbour] * (1-r) + r * (score_sums[neighbour]/neighbour_used_counter[neighbour])
 				weights[neighbour] = new_weight
 				score_sums[neighbour] = 0
 				neighbour_used_counter[neighbour] = 0
-				probabilities.append(weight_val)
-			
+				probabilities.append(new_weight)
+
 			sum_prob = sum(probabilities)
 			for idx, el in enumerate(probabilities):
 				probabilities[idx] = el/sum_prob
+			#print(f"Probabilities: {probabilities}")
+			
 			"""p_i = score operator, 
 			O_i = antall brukt
 			w_i_s = weight operator i in segment s
@@ -736,6 +735,7 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 			logging.debug(f"New weights: {probabilities}")
 
 	improvement = round(100*(orig_cost-best_cost)/orig_cost, 2)
+	logging.info(f"Final probabilities: {list(map(lambda x: round(x, ndigits=2), probabilities))}")
 	logging.debug(f"Original cost: {orig_cost}")
 	logging.debug(f"New cost: {best_cost}")
 	logging.debug(f"Improvement: {improvement}%")
@@ -856,6 +856,7 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 	average_objective = round(sum(average_objectives) / len(average_objectives), 2)
 	improvement = max(improvements)
 	average_time = round(sum(average_times) / len(average_times), 2)
+	logging.info(f"Average cost: {average_objective}")
 
 	latex_add_line(num_vehicles = num_vehicles, num_calls = num_calls, method = method_str, average_obj = average_objective, best_obj = best_cost, improvement = improvement, running_time = average_time)
 	
