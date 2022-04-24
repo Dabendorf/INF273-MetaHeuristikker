@@ -1,12 +1,12 @@
 from typing import List
 from collections import defaultdict
 import logging
-from random import randint, randrange, random, choice, seed, choices, sample, shuffle
+from random import randint, randrange, random, choice, seed, choices
 from timeit import default_timer as timer
 import math
 from copy import deepcopy
 
-from Utils import *
+from Utils import split_a_list_at_zeros, insert_greedy, insert_regretk, cost_function, feasibility_check, remove_dummy_call, remove_random_call, remove_highest_cost_call, latex_add_line, solution_to_hashable_tuple_2d
 
 logger = logging.getLogger(__name__)
 

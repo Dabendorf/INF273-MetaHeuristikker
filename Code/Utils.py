@@ -2,12 +2,11 @@ from typing import List, Tuple
 import numpy as np
 from collections import defaultdict
 import logging
-import random
 from timeit import default_timer as timer
-from random import random, sample, choices, shuffle
+from random import random, sample, shuffle
 import math
-
 from enum import Enum
+
 class ReasonNotFeasible(Enum):
 	call_in_vehicle_not_allowed = 1
 	vehicle_overloaded = 2
