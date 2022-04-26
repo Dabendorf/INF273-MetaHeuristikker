@@ -1085,6 +1085,7 @@ def insert_regretk(solution: List[List[int]], problem: dict(), calls_to_insert: 
 
 	num_vehicles = problem["num_vehicles"]
 	num_calls = problem["num_calls"]
+	probs = problem["prob"]
 
 	dict_best_positions = defaultdict(lambda: [])
 
@@ -1116,12 +1117,25 @@ def insert_regretk(solution: List[List[int]], problem: dict(), calls_to_insert: 
 				# k value exists
 			where_to_insert[key] = sorted_values[0][1]
 
-	#print(regret_values)
+	#print(f"Regret val: {regret_values}")
 	insertion_order = sorted(regret_values, key=regret_values.get, reverse=True)
-	#print(insertion_order)
+	#print(f"Old insert order: {insertion_order}")
+
+	# Set probabilities
+	probs = probs[:len(insertion_order)]
+	# Normalise the weights to sum to 1
+	weights = [w/sum(probs) for w in probs]
 	#print(where_to_insert)
-	
-	for call_num in insertion_order:
+
+	new_prob_dict = dict()
+	for idx, el in enumerate(insertion_order):
+		new_prob_dict[el] = weights[idx]
+	#print(f"Prob dict: {new_prob_dict}")
+	insertion_order_new = [key for key,value in sorted(new_prob_dict.items(), key=lambda x: random() * x[1], reverse=True)]
+	#print(f"New insert order: {insertion_order_new}")
+	#print("=========0")
+
+	for call_num in insertion_order_new:
 		#print(f"Callnum: {call_num}")
 		veh_num = where_to_insert[call_num]
 		call_list_for_one_veh, successful = greedy_insert_one_call_one_vehicle(solution[veh_num-1], problem, call_num, veh_num)
