@@ -614,6 +614,7 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 	orig_cost = cost
 
 	# Dictionary of weights
+	r = 0.2
 	weights = dict()
 	probabilities = list()
 	for neighbour in allowed_neighbours:
@@ -623,14 +624,16 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 		prob_hist[f"x{neighbour}"].append(weight_val)
 	score_sums = defaultdict(lambda: 0)
 	neighbour_used_counter = defaultdict(lambda: 0)
-	## Original probabilities
-	# probabilities = [1/len(allowed_neighbours)] * len(allowed_neighbours)
 
 	# Found solutions
 	found_sol = set()
 
 	w = 0
 	while w < num_of_iterations:
+		if w%200 == 0:
+			# Initialise set of neighbours not yet used
+			not_used_yet = set(allowed_neighbours)
+
 		if w%1000 == 0:
 			logging.info(f"Iteration num: {w}")
 
@@ -655,7 +658,14 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 
 		# Choose a neighbour function
 		neighbourfunc_id = choices(allowed_neighbours, probabilities, k=1)[0]
+
+		# Use functions not used yet
+		if w%200 > 150:
+			if len(not_used_yet) > 0:
+				neighbourfunc_id = choice(list(not_used_yet))
+		
 		neighbour_used_counter[neighbourfunc_id] += 1
+		not_used_yet = not_used_yet.difference({neighbourfunc_id})
 
 		# Apply neighbouring function
 		if neighbourfunc_id == 1:
@@ -720,9 +730,6 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 			#print(f"Scores: {score_sums}")
 			#print(f"Used: {neighbour_used_counter}")
 			for neighbour in allowed_neighbours:
-				r = 0.2
-				if neighbour_used_counter[neighbour] == 0:
-					neighbour_used_counter[neighbour] += 1
 				new_weight = weights[neighbour] * (1-r) + r * (score_sums[neighbour]/neighbour_used_counter[neighbour])
 				weights[neighbour] = new_weight
 				score_sums[neighbour] = 0
