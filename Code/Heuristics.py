@@ -597,6 +597,10 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 	""" Adaptive algorithm inspired from simulated annealing and Ahmeds slides 12-20"""
 	logging.info(f"Start adaptive algorithm with neighbour(s) {allowed_neighbours}")
 
+	# Dictionary of past probabilities
+	prob_hist = defaultdict(lambda: list())
+	prob_hist["y"].append(0)
+
 	# Best solution (starts as initial)
 	best_sol = init_sol
 	s = init_sol.copy()
@@ -605,6 +609,7 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 	best_cost = cost
 	cost_s = cost
 	iterations_since_best_found = 0
+	last_iteration_found_best = 0
 
 	# Save original cost
 	orig_cost = cost
@@ -616,6 +621,7 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 		weight_val = 1/len(allowed_neighbours)
 		weights[neighbour] = weight_val
 		probabilities.append(weight_val)
+		prob_hist[f"x{neighbour}"].append(weight_val)
 	score_sums = defaultdict(lambda: 0)
 	neighbour_used_counter = defaultdict(lambda: 0)
 	## Original probabilities
@@ -642,6 +648,7 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 			if is_new_best:
 				best_sol = deepcopy(s)
 				best_cost = cost_s
+				last_iteration_found_best = w
 
 			iterations_since_best_found = 0
 		
@@ -684,6 +691,7 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 				updated_value = True
 				s = deepcopy(s2)
 				cost_s = new_cost
+				last_iteration_found_best = w
 			
 			elif new_cost < cost_s:
 				new_score_val = 2
@@ -721,19 +729,21 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 				score_sums[neighbour] = 0
 				neighbour_used_counter[neighbour] = 0
 				probabilities.append(new_weight)
+				prob_hist[f"x{neighbour}"].append(new_weight)
+			prob_hist["y"].append(w)
 
 			sum_prob = sum(probabilities)
 			for idx, el in enumerate(probabilities):
 				probabilities[idx] = el/sum_prob
 			#print(f"Probabilities: {probabilities}")
 			
-			"""p_i = score operator, 
-			O_i = antall brukt
-			w_i_s = weight operator i in segment s
-			r = magic number how much the old value should account into new one
-			r = 0.2"""
 			logging.debug(f"New weights: {probabilities}")
 
+	with open("weights.txt", 'w') as f:
+		for k, v in prob_hist.items():
+			f.write((f"{k} = {v}\n"))
+	logging.info(f"Last iteration with new best: {last_iteration_found_best}")
+	
 	improvement = round(100*(orig_cost-best_cost)/orig_cost, 2)
 	logging.info(f"Final probabilities: {list(map(lambda x: round(x, ndigits=2), probabilities))}")
 	logging.debug(f"Original cost: {orig_cost}")
