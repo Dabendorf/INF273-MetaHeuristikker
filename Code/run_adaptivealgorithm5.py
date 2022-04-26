@@ -1,5 +1,5 @@
 from Heuristics import local_search_sim_annealing_latex
-from Utils import load_problem, initial_solution, solution_to_ahmed_output, latex_replace_line
+from Utils import load_problem, initial_solution, solution_to_ahmed_output, latex_replace_line, cost_function, return_output_solution, split_a_list_at_zeros
 
 import logging
 
@@ -25,11 +25,16 @@ def main():
 		overall_best_cost = best_cost
 		overall_seeds = seeds
 
-		logging.info(solution_to_ahmed_output(overall_best_solution))
-		
+		overall_best_correct_format, was_valid = return_output_solution(overall_best_solution, prob)
+
+		if not was_valid:
+			sol_old_format = split_a_list_at_zeros(overall_best_correct_format)
+			overall_best_cost = cost_function(sol_old_format, prob)
+
+		logging.info(overall_best_correct_format)
 		logging.info(f"Overall best: {overall_best_cost}")
 		
-		latex_replace_line(num_vehicles = num_vehicles, num_calls = num_calls, best_solution = solution_to_ahmed_output(overall_best_solution), seeds = overall_seeds)
+		latex_replace_line(num_vehicles = num_vehicles, num_calls = num_calls, best_solution = overall_best_correct_format, seeds = overall_seeds)
 
 if __name__ == "__main__":
 	main()

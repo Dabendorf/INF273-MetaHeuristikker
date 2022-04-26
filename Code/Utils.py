@@ -1357,3 +1357,44 @@ def solution_to_hashable_tuple_1d(solution: List[List[int]]) -> Tuple[Tuple[int]
 		such that it can be hashed into dictionarys"""
 	
 	return tuple(solution)
+
+def return_output_solution(solution: List[List[int]], problem: dict()) -> Tuple[Tuple[int]]:
+	""" This function takes as argument a solution and checks if its valid
+		If its not valid, it makes some emergency stuff to make the solution valid
+		Afterwards, it converts the solution to Ahmeds solution format"""
+	
+	num_vehicles = problem["num_vehicles"]
+	num_calls = problem["num_calls"]
+	new_sol = solution_to_ahmed_output(solution)
+
+	correct_length = 2*num_calls + num_vehicles
+
+	# The solution is valid
+	if len(new_sol) == correct_length:
+		return new_sol, True
+	else:
+		logging.error(f"Solution invalid {solution}")
+		if len(new_sol) > correct_length:
+			logging.error(f"Length too long, return initial solution")
+			new_sol = solution_to_ahmed_output(initial_solution(problem=problem))
+			logging.error(f"{new_sol}")
+			return new_sol, False
+		else:
+			if new_sol.count(0) != num_vehicles:
+				logging.error(f"Vehicle gone missing, return initial solution")
+				new_sol = solution_to_ahmed_output(initial_solution(problem=problem))
+				logging.error(f"{new_sol}")
+				return new_sol, False
+			else:
+				logging.error(f"Calls gone missing, reparation by insertion into dummy")
+				possible_calls_list = set(range(1,num_calls+1))
+				calls_existing = set(new_sol).difference({0})
+				difference_calls = possible_calls_list.difference(calls_existing)
+
+				for call_num in difference_calls:
+					new_sol.append(call_num)
+					new_sol.append(call_num)
+
+				logging.error(f"{new_sol}")
+				return new_sol, False
+
