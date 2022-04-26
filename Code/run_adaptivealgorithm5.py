@@ -4,8 +4,7 @@ from Utils import load_problem, initial_solution, solution_to_ahmed_output, late
 import logging
 
 def main():
-	# filename="run.log", 
-	logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
+	logging.basicConfig(filename="run.log", format="%(asctime)s - %(message)s", level=logging.INFO)
 	logger = logging.getLogger(__name__)
 	logger.disabled = False
 
