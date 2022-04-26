@@ -296,50 +296,49 @@ def alter_solution_3exchange(problem: dict(), current_solution: List[int]) -> Li
 def alter_solution_4steven(problem: dict(), current_solution: List[int]) -> List[int]:
 	""" A combination of removing n random calls and inserting those greedily"""
 	""" Functions to choose from
-	removed_solution, to_remove = remove_random_call(current_solution, problem, number_to_remove)
-	removed_solution, to_remove = remove_highest_cost_call(current_solution, problem, number_to_remove)
-	removed_solution, to_remove = remove_dummy_call(current_solution, problem, number_to_remove)
+	removed_solution, to_remove, removed_from = remove_random_call(current_solution, problem, number_to_remove)
+	removed_solution, to_remove, removed_from = remove_highest_cost_call(current_solution, problem, number_to_remove)
+	removed_solution, to_remove, removed_from = remove_dummy_call(current_solution, problem, number_to_remove)
 	solution = insert_regretk(removed_solution, problem, to_remove, 2)
 	solution = insert_greedy(removed_solution, problem, to_remove)
 	# solution = insert_back_to_dummy(removed_solution, problem, to_remove)"""
-	removed_solution, to_remove = remove_random_call(current_solution, problem, randint(1,3))
-	solution = insert_greedy(removed_solution, problem, to_remove)
+	removed_solution, to_remove, removed_from = remove_random_call(current_solution, problem, randint(1,3))
+	solution = insert_greedy(removed_solution, problem, to_remove, removed_from)
 	return solution
 
 def alter_solution_5jackie(problem: dict(), current_solution: List[int]) -> List[int]:
 	""" A combination of removing n highest cost calls and inserting them with regretk"""
 
-	removed_solution, to_remove = remove_highest_cost_call(current_solution, problem, randint(1,3))
-	solution = insert_regretk(removed_solution, problem, to_remove, 2)
-	#solution = insert_back_to_dummy(removed_solution, problem, to_remove)
+	removed_solution, to_remove, removed_from = remove_highest_cost_call(current_solution, problem, randint(1,3))
+	solution = insert_regretk(removed_solution, problem, to_remove, removed_from, 2)
 	return solution
 
 def alter_solution_6sebastian(problem: dict(), current_solution: List[int]) -> List[int]:
 	""" A combination of removing n dummy calls and inserting them greedily"""
 
-	removed_solution, to_remove = remove_dummy_call(current_solution, problem, randint(1,3))
-	solution = insert_greedy(removed_solution, problem, to_remove)
+	removed_solution, to_remove, removed_from = remove_dummy_call(current_solution, problem, randint(1,3))
+	solution = insert_greedy(removed_solution, problem, to_remove, removed_from)
 	return solution
 
 def alter_solution_7steinar(problem: dict(), current_solution: List[int]) -> List[int]:
 	""" A combination of removing n random calls and inserting them with regretk"""
 
-	removed_solution, to_remove = remove_random_call(current_solution, problem, randint(1,3))
-	solution = insert_regretk(removed_solution, problem, to_remove, 2)
+	removed_solution, to_remove, removed_from = remove_random_call(current_solution, problem, randint(1,3))
+	solution = insert_regretk(removed_solution, problem, to_remove, removed_from, 2)
 	return solution
 
 def alter_solution_8stian(problem: dict(), current_solution: List[int]) -> List[int]:
 	""" A combination of removing n highest cost calls and inserting them greedily"""
 
-	removed_solution, to_remove = remove_highest_cost_call(current_solution, problem, randint(1,3))
-	solution = insert_greedy(removed_solution, problem, to_remove)
+	removed_solution, to_remove, removed_from = remove_highest_cost_call(current_solution, problem, randint(1,3))
+	solution = insert_greedy(removed_solution, problem, to_remove, removed_from)
 	return solution
 
 def alter_solution_9karina(problem: dict(), current_solution: List[int]) -> List[int]:
 	""" A combination of removing n dummy calls and inserting them with regretk"""
 
-	removed_solution, to_remove = remove_dummy_call(current_solution, problem, randint(1,3))
-	solution = insert_regretk(removed_solution, problem, to_remove, 2)
+	removed_solution, to_remove, removed_from = remove_dummy_call(current_solution, problem, randint(1,3))
+	solution = insert_regretk(removed_solution, problem, to_remove, removed_from, 2)
 	return solution
 
 def local_search(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [1,2,3]):
@@ -729,12 +728,12 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 				score_sums[neighbour] = 0
 				neighbour_used_counter[neighbour] = 0
 				probabilities.append(new_weight)
-				prob_hist[f"x{neighbour}"].append(new_weight)
 			prob_hist["y"].append(w)
 
 			sum_prob = sum(probabilities)
 			for idx, el in enumerate(probabilities):
 				probabilities[idx] = el/sum_prob
+				prob_hist[f"x{idx+4}"].append(el/sum_prob)
 			#print(f"Probabilities: {probabilities}")
 			
 			logging.debug(f"New weights: {probabilities}")

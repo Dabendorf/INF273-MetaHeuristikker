@@ -978,7 +978,7 @@ def cost_helper_transport_only(solution: list(), problem: dict(), vehicle_num: i
 
 def remove_random_call(solution: List[List[int]], problem: dict(), number_to_remove: int):
 	""" Removes n calls from the call list
-		Returns: (new solution, list of removed calls) """
+		Returns: (new solution, list of removed calls, where_removed_from) """
 
 	num_calls = problem["num_calls"]
 
@@ -986,13 +986,20 @@ def remove_random_call(solution: List[List[int]], problem: dict(), number_to_rem
 
 	new_solution = [[x for x in inner if x not in to_remove] for inner in solution]
 
+	# Where is it removed from
+	removed_from = dict()
+	for idx, inner in enumerate(solution):
+		for el in to_remove:
+			if el in inner:
+				removed_from[el] = idx+1
+
 	logging.debug(f"new solution: {new_solution}, removed: {to_remove}; Remove {number_to_remove} random calls")
-	return new_solution, to_remove
+	return new_solution, to_remove, removed_from
 
 def remove_highest_cost_call(solution: List[List[int]], problem: dict(), number_to_remove: int):
 	""" Removes the n highest cost calls (not from dummy)
 		Its not always taking out the highest cost, but giving those a higher probability (diversification)
-		Returns: (new solution, list of removed calls) """
+		Returns: (new solution, list of removed calls, where_removed_from) """
 	
 	probs = problem["prob"]
 
@@ -1028,16 +1035,22 @@ def remove_highest_cost_call(solution: List[List[int]], problem: dict(), number_
 		to_remove = set(np.random.choice(highest_cost_calls, size=number_to_remove, replace=False, p=weights))
 
 		new_solution = [[x for x in inner if x not in to_remove] for inner in solution]
+		# Where is it removed from
+		removed_from = dict()
+		for idx, inner in enumerate(solution):
+			for el in to_remove:
+				if el in inner:
+					removed_from[el] = idx+1
 
 		logging.debug(f"new solution: {new_solution}, removed: {to_remove}; Remove {number_to_remove} random calls")
-		return new_solution, to_remove
+		return new_solution, to_remove, removed_from
 	else:
 		# Return dummy if there are no calls (only initial solution)
 		return remove_dummy_call(solution, problem, number_to_remove)
 
 def remove_dummy_call(solution: List[List[int]], problem: dict(), number_to_remove: int):
 	""" Removes n calls from the call list, but only from the dummy
-		Returns: (new solution, list of removed calls) """
+		Returns: (new solution, list of removed calls, where_removed_from) """
 
 	calls_in_dummy = set(solution[-1])
 	num_calls_in_dummy = len(calls_in_dummy)
@@ -1047,10 +1060,16 @@ def remove_dummy_call(solution: List[List[int]], problem: dict(), number_to_remo
 
 	solution[-1] = [x for x in solution[-1] if x not in to_remove]
 
-	logging.debug(f"new solution: {solution}, removed: {to_remove}; Remove {number_to_remove} dummy calls")
-	return solution, to_remove
+	# Number of dummy
+	dummy_num = len(solution)+1
+	removed_from = dict()
+	for el in to_remove:
+		removed_from[el] = dummy_num
 
-def insert_regretk(solution: List[List[int]], problem: dict(), calls_to_insert: List[int], k: int) -> List[List[int]]:
+	logging.debug(f"new solution: {solution}, removed: {to_remove}; Remove {number_to_remove} dummy calls")
+	return solution, to_remove, removed_from
+
+def insert_regretk(solution: List[List[int]], problem: dict(), calls_to_insert: List[int], removed_from: dict(), k: int) -> List[List[int]]:
 	""" It takes n calls and looks for its best k insertion positions
 		It then puts in those first who have the higher regret value
 		:param solution: The original full solution array
@@ -1072,7 +1091,11 @@ def insert_regretk(solution: List[List[int]], problem: dict(), calls_to_insert: 
 	calls_to_insert_list = list(calls_to_insert)
 	shuffle(calls_to_insert_list)
 	for call_num in calls_to_insert_list:
+		block_list = removed_from[call_num]
+
 		for veh_idx in range(num_vehicles):
+			"""if (veh_idx+1) == block_list: TODO Blocklist doesnt work
+				continue"""
 			extend_list = helper_regretk_insert_one_call_one_vehicle(solution[veh_idx], problem, call_num, veh_idx+1)
 			dict_best_positions[call_num].extend(extend_list[call_num])
 
@@ -1129,7 +1152,7 @@ def insert_regretk(solution: List[List[int]], problem: dict(), calls_to_insert: 
 	#print(f"Output regret k: {solution}")
 	return solution
 
-def insert_greedy(solution: List[List[int]], problem: dict(), calls_to_insert: List[int]):
+def insert_greedy(solution: List[List[int]], problem: dict(), calls_to_insert: List[int], removed_from: dict()):
 	""" It takes n calls and inserts each of them greedy
 		:param solution: The original full solution array
 		:param problem: The problem representation
@@ -1155,12 +1178,19 @@ def insert_greedy(solution: List[List[int]], problem: dict(), calls_to_insert: L
 		# Search for all vehicles which can take that call
 		#  and veh_to_remove != (veh_idx+1)
 		vehicles_insertable = [(veh_idx+1) for veh_idx in range(num_vehicles) if (call_num) in vehicle_calls[veh_idx+1]]
+
+		if len(vehicles_insertable) > 1:
+			block_list = removed_from[call_num]
+		else:
+			block_list = []
 		#print(f"call_num: {call_num}, allowed_veh: {vehicles_insertable}")
 
 		best_cost = float("inf")
 		success_once = False
 
 		for veh_num in vehicles_insertable:
+			"""if veh_num == block_list: TODO Blocklist doesnt work
+				continue"""
 			orig_sol_one_veh = call_solution[veh_num-1]
 			temp_sol_one_veh, successful = greedy_insert_one_call_one_vehicle(orig_sol_one_veh, problem, call_num, veh_num)
 			#print(f"Try insert {call_num} in {veh_num}: {temp_sol_one_veh}, {successful}")
