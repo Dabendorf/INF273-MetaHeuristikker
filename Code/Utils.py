@@ -1392,7 +1392,16 @@ def return_output_solution(solution: List[List[int]], problem: dict()) -> Tuple[
 
 	# The solution is valid
 	if len(new_sol) == correct_length:
-		return new_sol, True
+		if new_sol.count(0) != num_vehicles:
+			logging.error(f"Vehicle gone missing, return initial solution")
+			new_sol = solution_to_ahmed_output(initial_solution(problem=problem))
+			logging.error(f"{new_sol}")
+		elif sum(new_sol) != num_calls*(num_calls+1):
+			logging.error(f"Calls gone missing, sum is not |calls|*(|calls|+1), return initial solution")
+			new_sol = solution_to_ahmed_output(initial_solution(problem=problem))
+			logging.error(f"{new_sol}")
+		else:
+			return new_sol, True
 	else:
 		logging.error(f"Solution invalid {solution}")
 		if len(new_sol) > correct_length:
