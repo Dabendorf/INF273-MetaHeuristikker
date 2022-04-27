@@ -988,10 +988,14 @@ def remove_random_call(solution: List[List[int]], problem: dict(), number_to_rem
 
 	# Where is it removed from
 	removed_from = dict()
+	to_remove_copy = to_remove.copy()
+
 	for idx, inner in enumerate(solution):
-		for el in to_remove:
-			if el in inner:
-				removed_from[el] = idx+1
+		set_inner = set(inner)
+		u = set_inner.intersection(to_remove_copy)
+		for el in u:
+			removed_from[el] = idx+1
+		to_remove_copy = to_remove_copy.difference(u)
 
 	logging.debug(f"new solution: {new_solution}, removed: {to_remove}; Remove {number_to_remove} random calls")
 	return new_solution, to_remove, removed_from
@@ -1037,10 +1041,13 @@ def remove_highest_cost_call(solution: List[List[int]], problem: dict(), number_
 		new_solution = [[x for x in inner if x not in to_remove] for inner in solution]
 		# Where is it removed from
 		removed_from = dict()
+		to_remove_copy = to_remove.copy()
 		for idx, inner in enumerate(solution):
-			for el in to_remove:
-				if el in inner:
-					removed_from[el] = idx+1
+			set_inner = set(inner)
+			u = set_inner.intersection(to_remove_copy)
+			for el in u:
+				removed_from[el] = idx+1
+			to_remove_copy = to_remove_copy.difference(u)
 
 		logging.debug(f"new solution: {new_solution}, removed: {to_remove}; Remove {number_to_remove} random calls")
 		return new_solution, to_remove, removed_from
