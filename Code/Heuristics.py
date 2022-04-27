@@ -592,9 +592,13 @@ def improved_simulated_annealing(problem: dict(), init_sol, num_of_iterations: i
 
 	return best_sol, best_cost, improvement
 
-def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [4, 5, 6, 7, 8, 9]):
+def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000, allowed_neighbours: list = [4, 5, 6, 7, 8, 9], file_num = None, statistics=False):
 	""" Adaptive algorithm inspired from simulated annealing and Ahmeds slides 12-20"""
 	logging.info(f"Start adaptive algorithm with neighbour(s) {allowed_neighbours}")
+
+	if statistics:
+		import matplotlib.pyplot as plt
+		from matplotlib.pyplot import figure
 
 	# Dictionary of past probabilities
 	prob_hist = defaultdict(lambda: list())
@@ -745,9 +749,18 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 			
 			logging.debug(f"New weights: {probabilities}")
 
-	with open("weights.txt", 'w') as f:
+	if statistics:
+		plt.figure(figsize=(20, 10))
+		
+		plt.axvline(x=last_iteration_found_best, color='b', label="best")
+		y = prob_hist["y"]
 		for k, v in prob_hist.items():
-			f.write((f"{k} = {v}\n"))
+			if k != "y":
+				label = k[1:]
+				plt.plot(y, v, label = label)
+
+		plt.legend()
+		plt.savefig(f"./tempdata/weights{file_num}.png")
 	logging.info(f"Last iteration with new best: {last_iteration_found_best}")
 	
 	improvement = round(100*(orig_cost-best_cost)/orig_cost, 2)
@@ -802,7 +815,7 @@ def escape_algorithm(problem: dict(), current_solution, allowed_neighbours, best
 
 	return current_solution, new_cost, False
 
-def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_iterations: int = 10000, num_of_rounds: int = 10, allowed_neighbours: list = [1,2,3], probabilities: list = [1/3, 1/3, 1/3], method:str = "ls"):
+def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_iterations: int = 10000, num_of_rounds: int = 10, allowed_neighbours: list = [1,2,3], probabilities: list = [1/3, 1/3, 1/3], method:str = "aa", file_num=None, statistics=False):
 	""" Performs any sort of heuristic on a number of neighbours
 		It runs n times and takes the average of all of it, also returning the time consumption
 		It finally runs the \LaTeX methods to add a new solution to the table 
@@ -848,7 +861,7 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 				method_str = "SA-new operators (tuned weights)"
 		elif method == "aa":
 			method_str = "Adaptive Algorithm"
-			sol, cost, improvement = adaptive_algorithm(problem, init_sol, num_of_iterations, allowed_neighbours)
+			sol, cost, improvement = adaptive_algorithm(problem, init_sol, num_of_iterations, allowed_neighbours, file_num, statistics=statistics)
 		if allowed_neighbours == [0]:
 			method_str += "-1-insert"
 		elif allowed_neighbours == [0,1]:
