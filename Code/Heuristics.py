@@ -605,8 +605,8 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 	prob_hist["y"].append(0)
 
 	# Best solution (starts as initial)
-	best_sol = init_sol
-	s = init_sol.copy()
+	best_sol = deepcopy(init_sol)
+	s = deepcopy(init_sol)
 
 	cost = cost_function(init_sol, problem)
 	best_cost = cost
@@ -647,7 +647,7 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 		# +4 found new best
 
 		if iterations_since_best_found > 100:
-			s, cost_s, is_new_best = escape_algorithm(problem=problem, current_solution=s, allowed_neighbours=[4, 7], best_sol_cost=best_cost, cost_s=cost_s) # alternate operator
+			s, cost_s, is_new_best = escape_algorithm(problem=problem, current_solution=deepcopy(s), allowed_neighbours=[4, 7], best_sol_cost=best_cost, cost_s=cost_s) # alternate operator
 			# update best solution TODO 
 			# current_solution, new_cost, False
 
@@ -673,33 +673,33 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 
 		# Apply neighbouring function
 		if neighbourfunc_id == 1:
-			s2 = alter_solution_1insert(problem, s2, 0.8)
+			s2 = alter_solution_1insert(problem, deepcopy(s2), 0.8)
 		elif neighbourfunc_id == 2:
-			s2 = alter_solution_2exchange(problem, s2)
+			s2 = alter_solution_2exchange(problem, deepcopy(s2))
 		elif neighbourfunc_id == 3:
-			s2 = alter_solution_3exchange(problem, s2)
+			s2 = alter_solution_3exchange(problem, deepcopy(s2))
 		elif neighbourfunc_id == 4:
-			s2 = alter_solution_4steven(problem, s2)
+			s2 = alter_solution_4steven(problem, deepcopy(s2))
 		elif neighbourfunc_id == 5:
-			s2 = alter_solution_5jackie(problem, s2)
+			s2 = alter_solution_5jackie(problem, deepcopy(s2))
 		elif neighbourfunc_id == 6:
-			s2 = alter_solution_6sebastian(problem, s2)
+			s2 = alter_solution_6sebastian(problem, deepcopy(s2))
 		elif neighbourfunc_id == 7:
-			s2 = alter_solution_7steinar(problem, s2)
+			s2 = alter_solution_7steinar(problem, deepcopy(s2))
 		elif neighbourfunc_id == 8:
-			s2 = alter_solution_8stian(problem, s2)
+			s2 = alter_solution_8stian(problem, deepcopy(s2))
 		elif neighbourfunc_id == 9:
-			s2 = alter_solution_9karina(problem, s2)
+			s2 = alter_solution_9karina(problem, deepcopy(s2))
 
-		feasiblity, _ = feasibility_check(s2, problem)
+		feasiblity, _ = feasibility_check(deepcopy(s2), problem)
 
 		updated_value = False
 		if feasiblity:
-			new_cost = cost_function(s2, problem)
+			new_cost = cost_function(deepcopy(s2), problem)
 
 			if new_cost < best_cost:
 				new_score_val = 4
-				best_sol = s2
+				best_sol = deepcopy(s2)
 				best_cost = new_cost
 				updated_value = True
 				s = deepcopy(s2)
@@ -841,7 +841,7 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 	average_objectives = []
 
 	for round_nr in range(num_of_rounds):
-		logging.info(f"Round number: {round_nr}")
+		logging.info(f"Round number: {round_nr+1}")
 		start_time = timer()
 		new_seed = randint(0, 10**9)
 		seed(new_seed)
@@ -854,14 +854,14 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 			method_str = "Simulated Annealing"
 			sol, cost, improvement = simulated_annealing(problem, init_sol, num_of_iterations, allowed_neighbours)
 		elif method == "isa":
-			sol, cost, improvement = improved_simulated_annealing(problem, init_sol, num_of_iterations, allowed_neighbours, probabilities)
+			sol, cost, improvement = improved_simulated_annealing(deepcopy(problem), deepcopy(init_sol), num_of_iterations, allowed_neighbours, probabilities)
 			if len(set(probabilities)) == 1:
 				method_str = "SA-new operators (equal weights)"
 			else:
 				method_str = "SA-new operators (tuned weights)"
 		elif method == "aa":
 			method_str = "Adaptive Algorithm"
-			sol, cost, improvement = adaptive_algorithm(problem, init_sol, num_of_iterations, allowed_neighbours, file_num, statistics=statistics)
+			sol, cost, improvement = adaptive_algorithm(deepcopy(problem), deepcopy(init_sol), num_of_iterations, allowed_neighbours, file_num, statistics=statistics)
 		if allowed_neighbours == [0]:
 			method_str += "-1-insert"
 		elif allowed_neighbours == [0,1]:
@@ -876,7 +876,7 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 
 		if cost < best_cost:
 			best_cost = cost
-			best_solution = sol
+			best_solution = deepcopy(sol)
 		#print(cost)
 		logging.info("Finished this run")
 		logging.info(f"Best cost: {cost}")
