@@ -319,8 +319,9 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 			best_solution = deepcopy(sol)
 
 		logging.info("Finished this run")
-		logging.info(f"Best cost: {cost}")
-		logging.info(f"Best sol: {sol}")
+		logging.info(f"Cost: {cost}")
+		logging.info(f"Solution: {sol}")
+		logging.info(f"Best cost so far: {best_cost}")
 
 	average_objective = round(sum(average_objectives) / len(average_objectives), 2)
 	improvement = max(improvements)
