@@ -1102,7 +1102,7 @@ def insert_regretk(solution: List[List[int]], problem: dict(), calls_to_insert: 
 		block_list = removed_from[call_num]
 
 		for veh_idx in range(num_vehicles):
-			"""if (veh_idx+1) == block_list: TODO Blocklist doesnt work
+			"""if (veh_idx+1) == block_list: # TODO Blocklist doesnt work
 				continue"""
 			extend_list = helper_regretk_insert_one_call_one_vehicle(solution[veh_idx], problem, call_num, veh_idx+1)
 			dict_best_positions[call_num].extend(extend_list[call_num])
@@ -1158,7 +1158,7 @@ def insert_regretk(solution: List[List[int]], problem: dict(), calls_to_insert: 
 		solution[-1].append(call_num)
 		solution[-1].append(call_num)
 
-	# if still something missing (TODO: should not be the case, but is a bug)
+	# if still something missing (# TODO: should not be the case, but is a bug)
 	# sometimes, things keep missing, I need to fix this
 	# until know, this just puts missing stuff back into the dummy
 	possible_calls_list = set(range(1,num_calls+1))
@@ -1210,7 +1210,7 @@ def insert_greedy(solution: List[List[int]], problem: dict(), calls_to_insert: L
 		success_once = False
 
 		for veh_num in vehicles_insertable:
-			"""if veh_num == block_list: TODO Blocklist doesnt work
+			"""if veh_num == block_list: # TODO Blocklist doesnt work
 				continue"""
 			orig_sol_one_veh = call_solution[veh_num-1]
 			temp_sol_one_veh, successful = greedy_insert_one_call_one_vehicle(orig_sol_one_veh, problem, call_num, veh_num)
@@ -1229,7 +1229,7 @@ def insert_greedy(solution: List[List[int]], problem: dict(), calls_to_insert: L
 			output_sol[-1].insert(0, call_num)
 			output_sol[-1].insert(0, call_num)
 
-	# if still something missing (TODO: should not be the case, but is a bug)
+	# if still something missing (# TODO: should not be the case, but is a bug)
 	# sometimes, things keep missing, I need to fix this
 	# until know, this just puts missing stuff back into the dummy
 	possible_calls_list = set(range(1,num_calls+1))
