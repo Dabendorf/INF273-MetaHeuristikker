@@ -6,7 +6,7 @@ from timeit import default_timer as timer
 import math
 from copy import deepcopy
 
-from Utils import split_a_list_at_zeros, insert_greedy, insert_regretk, cost_function, feasibility_check, remove_dummy_call, remove_random_call, remove_highest_cost_call, latex_add_line, solution_to_hashable_tuple_2d
+from Utils import split_a_list_at_zeros, insert_greedy, insert_regretk, cost_function, feasibility_check, remove_dummy_call, remove_random_call, remove_highest_cost_call, latex_add_line, solution_to_hashable_tuple_2d, return_output_solution, latex_replace_line
 
 logger = logging.getLogger(__name__)
 
@@ -194,8 +194,6 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 		if w%param_weight_change == 0:
 			# update_parameters
 			probabilities = []
-			#print(f"Scores: {score_sums}")
-			#print(f"Used: {neighbour_used_counter}")
 			for neighbour in allowed_neighbours:
 				new_weight = weights[neighbour] * (1-r) + r * (score_sums[neighbour]/neighbour_used_counter[neighbour])
 				weights[neighbour] = new_weight
@@ -208,7 +206,6 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 			for idx, el in enumerate(probabilities):
 				probabilities[idx] = el/sum_prob
 				prob_hist[f"x{idx+4}"].append(el/sum_prob)
-			#print(f"Probabilities: {probabilities}")
 			
 			logging.debug(f"New weights: {probabilities}")
 
@@ -225,6 +222,13 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 		plt.legend()
 		plt.savefig(f"./tempdata/weights{file_num}.png")
 	logging.info(f"Last iteration with new best: {last_iteration_found_best}")
+
+	# Check if everything is valid
+	sol_correct_format, was_valid = return_output_solution(best_sol, problem)
+
+	if not was_valid:
+		sol_old_format = split_a_list_at_zeros(sol_correct_format)
+		best_cost = cost_function(sol_old_format, problem)
 	
 	improvement = round(100*(orig_cost-best_cost)/orig_cost, 2)
 	logging.info(f"Final probabilities: {list(map(lambda x: round(x, ndigits=2), probabilities))}")
@@ -232,7 +236,7 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 	logging.debug(f"New cost: {best_cost}")
 	logging.debug(f"Improvement: {improvement}%")
 
-	return best_sol, best_cost, improvement
+	return sol_correct_format, best_cost, improvement
 
 def escape_algorithm(problem: dict(), current_solution, allowed_neighbours, best_sol_cost, cost_s, num_iterations=20):
 	""" This is the escape algorithm to get out of a local minimum"""
@@ -327,7 +331,9 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 	improvement = max(improvements)
 	average_time = round(sum(average_times) / len(average_times), 2)
 	logging.info(f"Average cost: {average_objective}")
+	logging.info(f"Overall best: {best_cost}")
 
 	latex_add_line(num_vehicles = num_vehicles, num_calls = num_calls, method = method_str, average_obj = average_objective, best_obj = best_cost, improvement = improvement, running_time = average_time)
-	
+	latex_replace_line(num_vehicles = num_vehicles, num_calls = num_calls, best_solution = best_solution, seeds = seeds)
+
 	return num_vehicles, num_calls, best_solution, best_cost, seeds
