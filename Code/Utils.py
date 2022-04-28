@@ -6,6 +6,7 @@ from timeit import default_timer as timer
 from random import random, sample, shuffle
 import math
 from enum import Enum
+from copy import deepcopy
 
 class ReasonNotFeasible(Enum):
 	call_in_vehicle_not_allowed = 1
@@ -988,7 +989,7 @@ def remove_random_call(solution: List[List[int]], problem: dict(), number_to_rem
 
 	# Where is it removed from
 	removed_from = dict()
-	to_remove_copy = to_remove.copy()
+	to_remove_copy = to_remove.copy() # this can be a real copy
 
 	for idx, inner in enumerate(solution):
 		set_inner = set(inner)
@@ -1041,7 +1042,7 @@ def remove_highest_cost_call(solution: List[List[int]], problem: dict(), number_
 		new_solution = [[x for x in inner if x not in to_remove] for inner in solution]
 		# Where is it removed from
 		removed_from = dict()
-		to_remove_copy = to_remove.copy()
+		to_remove_copy = to_remove.copy() # this can be a real copy
 		for idx, inner in enumerate(solution):
 			set_inner = set(inner)
 			u = set_inner.intersection(to_remove_copy)
@@ -1188,13 +1189,11 @@ def insert_greedy(solution: List[List[int]], problem: dict(), calls_to_insert: L
 	num_calls = problem["num_calls"]
 	vehicle_calls = problem["vehicle_calls"]
 
-	#print(f"Greedy to insert: {calls_to_insert}")
-	
-	output_sol = solution.copy()
+	output_sol = deepcopy(solution)
 	calls_to_insert = list(calls_to_insert)
 	shuffle(calls_to_insert)
 	for call_num in calls_to_insert:
-		call_solution = output_sol.copy()
+		call_solution = deepcopy(output_sol)
 		#print(f"New call to insert: {call_num}, current solution: {call_solution}")
 		# Search for all vehicles which can take that call
 		#  and veh_to_remove != (veh_idx+1)
@@ -1218,11 +1217,11 @@ def insert_greedy(solution: List[List[int]], problem: dict(), calls_to_insert: L
 
 			if orig_sol_one_veh != temp_sol_one_veh and successful:
 				success_once = True
-				temp_sol = call_solution.copy()
+				temp_sol = deepcopy(call_solution)
 				temp_sol[veh_num-1] = temp_sol_one_veh
 				temp_cost = cost_function(temp_sol, problem)
 				if temp_cost < best_cost:
-					call_solution = temp_sol.copy()
+					call_solution = deepcopy(temp_sol)
 					best_cost = temp_cost
 		output_sol = call_solution
 		if not success_once:
@@ -1260,7 +1259,7 @@ def greedy_insert_one_call_one_vehicle(vehicle_solution: List[List[int]], proble
 	
 	len_call_list = len(vehicle_solution)
 	best_cost = float("inf")
-	output_sol = vehicle_solution.copy()
+	output_sol = vehicle_solution.copy() # this can be a real copy
 
 	# if dummy, just insert it
 	if vehicle_to_insert > num_vehicles:
@@ -1273,15 +1272,15 @@ def greedy_insert_one_call_one_vehicle(vehicle_solution: List[List[int]], proble
 		for insert_idx_1 in range(len_call_list+1):
 			if not continue_outer_search:
 				break
-
-			temp_call_list_1 = vehicle_solution.copy()
+			
+			temp_call_list_1 = vehicle_solution.copy() # this can be a real copy
 			temp_call_list_1.insert(insert_idx_1, call_to_insert)
 			is_feas_1, reason_not_feas_1 = feasibility_helper(temp_call_list_1, problem, vehicle_to_insert, call_num_to_check=call_to_insert)
 
 			#print(f"ind1: {insert_idx_1}, success: {is_feas_1}, {reason_not_feas_1}, {temp_call_list_1}")
 			if is_feas_1 or reason_not_feas_1 == ReasonNotFeasible.vehicle_overloaded:
 				for insert_idx_2 in range(insert_idx_1, len_call_list+2):
-					temp_call_list_2 = temp_call_list_1.copy()
+					temp_call_list_2 = temp_call_list_1.copy() # this can be a real copy
 					temp_call_list_2.insert(insert_idx_2, call_to_insert)
 
 					is_feas_2, reason_not_feas_2 = feasibility_helper(temp_call_list_2, problem, vehicle_to_insert, call_num_to_check=call_to_insert)
@@ -1325,14 +1324,14 @@ def helper_regretk_insert_one_call_one_vehicle(vehicle_solution: List[List[int]]
 		if not continue_outer_search:
 			break
 
-		temp_call_list_1 = vehicle_solution.copy()
+		temp_call_list_1 = vehicle_solution.copy() # this can be a real copy
 		temp_call_list_1.insert(insert_idx_1, call_to_insert)
 		is_feas_1, reason_not_feas_1 = feasibility_helper(temp_call_list_1, problem, vehicle_to_insert, call_num_to_check=call_to_insert)
 
 		#print(f"ind1: {insert_idx_1}, success: {is_feas_1}, {reason_not_feas_1}, {temp_call_list_1}")
 		if is_feas_1 or reason_not_feas_1 == ReasonNotFeasible.vehicle_overloaded:
 			for insert_idx_2 in range(insert_idx_1+1, len_call_list+2):
-				temp_call_list_2 = temp_call_list_1.copy()
+				temp_call_list_2 = temp_call_list_1.copy() # this can be a real copy
 				temp_call_list_2.insert(insert_idx_2, call_to_insert)
 
 				is_feas_2, reason_not_feas_2 = feasibility_helper(temp_call_list_2, problem, vehicle_to_insert, call_num_to_check=call_to_insert)
