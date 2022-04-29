@@ -1,0 +1,193 @@
+%%% LaTeX Template originaly created by Karol Kozioł (mail@karol-koziol.net) and modified for ShareLaTeX use
+
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage[british]{babel}
+\usepackage[german=quotes]{csquotes}
+\usepackage[dvipsnames]{xcolor}
+
+%\renewcommand\familydefault{\sfdefault}
+%\usepackage{tgheros}
+%\usepackage[defaultmono]{droidmono}
+
+\usepackage{amsmath,amssymb,amsthm,textcomp}
+\usepackage{enumerate}
+\usepackage{multicol}
+\usepackage{tikz}
+
+\usepackage{geometry}
+\geometry{left=25mm,right=25mm,%
+bindingoffset=0mm, top=20mm,bottom=20mm}
+\usepackage{graphicx}
+%\usepackage{subcaption}
+%\usepackage{mwe}
+
+
+\linespread{1.3}
+
+\newcommand{\linia}{\rule{\linewidth}{0.5pt}}
+
+% custom theorems if needed
+\newtheoremstyle{mytheor}
+    {1ex}{1ex}{\normalfont}{0pt}{\scshape}{.}{1ex}
+    {{\thmname{#1 }}{\thmnumber{#2}}{\thmnote{ (#3)}}}
+
+\theoremstyle{mytheor}
+\newtheorem{defi}{Definition}
+
+% my own titles
+\makeatletter
+\renewcommand{\maketitle}{
+\begin{center}
+\vspace{2ex}
+{\huge \textsc{\@title}}
+\vspace{1ex}
+\\
+\linia\\
+\@author \hfill \@date
+\vspace{4ex}
+\end{center}
+}
+\makeatother
+%%%
+
+% custom footers and headers
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\lhead{}
+\chead{}
+\rhead{}
+%\lfoot{Assignment \textnumero{} 5}
+\cfoot{}
+\rfoot{Page \thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+%
+
+% code listing settings
+\usepackage{listings}
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    aboveskip={1.0\baselineskip},
+    belowskip={1.0\baselineskip},
+    columns=fixed,
+    extendedchars=true,
+    breaklines=true,
+    tabsize=4,
+    %prebreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+    prebreak=,
+    frame=lines,
+    showtabs=false,
+    showspaces=false,
+    showstringspaces=false,
+    keywordstyle=\color[rgb]{0.627,0.126,0.941},
+    commentstyle=\color[rgb]{0.133,0.545,0.133},
+    stringstyle=\color[rgb]{01,0,0},
+    numbers=left,
+    numberstyle=\small,
+    stepnumber=1,
+    numbersep=10pt,
+    captionpos=t,
+    escapeinside={\%*}{*)}
+}
+
+% ref packages
+\usepackage{nameref}
+% folowing  must be in this order
+\usepackage{varioref}
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+\setlength\parindent{0pt}
+
+%%%----------%%%----------%%%----------%%%----------%%%
+
+\begin{document}
+
+\title{INF273 – Final Submission}
+
+\author{Lukas Schramm}
+
+\date{\today}
+
+\maketitle
+
+\section{Functions}
+Currently, I am maintaining the following helper functions in my Utils file.\footnote{The green ones are changes or additions from the last assignment}
+\begin{itemize}
+\item load\_problem: Given a path to a file, it reads the content of the file into a dictionary of information.
+\item feasibility\_check: It takes a solution (list) and a problem dictionary and checks if the solution is feasible. If it is not feasible, it outputs the reason why. It does not check validity. I hope it works correctly
+\item cost\_function: It takes a solution (list) and a problem dictionary and calculates the cost of the function. As feasibility\_check it does not check if the original solution was valid.
+\item splitting\_a\_list\_at\_zeros: Helper function which splits a solution into vehicles and if needed a dummy vehicle.
+\item initial\_solution: Generates an initial default solution to start with. This is always a solution where the dummy vehicle handles all calls.
+
+\item random\_solution: Generates a random solution. The generator itself is quite bad in my view because I overtuned it a bit. It automatically gives one vehicle exactly one call and the rest goes to the dummy vehicle. That way I got solutions for file 3 and 4 but the solutions for all files are quite bad.\footnote{But since we do not need that random solution generator any longer I keep it like that.}
+\item blind\_random\_search: Takes a problem and a number of iterations to find the best out of n random feasible solutions if any is found.
+\item blind\_search\_latex\_generator: This function runs the blind\_random\_search and writes the data into \LaTeX tables since I am obviously too lazy to do it myself.
+\item latex\_add\_line: Adds a new result line into an results table of this file.
+\item latex\_replace\_line: Change the optimal solution and its seed in that file.
+
+\item feasibility\_helper: A function which works similar to the feasibility helper but calculates the feasibility only for one vehicle.
+\item cost\_helper: A function which calculates the cost only for one vehicle.
+\item cost\_helper\_transport\_only: A function which calculates the cost only for one vehicle, but also only the transporting cost. This is perfect for adding a call at different positions and calculating the cost.
+\item greedy\_insert\_one\_call\_one\_vehicle: A helper function which greedily finds the best insertion position for a call for one vehicle.
+\item helper\_regret-k\_insert\_one\_call\_vehicle: A helper function which calculates the regret-k values for all valid insertion positions of a call into a vehicle.
+
+The following six functions three removal and insertion heuristics which then are combined to my full neighbouring functions.
+\item remove\_random\_call: Removes $n$ random calls from it's current position.
+\item remove\_highest\_cost\_call: Removes the $n$ calls with the highest cost from its current position. This function has a random choice function based on the exponential probability distribution which chooses calls randomly, but weighted by how costly they are.
+\item remove\_dummy\_call: Removes $n$ calls from the dummy vehicle.
+\item insert\_regret-k: This function performs regret-k and inserts $n$ calls into it. This function does not yet have a random functionality, which probability will be added.
+\item insert\_greedy: Performs greedy insert for $n$ calls. This function does not yet have a random functionality, which probability will be added.
+\item insert\_back\_to\_dummy: It takes $n$ calls and puts them back into the dummy vehicle.
+\item solution\_to\_hashable\_tuple\_2d and solution\_to\_hashable\_tuple\_1d: Since lists (and 2D lists) are not hashable, there now is a function converting 2D lists into 2D tuples such that they can be hashed and used in sets and dictionaries. This makes it possible to look them up fastly, like if solution have been seen before or what their previously calculated cost is.
+\end{itemize}\medskip
+
+\textbf{Neighbour functions: }Since I implemented three removal and two insertion algorithms, I have the possibility to combine them to six different neighbours. In the previous assignment, I choose three of them and named them Steven, Jackie and Sebastian. For assignment 5, I have implemented the other three, being named Steinar, Stian and Karina.\medskip
+
+My neighbouring functions are the following six, combining pairs of the above removal and insertion functions.
+\begin{itemize}
+\item Steven: Removing $n$ random calls and inserting those greedily.
+\item Jackie: Removing $n$ highest cost calls and inserting them with regret-k.
+\item Sebastian: Removing $n$ dummy calls and inserting them greedily.
+\item Steinar: Removing $n$ random calls and inserting them with regret-k.
+\item Stian: Removing $n$ highest cost calls and inserting those greedily.
+\item Karina: Removing $n$ dummy calls and inserting them with regret-k.
+\end{itemize}
+
+\medskip
+If there are any questions or nice recommendations to get a better structure, just send me a message.\medskip
+
+\textbf{Remark on the running time: }I have tried to get down the running time of my algorithm for a while, but struggle a bit with it. However, I have recently implemented a functionality which remembers information about solutions already seen. Both feasibility and cost of these solutions are now stored in a global dictionary, such that nothing gets calculated twice. This way, I managed to get the running time by 50-70\% for most runs. This does not mean that the algorithm now became fast, but now I am happy with it. I will however try to improve it further.\\
+If the currently reported time is too big for the final exam, please inform me in time about it.
+
+\clearpage
+Moreover, there is a file for Heuristics where I collect all of the important algorithms and their helper functions.
+\begin{itemize}
+\item alter\_solution\_steven: Neighbour function, see above.
+\item alter\_solution\_jackie: Neighbour function, see above.
+\item alter\_solution\_sebastian: Neighbour function, see above.
+\item alter\_solution\_steinar: Neighbour function, see above.
+\item alter\_solution\_stian: Neighbour function, see above.
+\item alter\_solution\_karina: Neighbour function, see above.
+% \textcolor{ForestGreen}{}
+
+
+\item local\_search: This function takes a problem, an initial solution, a number of iterations (10.000) and the allowed neighbouring function and performs a local search
+\item simulated\_annealing: This function takes a problem, an initial solution, a number of iterations (10.000) and the allowed neighbouring function and performs a simulated annealing
+\item local\_search\_sim\_annealing\_latex: This function takes as input the allowed neighbouring function(s), the heuristics method, the problem and the number of iterations and performs the heuristics on randomly chosen seeds. It then calculates the average time and objective and runs the \LaTeX functions to change the tables of this PDF
+\item adaptive\_algorithm: This function is the adaptive algorithm being shown in the lecture slides 12-20. It performs 10.000 iterations and includes an escape algorithm which gets executed if the algorithm does not find a better solution for more than 100 iterations. Every 200 iterations, the current weights of all neighbours get updated. This is based on the formula shown on the slides. The scoring function is based on three values. A neighbour function scores 4 points if it finds a new global best, 2 points if it finds a solution better than the current one and 1 point if it finds a new solution never seen before.
+\item escape\_algorithm: The escape algorithm takes some handchosen of the six neighbour functions and runs on the current solution of the adaptive algorithm. It runs up to 20 times or until it finds a new global best and accepts every feasible solution in those iterations.
+\end{itemize}
+
+\clearpage
+
+\section{Result tables}
+\input{../Code/solution_table}
+
+
+\end{document}
