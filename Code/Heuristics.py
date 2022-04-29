@@ -26,7 +26,7 @@ def alter_solution_4steven(problem: dict(), current_solution: List[int]) -> List
 def alter_solution_5jackie(problem: dict(), current_solution: List[int]) -> List[int]:
 	""" A combination of removing n highest cost calls and inserting them with regretk"""
 
-	removed_solution, to_remove, removed_from = remove_highest_cost_call(current_solution, problem, randint(1,3))
+	removed_solution, to_remove, removed_from = remove_highest_cost_call(current_solution, problem, randint(2,3))
 	solution = insert_regretk(removed_solution, problem, to_remove, removed_from, 2)
 	return solution
 
@@ -40,7 +40,7 @@ def alter_solution_6sebastian(problem: dict(), current_solution: List[int]) -> L
 def alter_solution_7steinar(problem: dict(), current_solution: List[int]) -> List[int]:
 	""" A combination of removing n random calls and inserting them with regretk"""
 
-	removed_solution, to_remove, removed_from = remove_random_call(current_solution, problem, randint(1,3))
+	removed_solution, to_remove, removed_from = remove_random_call(current_solution, problem, randint(2,3))
 	solution = insert_regretk(removed_solution, problem, to_remove, removed_from, 2)
 	return solution
 
@@ -54,7 +54,7 @@ def alter_solution_8stian(problem: dict(), current_solution: List[int]) -> List[
 def alter_solution_9karina(problem: dict(), current_solution: List[int]) -> List[int]:
 	""" A combination of removing n dummy calls and inserting them with regretk"""
 
-	removed_solution, to_remove, removed_from = remove_dummy_call(current_solution, problem, randint(1,3))
+	removed_solution, to_remove, removed_from = remove_dummy_call(current_solution, problem, randint(2,3))
 	solution = insert_regretk(removed_solution, problem, to_remove, removed_from, 2)
 	return solution
 
@@ -325,13 +325,13 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 		logging.info("Finished this run")
 		logging.info(f"Cost: {cost}")
 		logging.info(f"Solution: {sol}")
-		logging.info(f"Best cost so far: {best_cost}")
+		#logging.info(f"Best cost so far: {best_cost}")
 
 	average_objective = round(sum(average_objectives) / len(average_objectives), 2)
 	improvement = max(improvements)
 	average_time = round(sum(average_times) / len(average_times), 2)
-	logging.info(f"Average cost: {average_objective}")
-	logging.info(f"Overall best: {best_cost}")
+	#logging.info(f"Average cost: {average_objective}")
+	#logging.info(f"Overall best: {best_cost}")
 
 	latex_add_line(num_vehicles = num_vehicles, num_calls = num_calls, method = method_str, average_obj = average_objective, best_obj = best_cost, improvement = improvement, running_time = average_time)
 	latex_replace_line(num_vehicles = num_vehicles, num_calls = num_calls, best_solution = best_solution, seeds = seeds)
