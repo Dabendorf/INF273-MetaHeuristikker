@@ -370,7 +370,7 @@ def local_search_sim_annealing_latex(problem: dict(), init_sol: list(), num_of_i
 	#logging.info(f"Average cost: {average_objective}")
 	#logging.info(f"Overall best: {best_cost}")
 
-	latex_add_line(num_vehicles = num_vehicles, num_calls = num_calls, method = method_str, average_obj = average_objective, best_obj = best_cost, improvement = improvement, running_time = average_time)
-	latex_replace_line(num_vehicles = num_vehicles, num_calls = num_calls, best_solution = best_solution, seeds = seeds)
+	#latex_add_line(num_vehicles = num_vehicles, num_calls = num_calls, method = method_str, average_obj = average_objective, best_obj = best_cost, improvement = improvement, running_time = average_time)
+	#latex_replace_line(num_vehicles = num_vehicles, num_calls = num_calls, best_solution = best_solution, seeds = seeds)
 
 	return num_vehicles, num_calls, best_solution, best_cost, seeds
