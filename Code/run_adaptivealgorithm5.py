@@ -11,8 +11,8 @@ def main():
 	logger.disabled = False
 
 	path = "../Data/"
-	test_files = ["Call_7_Vehicle_3.txt", "Call_18_Vehicle_5.txt", "Call_35_Vehicle_7.txt", "Call_80_Vehicle_20.txt", "Call_130_Vehicle_40.txt", "Call_300_Vehicle_90.txt"]
-
+	test_files = ["Call_7_Vehicle_3.txt", "Call_18_Vehicle_5.txt", "Call_35_Vehicle_7.txt", "Call_80_Vehicle_20.txt", "Call_130_Vehicle_40.txt"]
+	test_files = ["Call_35_Vehicle_7.txt"]
 	# Runs through all test files, performs adaptive algorithm and writes to LaTeX table
 	for idx, tf in enumerate(test_files):
 		logging.info(f"File: {tf} (file #{idx+1})")
@@ -20,7 +20,7 @@ def main():
 		init_sol = initial_solution(problem=prob)
 
 		neighbours = [4, 5, 6, 7, 8, 9]
-		num_vehicles, num_calls, best_solution, best_cost, seeds = local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=1, allowed_neighbours=neighbours, method="aa", file_num=idx+1, statistics=False)
+		num_vehicles, num_calls, best_solution, best_cost, seeds = local_search_sim_annealing_latex(problem=prob, init_sol = init_sol, num_of_iterations=10000, num_of_rounds=10, allowed_neighbours=neighbours, method="aa", file_num=idx+1, statistics=True)
 		logging.info(f"Best_solution: {best_solution}")
 		print(f"File: {tf} (file #{idx+1})")
 		print(f"sol{idx+1} = {best_solution}")

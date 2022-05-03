@@ -10,7 +10,7 @@ from Utils import split_a_list_at_zeros, insert_greedy, insert_regretk, cost_fun
 
 logger = logging.getLogger(__name__)
 
-def alter_solution_4steven(problem: dict(), current_solution: List[int]) -> List[int]:
+def alter_solution_4steven(problem: dict(), current_solution: List[int], iteration_num: int) -> List[int]:
 	""" A combination of removing n random calls and inserting those greedily"""
 	""" Functions to choose from
 	removed_solution, to_remove, removed_from = remove_random_call(current_solution, problem, number_to_remove)
@@ -19,42 +19,79 @@ def alter_solution_4steven(problem: dict(), current_solution: List[int]) -> List
 	solution = insert_regretk(removed_solution, problem, to_remove, 2)
 	solution = insert_greedy(removed_solution, problem, to_remove)
 	# solution = insert_back_to_dummy(removed_solution, problem, to_remove)"""
-	removed_solution, to_remove, removed_from = remove_random_call(current_solution, problem, randint(1,3))
+	if iteration_num < 3000:
+		num_removals = 4
+	elif iteration_num >= 3000 and iteration_num < 6000:
+		num_removals = 3
+	else:
+		num_removals = randint(1,2)
+
+	removed_solution, to_remove, removed_from = remove_random_call(current_solution, problem, num_removals)
 	solution = insert_greedy(removed_solution, problem, to_remove, removed_from)
 	return solution
 
-def alter_solution_5jackie(problem: dict(), current_solution: List[int]) -> List[int]:
+def alter_solution_5jackie(problem: dict(), current_solution: List[int], iteration_num: int) -> List[int]:
 	""" A combination of removing n highest cost calls and inserting them with regretk"""
+	if iteration_num < 3000:
+		num_removals = 4
+	elif iteration_num >= 3000 and iteration_num < 6000:
+		num_removals = 3
+	else:
+		num_removals = 2
 
-	removed_solution, to_remove, removed_from = remove_highest_cost_call(current_solution, problem, randint(2,3))
+	removed_solution, to_remove, removed_from = remove_highest_cost_call(current_solution, problem, num_removals)
 	solution = insert_regretk(removed_solution, problem, to_remove, removed_from, 2)
 	return solution
 
-def alter_solution_6sebastian(problem: dict(), current_solution: List[int]) -> List[int]:
+def alter_solution_6sebastian(problem: dict(), current_solution: List[int], iteration_num: int) -> List[int]:
 	""" A combination of removing n dummy calls and inserting them greedily"""
+	if iteration_num < 3000:
+		num_removals = 4
+	elif iteration_num >= 3000 and iteration_num < 6000:
+		num_removals = 3
+	else:
+		num_removals = randint(1,2)
 
-	removed_solution, to_remove, removed_from = remove_dummy_call(current_solution, problem, randint(1,3))
+	removed_solution, to_remove, removed_from = remove_dummy_call(current_solution, problem, num_removals)
 	solution = insert_greedy(removed_solution, problem, to_remove, removed_from)
 	return solution
 
-def alter_solution_7steinar(problem: dict(), current_solution: List[int]) -> List[int]:
+def alter_solution_7steinar(problem: dict(), current_solution: List[int], iteration_num: int) -> List[int]:
 	""" A combination of removing n random calls and inserting them with regretk"""
+	if iteration_num < 3000:
+		num_removals = 4
+	elif iteration_num >= 3000 and iteration_num < 6000:
+		num_removals = 3
+	else:
+		num_removals = 2
 
-	removed_solution, to_remove, removed_from = remove_random_call(current_solution, problem, randint(2,3))
+	removed_solution, to_remove, removed_from = remove_random_call(current_solution, problem, num_removals)
 	solution = insert_regretk(removed_solution, problem, to_remove, removed_from, 2)
 	return solution
 
-def alter_solution_8stian(problem: dict(), current_solution: List[int]) -> List[int]:
+def alter_solution_8stian(problem: dict(), current_solution: List[int], iteration_num: int) -> List[int]:
 	""" A combination of removing n highest cost calls and inserting them greedily"""
+	if iteration_num < 3000:
+		num_removals = 4
+	elif iteration_num >= 3000 and iteration_num < 6000:
+		num_removals = 3
+	else:
+		num_removals = randint(1,2)
 
-	removed_solution, to_remove, removed_from = remove_highest_cost_call(current_solution, problem, randint(1,3))
+	removed_solution, to_remove, removed_from = remove_highest_cost_call(current_solution, problem, num_removals)
 	solution = insert_greedy(removed_solution, problem, to_remove, removed_from)
 	return solution
 
-def alter_solution_9karina(problem: dict(), current_solution: List[int]) -> List[int]:
+def alter_solution_9karina(problem: dict(), current_solution: List[int], iteration_num: int) -> List[int]:
 	""" A combination of removing n dummy calls and inserting them with regretk"""
+	if iteration_num < 3000:
+		num_removals = 4
+	elif iteration_num >= 3000 and iteration_num < 6000:
+		num_removals = 3
+	else:
+		num_removals = 2
 
-	removed_solution, to_remove, removed_from = remove_dummy_call(current_solution, problem, randint(2,3))
+	removed_solution, to_remove, removed_from = remove_dummy_call(current_solution, problem, num_removals)
 	solution = insert_regretk(removed_solution, problem, to_remove, removed_from, 2)
 	return solution
 
@@ -142,17 +179,17 @@ def adaptive_algorithm(problem: dict(), init_sol, num_of_iterations: int = 10000
 
 		# Apply neighbouring function
 		if neighbourfunc_id == 4:
-			s2 = alter_solution_4steven(problem, deepcopy(s2))
+			s2 = alter_solution_4steven(problem, deepcopy(s2), w)
 		elif neighbourfunc_id == 5:
-			s2 = alter_solution_5jackie(problem, deepcopy(s2))
+			s2 = alter_solution_5jackie(problem, deepcopy(s2), w)
 		elif neighbourfunc_id == 6:
-			s2 = alter_solution_6sebastian(problem, deepcopy(s2))
+			s2 = alter_solution_6sebastian(problem, deepcopy(s2), w)
 		elif neighbourfunc_id == 7:
-			s2 = alter_solution_7steinar(problem, deepcopy(s2))
+			s2 = alter_solution_7steinar(problem, deepcopy(s2), w)
 		elif neighbourfunc_id == 8:
-			s2 = alter_solution_8stian(problem, deepcopy(s2))
+			s2 = alter_solution_8stian(problem, deepcopy(s2), w)
 		elif neighbourfunc_id == 9:
-			s2 = alter_solution_9karina(problem, deepcopy(s2))
+			s2 = alter_solution_9karina(problem, deepcopy(s2), w)
 
 		feasiblity, _ = feasibility_check(deepcopy(s2), problem)
 
@@ -243,7 +280,7 @@ def escape_algorithm(problem: dict(), current_solution, allowed_neighbours, best
 	found_new_feasible_solution = False
 	iteration_num = 0
 	probabilities = [1] * len(allowed_neighbours)
-	
+	num_iterations += 5
 	while iteration_num < num_iterations or not found_new_feasible_solution:
 		iteration_num += 1
 
@@ -252,17 +289,17 @@ def escape_algorithm(problem: dict(), current_solution, allowed_neighbours, best
 
 		# Apply neighbouring function
 		if neighbourfunc_id == 4:
-			s2 = alter_solution_4steven(problem, current_solution)
+			s2 = alter_solution_4steven(problem, current_solution, 20000)
 		elif neighbourfunc_id == 5:
-			s2 = alter_solution_5jackie(problem, current_solution)
+			s2 = alter_solution_5jackie(problem, current_solution, 20000)
 		elif neighbourfunc_id == 6:
-			s2 = alter_solution_6sebastian(problem, current_solution)
+			s2 = alter_solution_6sebastian(problem, current_solution, 20000)
 		elif neighbourfunc_id == 7:
-			s2 = alter_solution_7steinar(problem, current_solution)
+			s2 = alter_solution_7steinar(problem, current_solution, 20000)
 		elif neighbourfunc_id == 8:
-			s2 = alter_solution_8stian(problem, current_solution)
+			s2 = alter_solution_8stian(problem, current_solution, 20000)
 		elif neighbourfunc_id == 9:
-			s2 = alter_solution_9karina(problem, current_solution)
+			s2 = alter_solution_9karina(problem, current_solution, 20000)
 
 		feasiblity, _ = feasibility_check(s2, problem)
 
