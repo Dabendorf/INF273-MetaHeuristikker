@@ -1427,3 +1427,18 @@ def return_output_solution(solution: List[List[int]], problem: dict()) -> Tuple[
 				logging.error(f"{new_sol}")
 				return new_sol, False
 
+"""def remove_similar(solution: List[List[int]], problem: dict()) -> Tuple[Tuple[int]]:
+	 Removes n calls from the call list, trying to remove similar calls
+		Returns: (new solution, list of removed calls, where_removed_from) 
+
+	num_calls = problem["num_calls"]
+	call_info = problem["call_info"]
+
+	node_call_info = list() # (origin_node, dest_node, call_num)
+
+	for call_idx in range(num_calls):
+		nci_object = (call_info[call_idx][1], call_info[call_idx][2], call_idx+1)
+		node_call_info.append(nci_object)
+
+	node_call_info.sort()
+	print(node_call_info)"""
